@@ -26,14 +26,15 @@ Le script, relançable sans risque (rien n'est refait inutilement) :
 3. installe `requirements.txt` (`pypdf`, `pytest`) ;
 4. indexe les PDF de `bibliotheque/sources/` (`qa.py actualiser` : ≈ 3 min la première fois,
    quelques secondes ensuite) ;
-5. lance `qa.py diagnostic` et affiche une ligne par contrôle :
+5. lance `qa.py diagnostic` et affiche une ligne par contrôle (sortie réelle du 2026-10-22,
+   Linux, Python 3.13 ; versions et nombres varient selon le poste et l'index) :
 
 ```
-OK  Python                     3.12.4
+OK  Python                     3.13.16
 OK  SQLite FTS5                3.45.1
 OK  pypdf                      installé
-OK  Index                      42 documents, 6738 passages
-OK  Recherche témoin           « risk-based testing » → CTAL-TM-3.0-fr p. 29
+OK  Index                      42 documents, 6743 passages
+OK  Recherche témoin           « risk-based testing » → CTAL-TA-4.0-fr p. 26
 OK  Base d'idées               0 idées
 OK  Fichiers d'intégration     à jour
 

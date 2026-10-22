@@ -16,7 +16,7 @@ import sqlite3
 from datetime import date, datetime
 
 from . import bibliotheque, chemins, journal, taxonomie
-from .textes import jaccard, normaliser, recouvrement, signature
+from .textes import jaccard, mots, motif_sous_sections, normaliser, recouvrement, signature
 
 STATUTS = {
     "a_explorer": "à explorer — piste repérée, pas encore étudiée",
@@ -212,17 +212,52 @@ def _charger(cx, idee_id: str) -> dict:
 
 # ---------------------------------------------------------------- validation
 
+FORMAT_PAGES = re.compile(r"\d+(\s*[-–]\s*\d+)?(\s*,\s*\d+(\s*[-–]\s*\d+)?)*")
+FORMAT_SECTION = re.compile(r"\d+(\.\d+)*")
+MOTS_EXTRAIT_MIN = 6
+
+
 def _pages(texte: str) -> set[int]:
-    """« 31 », « 31-33 », « 4, 6 » → ensemble de pages."""
+    """« 31 », « 31-33 », « 4, 6 » → ensemble de pages. Tout autre format (« -5 »,
+    « p. 4 », « 0 », plage inversée) est refusé plutôt qu'interprété."""
+    texte = texte.strip()
+    if not FORMAT_PAGES.fullmatch(texte):
+        raise ErreurValidation(f"Pages « {texte} » : format attendu « 31 », « 31-33 » ou « 4, 6 ».")
     pages = set()
     for a, b in re.findall(r"(\d+)\s*(?:[-–]\s*(\d+))?", texte):
-        pages |= set(range(int(a), int(b or a) + 1)) if int(b or a) - int(a) < 200 else {int(a)}
+        a, b = int(a), int(b or a)
+        if a < 1 or b < a:
+            raise ErreurValidation(f"Pages « {texte} » : numéros de page à partir de 1, plages croissantes.")
+        pages |= set(range(a, b + 1)) if b - a < 200 else {a}
     return pages
+
+
+def _compacter(texte: str) -> str:
+    """Texte normalisé sans aucun espace : recolle les fragments que les PDF découpent
+    (« êtr e », « perme ttant », coupures de fin de ligne) sans tolérer le moindre
+    changement d'ordre, de mot ni de négation."""
+    return normaliser(texte).replace(" ", "")
+
+
+def _verifier_extrait(extrait: str, texte_source: str, lieu: str) -> None:
+    """L'extrait doit être une suite CONTIGUË du texte cité (après normalisation) et
+    compter au moins MOTS_EXTRAIT_MIN mots significatifs : un sac de mots à 70 %
+    acceptait des citations inversées, inventées ou en vrac (#28)."""
+    significatifs = mots(extrait)
+    if len(significatifs) < MOTS_EXTRAIT_MIN:
+        raise ErreurValidation(
+            f"Extrait trop court ({len(significatifs)} mot(s) significatif(s), minimum {MOTS_EXTRAIT_MIN}) : "
+            "recopier une phrase entière du passage lu.")
+    if _compacter(extrait) not in _compacter(texte_source):
+        raise ErreurValidation(
+            f"L'extrait cité n'apparaît pas mot pour mot {lieu} : recopier une suite continue du passage "
+            "lu (`lire` / `page`), sans reformuler ni couper au milieu.")
 
 
 def _verifier_reference_istqb(ref: dict) -> list[str]:
     """Contrôle une référence ISTQB contre la bibliothèque indexée : document présent,
-    pages existantes, extrait réellement présent sur les pages citées."""
+    pages existantes, section du plan présente sur les pages citées, extrait recopié
+    mot pour mot (suite contiguë) des pages ou de la section citées."""
     problemes = []
     if not chemins.index_db().exists():
         return ["bibliothèque non indexée : référence ISTQB non vérifiable"]
@@ -240,32 +275,37 @@ def _verifier_reference_istqb(ref: dict) -> list[str]:
             problemes.append(f"{d['doc_id']} : fichier source absent de la bibliothèque (référence non relisible)")
         elif d["statut_version"] == "remplace":
             problemes.append(f"{d['doc_id']} est une version remplacée (par {d['remplace_par']})")
-        pages = _pages(str(ref.get("pages") or ""))
+        pages = _pages(str(ref["pages"])) if str(ref.get("pages") or "").strip() else set()
         section = str(ref.get("section") or "").strip().rstrip(".")
         if not pages and not section:
             raise ErreurValidation(f"Référence ISTQB {d['doc_id']} sans page ni section : impossible à vérifier.")
+        if section and not FORMAT_SECTION.fullmatch(section):
+            raise ErreurValidation(f"Section « {section} » : numéro attendu (ex. 3.1.2), voir `plan {d['doc_id']}`.")
         for p in sorted(pages):
-            if not 1 <= p <= (d["nb_pages"] or 0):
+            if p > (d["nb_pages"] or 0):
                 raise ErreurValidation(f"Page {p} inexistante dans {d['doc_id']} ({d['nb_pages']} pages).")
-        if section and not cx.execute("SELECT 1 FROM sections WHERE doc_id=? AND (numero=? OR numero LIKE ?)",
-                                      (d["doc_id"], section, section + ".%")).fetchone():
+        dans_section = "(section_num=? OR section_num LIKE ? ESCAPE '\\')"
+        if section and not cx.execute(f"SELECT 1 FROM sections WHERE doc_id=? AND (numero=? OR numero LIKE ? ESCAPE '\\')",
+                                      (d["doc_id"], section, motif_sous_sections(section))).fetchone():
             raise ErreurValidation(f"Section {section} absente du plan de {d['doc_id']} (voir `plan {d['doc_id']}`).")
+        place = f" AND page IN ({', '.join('?' * len(pages))})"
+        if section and pages and d["statut_version"] != "absent" and not cx.execute(
+                f"SELECT 1 FROM passages WHERE doc_id=? AND {dans_section}{place}",
+                (d["doc_id"], section, motif_sous_sections(section), *sorted(pages))).fetchone():
+            raise ErreurValidation(
+                f"La section {section} de {d['doc_id']} ne figure pas aux pages {ref.get('pages')} : "
+                f"vérifier la page ou la section (`section {d['doc_id']} {section}`).")
         if ref.get("extrait") and d["statut_version"] != "absent":
             sql, params = "SELECT texte FROM passages WHERE doc_id=?", [d["doc_id"]]
             if pages:  # exactement les pages citées
-                sql += f" AND page IN ({', '.join('?' * len(pages))})"
+                sql += place
                 params += sorted(pages)
             else:      # sinon, la section citée et ses sous-sections
-                sql += " AND (section_num=? OR section_num LIKE ?)"
-                params += [section, section + ".%"]
-            texte_n = f" {normaliser(' '.join(x['texte'] for x in cx.execute(sql, params)))} "
-            mots_extrait = set(normaliser(ref["extrait"]).split())
-            trouves = sum(1 for m in mots_extrait if f" {m} " in texte_n)
-            if mots_extrait and trouves / len(mots_extrait) < 0.7:
-                lieu = f"aux pages {ref.get('pages')}" if pages else f"dans la section {section}"
-                raise ErreurValidation(
-                    f"L'extrait cité n'apparaît pas {lieu} de {d['doc_id']} "
-                    f"({trouves}/{len(mots_extrait)} mots retrouvés). Relire le passage (`lire`) et corriger.")
+                sql += f" AND {dans_section}"
+                params += [section, motif_sous_sections(section)]
+            texte = " ".join(x["texte"] for x in cx.execute(sql + " ORDER BY ordre", params))
+            lieu = f"aux pages {ref.get('pages')}" if pages else f"dans la section {section}"
+            _verifier_extrait(ref["extrait"], texte, f"{lieu} de {d['doc_id']}")
     finally:
         cx.close()
     return problemes

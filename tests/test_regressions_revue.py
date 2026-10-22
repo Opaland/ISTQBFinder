@@ -82,7 +82,7 @@ def test_6_numero_de_version_prime_sur_une_date_isolee():
 
 
 def test_7_references_page_exacte_section_et_source_absente(bibliotheque_test):
-    extrait_p5 = "Equivalence partitioning divides data into partitions"
+    extrait_p5 = "Equivalence partitioning divides data into partitions such that all elements"
     with pytest.raises(ErreurValidation, match="n'apparaît pas"):  # extrait de la p. 5 cité en p. 4
         connaissances.valider({**_idee(1), "references": [{"type": "istqb", "doc_id": "CTFL", "pages": "4",
                                                            "extrait": extrait_p5}]})

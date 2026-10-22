@@ -14,7 +14,9 @@ un essai ÉCHOUE (code retour 1) dès qu'une citation n'a pas été lue ou qu'un
 manque (#127) :
 - commandes `qa.py` réellement exécutées par l'agent (lues dans le transcript) ;
 - citations `[DOC …, §x.y, p. N]` : la page N du document a-t-elle été LUE pendant la
-  conversation (présente dans la sortie d'un `lire`, `section` ou `page`) ? ;
+  conversation (présente dans la sortie d'un `lire`, `section` ou `page`) ? Une référence
+  que l'agent déclare lui-même non lue ou non citée dans « Confiance », « Limites » ou
+  « Traçabilité » n'est pas une citation (#139) ;
 - présence d'un score de confiance « Confiance : NN/100 » ;
 - recours au Web ;
 - critères propres à l'essai (`"criteres"` dans eval/essais.json, voir `controler()`) :
@@ -127,15 +129,41 @@ def pages_lues(sorties: str) -> set[tuple[str, int]]:
     return lues
 
 
+# Sections de bilan (#139) : l'agent y déclare ce qu'il n'a PAS lu ou PAS cité.
+RE_TITRE = re.compile(r"^(?:#{1,6}\s|\*\*)", re.M)
+RE_TITRE_BILAN = re.compile(r"^(?:#{1,6}\s*|\*\*)\s*(?:limites?|tra[çc]abilit[ée]|confiance)\b", re.I | re.M)
+RE_PHRASE = re.compile(r"[^\n]+?(?:[.!?](?=\s+[A-ZÀ-Ý«*])|$)", re.M)
+RE_NON_LU = re.compile(r"\bn['’](?:ai|a|ont|est|sont)\s+(?:donc\s+|pas\s+non\s+plus\s+|jamais\s+)?"
+                       r"(?:pas\s+(?:non\s+plus\s+|été\s+|encore\s+)?)?(?:lue?s?|consult[ée]e?s?|ouvert|affich[ée]e?s?|cit[ée]e?s?)\b"
+                       r"|\bnon\s+(?:lue?s?|consult[ée]e?s?|cit[ée]e?s?)\b|\bpas\s+(?:été\s+)?(?:lue?s?|cit[ée]e?s?)\b", re.I)
+
+
+def zones_non_lues(reponse: str) -> list[tuple[int, int]]:
+    """Phrases des sections de bilan (« Confiance », « Limites », « Traçabilité ») qui
+    déclarent une référence non lue ou non citée (#139). Le reste de la réponse, et ces
+    sections hors de telles phrases, restent soumis au contrôle strict."""
+    zones, titres = [], [m.start() for m in RE_TITRE.finditer(reponse)] + [len(reponse)]
+    for debut, fin in zip(titres, titres[1:]):
+        if not RE_TITRE_BILAN.match(reponse, debut):
+            continue
+        for ph in RE_PHRASE.finditer(reponse, debut, fin):
+            if RE_NON_LU.search(ph.group()):
+                zones.append(ph.span())
+    return zones
+
+
 def verifier_citations(reponse: str, lues: set) -> list[dict]:
-    """Chaque citation (code, pages) unique : une des pages a-t-elle été lue ?"""
+    """Chaque citation (code, pages) unique : une des pages a-t-elle été lue ?
+    Une référence que l'agent déclare lui-même non lue ou non citée, dans une section
+    de bilan, n'est pas une citation (#139) ; son code garde le contexte des suivantes."""
     codes_lus = {c for c, _ in lues}
+    exclues = zones_non_lues(reponse)
     out, vues, code = [], set(), None
     for m in RE_JETON.finditer(reponse):
         if m.group("code"):
             code = m.group("code").upper()
             continue
-        if not code:
+        if not code or any(a <= m.start() < b for a, b in exclues):
             continue
         debut, fin = int(m.group("p1")), int(m.group("p2") or m.group("p1"))
         if (code, debut, fin) in vues:

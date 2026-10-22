@@ -250,17 +250,46 @@ def corriger_fautes(requete: str, cx: sqlite3.Connection) -> dict[str, str]:
     connus = _mots_du_thesaurus()
     out = {}
     for m in dict.fromkeys(normaliser(requete).split()):
-        if len(m) < 5 or m.isdigit() or m in MOTS_VIDES or m in connus:
+        if len(m) < 4 or m.isdigit() or m in MOTS_VIDES or m in connus:
             continue
         if cx.execute("SELECT 1 FROM passages_fts WHERE passages_fts MATCH ? LIMIT 1", (f'"{m}"',)).fetchone():
             continue
-        proches = [c for c in connus if c[0] == m[0] and abs(len(c) - len(m)) <= 2]
-        trouve = difflib.get_close_matches(m, proches, n=1, cutoff=SIMILARITE_THESAURUS)
-        if not trouve:
-            trouve = _proche_dans_l_index(m, cx)
+        if len(m) == 4:
+            # Mot de 4 lettres (« tets ») : le ratio difflib d'une seule faute y tombe sous le seuil ;
+            # corrigé seulement si UNE édition (lettre ajoutée, retirée, changée ou deux lettres
+            # voisines inversées) mène à un mot du thésaurus, sans ambiguïté (issue #166).
+            trouve = _a_une_edition(m, connus)
+        else:
+            proches = [c for c in connus if c[0] == m[0] and abs(len(c) - len(m)) <= 2]
+            trouve = difflib.get_close_matches(m, proches, n=1, cutoff=SIMILARITE_THESAURUS)
+            if not trouve:
+                trouve = _proche_dans_l_index(m, cx)
         if trouve:
             out[m] = trouve[0]
     return out
+
+
+def _une_edition(a: str, b: str) -> bool:
+    """Distance de Damerau-Levenshtein exactement 1 (insertion, suppression, substitution ou
+    transposition de deux lettres voisines)."""
+    if a == b or abs(len(a) - len(b)) > 1:
+        return False
+    if len(a) == len(b):
+        diff = [i for i in range(len(a)) if a[i] != b[i]]
+        return len(diff) == 1 or (len(diff) == 2 and diff[1] == diff[0] + 1
+                                  and a[diff[0]] == b[diff[1]] and a[diff[1]] == b[diff[0]])
+    court, long_ = sorted((a, b), key=len)
+    return any(long_[:i] + long_[i + 1:] == court for i in range(len(long_)))
+
+
+def _a_une_edition(mot: str, connus: set[str]) -> list[str]:
+    """Le mot connu à une édition de `mot` (même initiale), le plus proche au sens de difflib
+    (« tets » → « tests » plutôt que « test ») ; rien si deux candidats restent ex æquo."""
+    cands = sorted(((difflib.SequenceMatcher(None, mot, c).ratio(), c) for c in connus
+                    if c[0] == mot[0] and _une_edition(mot, c)), reverse=True)
+    if not cands or (len(cands) > 1 and cands[1][0] == cands[0][0]):
+        return []
+    return [cands[0][1]]
 
 
 def _proche_dans_l_index(mot: str, cx: sqlite3.Connection) -> list[str]:

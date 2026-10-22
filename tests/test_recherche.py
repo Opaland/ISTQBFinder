@@ -70,3 +70,13 @@ def test_filtre_qui_exclut_un_document_le_dit(bibliotheque_test):
     assert any("exclu par `--niveau expert`" in w for w in r["avertissements"])
     r = recherche.chercher("equivalence partitioning", docs=["CTAL-TM"])
     assert any("CTAL-TM : absent" in w for w in r["avertissements"])
+
+
+def test_confiance_documentaire(bibliotheque_test):
+    bonne = recherche.chercher("equivalence partitioning")["confiance"]
+    assert bonne["score"] >= 75 and bonne["libelle"] == "élevée"
+    assert "une section est consacrée à la notion" in bonne["raisons"]
+    partielle = recherche.chercher("equivalence partitioning blockchain")["confiance"]
+    assert partielle["score"] < bonne["score"]
+    assert recherche.chercher("blockchain quantique")["confiance"] == {
+        "score": 0, "libelle": "nulle", "raisons": ["aucun passage trouvé"]}

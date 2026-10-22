@@ -154,6 +154,26 @@ def test_couverture_signale_les_themes_vides():
     assert rows["exploratoire"]["etat"] == "vide" and rows["exploratoire"]["passages"] is None
 
 
+def test_modifier_refuse_les_champs_geres_par_l_outil_et_inconnus():
+    """#51 : un champ « id » dans `idee modifier` écrasait silencieusement une autre idée."""
+    connaissances.ajouter(dict(IDEE))
+    connaissances.ajouter({**IDEE, "titre": "Charte de session exploratoire", "resume": "Cadrer une session.",
+                           "probleme": "Exploratoire non tracé.", "principe": "Charte et debriefing.",
+                           "theme_principal": "exploratoire",
+                           "references": [{"type": "web", "url": "https://exemple.org/c", "titre": "C"}]})
+    avant = chemins.connaissances_jsonl().read_text(encoding="utf-8")
+    for champ, valeur in (("id", "QA-0002"), ("cree_le", "1999-01-01"), ("maj_le", "1999-01-01"),
+                          ("relations", [{"cible": "QA-0002", "type": "variante"}]),
+                          ("retours", [{"contexte": "x", "resultat": "y"}])):
+        with pytest.raises(ErreurValidation, match=champ):
+            connaissances.modifier("QA-0001", {champ: valeur, "titre": "Titre modifié"})
+    with pytest.raises(ErreurValidation, match="inconnu.*couleur"):
+        connaissances.modifier("QA-0001", {"couleur": "bleu"})
+    with pytest.raises(ErreurValidation, match="id"):
+        connaissances.ajouter({**IDEE, "id": "QA-0002"})
+    assert chemins.connaissances_jsonl().read_text(encoding="utf-8") == avant
+    assert connaissances.voir("QA-0002")["references"][0]["url"] == "https://exemple.org/c"
+
 def _ref_ctfl(**champs):
     return {**IDEE, "references": [{"type": "istqb", "doc_id": "CTFL", **champs}]}
 

@@ -34,7 +34,7 @@ $ python qa.py lire 8488
 >   [ISTQB CTFL-AT 2014 FR, §3.2.1, p. 34].
 > - **Suivi continu** : les risques et leurs niveaux évoluent ; en cycle itératif, le suivi
 >   des risques se fait à une fréquence fixée par l'équipe, vraisemblablement à chaque
->   itération [ISTQB CTAL-TA v4.0 FR, §2.2, p. 28 ; EN §2.1, p. 25].
+>   itération [ISTQB CTAL-TA v4.0 FR, §2.2, p. 28 ; EN §2 (introduction du chapitre), p. 25].
 >
 > Interprétation : intégrer un court atelier risques au refinement plutôt qu'un
 > document de stratégie séparé. Limite : le syllabus CTFL-AT date de 2014.
@@ -52,21 +52,24 @@ $ python qa.py lire 8488
 $ python qa.py chercher maintenabilité solution automatisation --doc CTAL-TAE
 [1] CTAL-TAE-2.0-en … p. 32 · §4.3 Test Automation Solution Maintainability
 $ python qa.py section CTAL-TAE-2.0-fr 4.3
+$ python qa.py section CTAL-TAE-2.0-fr 3.1.3      # superposition (couches) du TAF
 $ python qa.py section CTAL-TAE-2.0-fr 3.1.5      # principes et canevas de conception
 $ python qa.py chercher playwright
 ⚠ Aucun passage trouvé dans la bibliothèque locale : reformuler (termes anglais des syllabus),
   élargir les filtres, ou justifier une recherche Web.
 ```
 
-> **Assistant** : Les syllabus donnent les principes (maintenabilité de la solution
-> d'automatisation, conception en couches, canevas de conception) [ISTQB CTAL-TAE v2.0 FR,
-> §4.3 et §3.1.5 — pages lues]. Ils ne parlent pas de Playwright : **recherche Web
+> **Assistant** : Les syllabus donnent les principes : maintenabilité de la solution
+> d'automatisation [ISTQB CTAL-TAE v2.0 FR, §4.3, p. 35], superposition du framework en
+> couches (scripts de test, logique métier, bibliothèques principales)
+> [ISTQB CTAL-TAE v2.0 FR, §3.1.3, p. 26 ; EN p. 24], canevas de conception dont le modèle
+> d'objet de page [ISTQB CTAL-TAE v2.0 FR, §3.1.5, p. 31]. Ils ne parlent pas de Playwright : **recherche Web
 > nécessaire** pour les pratiques propres à l'outil (sélecteurs, auto-wait, fixtures).
 >
 > *(WebSearch / WebFetch sur la documentation officielle Playwright)*
 >
 > **Diagnostic** · **Options** (1. sélecteurs orientés utilisateur — Web : doc Playwright ;
-> 2. Page Object / couches — ISTQB CTAL-TAE §3.1.5 ; 3. quarantaine et suivi des tests
+> 2. couches du TAF — ISTQB CTAL-TAE §3.1.3 ; Page Object — §3.1.5 ; 3. quarantaine et suivi des tests
 > instables — Web ; …) · **Recommandation** · **Mise en œuvre** · **Indicateurs** (taux de
 > tests instables, temps de correction après changement d'UI) · **Sources et limites**
 > (ISTQB = principes génériques ; Web = documentation d'outil, consultée le …).

@@ -2,61 +2,70 @@
 
 **Question** : Comment on gère les risques ?
 
-**Tours** : 4 · **coût** : 0.123 $ · **confiance annoncée** : 82 · **citations** : 1/1 lues · **Web** : 0 · **critères** : 3/3
+**Tours** : 6 · **coût** : 0.147 $ · **confiance annoncée** : 76 · **verdict** : ÉCHEC · **citations** : 3/3 lues · **Web** : 0 · **critères** : 2/3 (manquent : questions_choix)
 
 ## Réponse
 
-**Hypothèse :** vous parlez de la gestion des risques **produit/qualité** dans un projet de test, pas des risques projet en général. Je n'ai pas de contexte sur votre projet (cycle de vie, criticité, réglementation).
+## La gestion des risques en test (ISTQB)
 
-## Ce que disent les syllabus (passages lus)
+**Hypothèse :** vous parlez des risques qualité et produit, côté Test Manager (test basé sur les risques), pas des risques projet au sens large. Dites-moi si vous visiez autre chose.
 
-**Le processus** [CTAL-TM v3.0 FR, §1.3.1, p. 29]
-- Le test basé sur les risques suit le processus générique de gestion du risque. Il a deux grandes activités :
-  - **l'analyse des risques** (identification, puis évaluation) ;
-  - **le contrôle des risques** (suivi et atténuation).
-- Ces activités sont séquentielles dans l'ordre, mais elles peuvent se chevaucher.
-- L'analyse doit associer **diverses parties prenantes**. Le Test Manager en est la partie prenante principale et doit pouvoir la modérer.
-- Le suivi des tests inclut le suivi des risques. Il couvre l'évolution des risques connus, l'analyse des nouveaux risques et l'ajustement du **registre des risques**.
-- Les niveaux de risque guident ensuite tout le test :
-  - planification : où concentrer l'effort et avec quelles techniques ;
-  - analyse : quelles conditions de test couvrir ;
-  - exécution : l'ordre des tests.
+**Base d'idées :** aucune idée capitalisée sur le sujet pour l'instant.
 
-**Le choix de la technique** [CTAL-TM v3.0 FR, §1.3.5, pp. 33-34]
-- **Techniques lourdes** (formelles, documentées, larges groupes de parties prenantes, souvent pour les systèmes critiques en sécurité) :
-  - analyse des dangers ;
-  - coût de l'exposition ;
-  - AMDE (analyse des modes de défaillance et de leurs effets) ;
-  - arbres de défaillance.
-- **Techniques légères** (moins d'effort, facteurs réduits à probabilité × impact sur une échelle ordinale, usage courant hors systèmes critiques en sécurité) :
-  - SST (tests systématiques de logiciels) ;
-  - PRAM (analyse et gestion pragmatiques des risques) ;
-  - PRISMA (gestion des risques produit).
-- Le choix dépend du projet, du processus et du produit.
+### Ce que disent les syllabus (passages lus)
 
-## Pistes à creuser (non lues en détail, donc à ne pas citer)
-- CTFL v4.0.1 EN, §5.2 (« Risk Management ») et §5.2.3-5.2.4, pour la version de base : analyse, puis contrôle (mitigation et monitoring).
-- CTAL-TA v4.0 FR, §2.2 (contrôle des risques) et §3.5.1 (choisir les techniques de test pour atténuer les risques produit).
-- CTAL-TTA v4.0 FR, §1.2.2 (évaluation des risques).
-- CT-PT 2018 FR, §3.3 (risques de performance) et CT-TAS 1.0 FR, §4.2.2 (risques de l'automatisation).
+- **Le processus** [CTAL-TM v3.0 FR, §1.3.1, p. 29]. Le test basé sur les risques suit le processus générique de gestion du risque, en deux temps :
+  - l'**analyse des risques**, qui comprend l'identification et l'évaluation ;
+  - le **contrôle des risques**, qui consiste à suivre et à atténuer.
+  
+  Ces activités sont séquentielles mais peuvent se chevaucher.
+- **Les tests sont un moyen d'atténuation.** Un défaut trouvé est un risque traité avant la release. Une absence de défaut indique un risque plus faible que prévu [CTAL-TM v3.0 FR, §1.3.1, p. 29].
+- **L'atténuation se répartit sur tout le processus de test** [CTAL-TM v3.0 FR, §1.3.1, p. 29] :
+  - planification : concentrer les tests sur les bons domaines avec les bonnes techniques ;
+  - analyse : le niveau de risque guide les conditions de test à couvrir ;
+  - exécution : la hiérarchisation par les risques fixe l'ordre des tests.
+- **Identification** [CTAL-TM v3.0 FR, §1.3.2, pp. 29-30]. Le Test Manager recueille les risques auprès des parties prenantes avec ces techniques :
+  - entretiens avec des experts ;
+  - évaluations indépendantes ;
+  - rétrospectives ;
+  - ateliers sur les risques ;
+  - brainstorming ;
+  - checklists ;
+  - expérience passée.
 
-La base d'idées capitalisées ne contient rien sur ce sujet.
+  Deux points d'attention :
+  - la liste des participants doit être convenue avec le chef de projet, car oublier une partie prenante clé est « très problématique » ;
+  - le risque n'est pas réparti uniformément : une zone client et une zone d'administration n'ont pas les mêmes risques d'utilisabilité.
+- **Contrôle et suivi** [CTAL-TM v3.0 FR, §1.3.1, p. 29]. Le suivi des tests inclut celui des risques : nouveaux risques et ajustement du registre des risques.
+- **Rôle de l'analyste de test** [CTAL-TA v4.0 FR, §2.2, p. 28]. Les risques et leurs niveaux évoluent. Le pilotage est donc régulier, une fois par itération en cycle itératif. L'analyste met à jour le référentiel de risques et ajuste les actions d'atténuation. Il le fait par les revues, les techniques et niveaux de couverture adaptés, les types de tests adaptés et la régression.
 
-**Confiance : 82/100.** Deux sections consacrées au sujet ont été lues en entier dans le CTAL-TM. Je retire des points parce que les autres syllabus ne sont connus que par des extraits et parce que votre contexte est inconnu.
+### Où creuser ensuite (non lu, donc non cité)
+- **CTAL-TM §1.3.5** : techniques formelles (PRAM, PRISMA) citées dans l'extrait de recherche.
+- **CTAL-TTA §1.2.2** : évaluation des risques côté technique.
+- **CTAL-TA §3.5.1** : choix des techniques de test pour atténuer les risques produit.
+- **CT-ATLaS §5.1.5** : risques organisationnels en contexte agile à grande échelle (tableau de risques partagé).
+- **CT-TAS §4.2.3** : risques de déploiement de l'automatisation.
 
-## Questions à choix
-1. **Criticité du produit** : (a) critique en sécurité ou réglementé, (b) métier standard, (c) non critique.
-2. **Votre besoin** : (a) mettre en place un processus d'analyse des risques, (b) choisir entre une technique lourde et une légère, (c) relier les risques à la priorisation des tests, (d) risques de l'automatisation ou de la performance.
+### Par quoi je commencerais
+1. **Atelier de risques** avec les parties prenantes, pour obtenir un registre initial (impact élevé, effort faible).
+2. **Relier les niveaux de risque** à la priorisation des conditions et de l'exécution des tests.
+3. **Revoir le registre à chaque itération** ou jalon (effort faible, bénéfice durable).
 
-## Par quoi je commencerais
-1. **Un atelier d'analyse légère avec les parties prenantes** (impact × probabilité, échelle ordinale) : impact fort, effort faible.
-2. **Un registre des risques relié au suivi des tests**, mis à jour à chaque point d'avancement : impact moyen, effort faible.
-3. **Une AMDE sur les seules zones critiques**, si le produit s'y prête : impact fort, effort élevé.
+### Questions à choix
+- Votre cycle de vie : 1. agile/itératif · 2. cascade/V · 3. mixte ?
+- Angle à approfondir : 1. techniques d'évaluation (PRAM/PRISMA) · 2. lien risques → stratégie de test · 3. risques projet et organisationnels ?
 
-Dites-moi le cadrage et je peux faire une recherche plus approfondie, par exemple avec l'agent Thomas.
+**Confiance : 76/100 (élevée)**
+- Base : 94 × 0,6 = 56
+- Passages lus (3) : +20
+- Syllabus concordants (2) : +10
+- Interprétation (hypothèse de cadrage) : −10
+
+Je peux capitaliser une idée sur ce sujet, par exemple « atelier de risques puis revue à chaque itération », si vous le souhaitez.
 
 ## Commandes exécutées
 
-- `Read {"file_path": "/tmp/claude-0/-home-user/da9346e2-ce5e-5882-830a-19be129b35c4/scratchpad/wt-90/.claude/skills/qa-knowledg`
-- `python qa.py idee chercher "gestion des risques" 2>&1 | head -40; python qa.py chercher "gestion des risques produit" 2>&1 | head -60`
-- `python qa.py section CTAL-TM-3.0-fr 1.3.1 2>&1 | head -70; python qa.py section CTAL-TM-3.0-fr 1.3.5 2>&1 | head -50; python qa.py chercher "risk-based testing" --doc CTFL 2>&1 | head -25`
+- `Skill {"skill": "qa-knowledge", "args": "Comment on gère les risques ?"}`
+- `python qa.py idee chercher risque risk-based 2>&1 | head -40; echo ======; python qa.py chercher "risk-based testing gestion des risques" 2>&1 | head -60`
+- `python qa.py section CTAL-TM-3.0-fr 1.3.1 --max-caracteres 3500 2>&1; echo =====; python qa.py section CTAL-TA-4.0-fr 2.2 --max-caracteres 2500 2>&1`
+- `python qa.py section CTAL-TM-3.0-fr 1.3.2 --max-caracteres 3500 2>&1; python qa.py confiance --base 94 --lus 3 --concordants 2 --ancien 0 --contradiction 0 --web 0 --raisonnement 1 --non-couvert 0 2>&`

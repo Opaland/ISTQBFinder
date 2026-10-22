@@ -2,74 +2,80 @@
 
 **Question** : On veut automatiser 100 % de nos tests de régression avec Playwright, les lancer à chaque commit et supprimer les tests manuels. Est-ce aligné avec les recommandations ISTQB ? Niveau de maturité ?
 
-**Tours** : 7 · **coût** : 0.164 $ · **confiance annoncée** : 72 · **citations** : 6/6 lues · **Web** : 0
+**Tours** : 7 · **coût** : 0.131 $ · **confiance annoncée** : 80 · **verdict** : réussi · **citations** : 7/7 lues · **Web** : 0
 
 ## Réponse
 
-Votre démarche est alignée sur le principe (automatiser la régression, l'exécuter en continu). Elle présente en revanche un écart net sur « 100 % » et sur « supprimer les tests manuels », et plusieurs étapes décrites par l'ISTQB n'y figurent pas.
+**Avis indicatif d'alignement sur les syllabus ISTQB locaux ; ni attestation de conformité, ni évaluation ISTQB/TMMi/ISO.**
 
-## Pratiques reformulées
-- **P1** : automatiser 100 % des tests de régression.
-- **P2** : utiliser Playwright comme outil.
-- **P3** : lancer la régression à chaque commit.
-- **P4** : supprimer les tests manuels.
+**Synthèse.** La démarche est en partie alignée. Automatiser la régression et l'intégrer au pipeline CI/CD est recommandé. En revanche, « 100 % automatisé », « tout à chaque commit » et « suppression des tests manuels » vont plus loin que ce que décrivent les syllabus lus. Je relève un écart net (supprimer les tests manuels) et deux pratiques partiellement alignées. Aucune pratique n'est décrite comme déjà en place : le niveau est plafonné à 1.
 
-## Verdicts
+**Pratiques reformulées** (uniquement celles que tu décris) :
+- P1 : automatiser 100 % de la régression avec Playwright. Intention.
+- P2 : lancer ces tests à chaque commit. Intention.
+- P3 : supprimer les tests manuels. Intention.
 
-| Pratique | Verdict | Ce que dit l'ISTQB | Source |
-|---|---|---|---|
-| P1 : automatiser la régression | Partiellement conforme | La régression est « l'opportunité la plus simple » pour passer à l'automatisation. Il faut d'abord vérifier que le test manuel fonctionne, puis démontrer l'équivalence du test automatisé avant de remplacer l'ancien. Automatiser 100 % des tests manuels n'équivaut pas à couvrir 100 % de ce qui est automatisable. Le « 100 % » comme objectif n'est pas recommandé. | [CT-TAS v1.0 FR, §6.1.1, pp. 49-50] |
-| P1 (suite) : choix de ce qu'on automatise | Écart sur le « 100 % » | L'approche de régression basée sur les risques aide à décider « où l'automatisation est inutile et où l'investigation humaine apporte plus de valeur ». Parmi les risques de l'automatisation figurent l'usage d'un outil « quand le test manuel est plus approprié » et l'excès de confiance dans l'outil, qui ignore l'esprit critique humain. | [CTAL-AT v2.0 EN, §1.4, p. 17] ; [CTFL v4.0.1 EN, §6.2, p. 60] |
-| P2 : Playwright | Hors ISTQB | Les syllabus que j'ai lus ne traitent pas d'un outil en particulier. Le CTFL demande d'analyser et d'atténuer les risques liés à l'outil : estimation de l'effort de maintenance, compatibilité avec la plateforme, dépendance au fournisseur ou à l'open source. | [CTFL v4.0.1 EN, §6.2, pp. 59-60] |
-| P3 : à chaque commit | Partiellement conforme | Le syllabus décrit la régression incrémentale : un sous-ensemble de tests est déclenché à chaque commit. Il est choisi selon l'impact et la probabilité de risque, la localisation et les dépendances du changement. Rien dans les passages lus ne dit de lancer toute la suite à chaque commit. Les suites longues peuvent tourner la nuit. Les tests système se placent plutôt dans le pipeline de déploiement. | [CTAL-AT v2.0 EN, §1.4, p. 17] ; [CTAL-TAE v2.0 FR, §5.1.1, pp. 38-39] |
-| P4 : supprimer les tests manuels | Écart (si cela inclut l'exploratoire) ; conforme seulement pour l'exécution manuelle de la régression, une fois l'équivalence démontrée | Une fois les tests automatisés jugés équivalents, l'effort manuel peut aller vers les tests exploratoires et la conception de nouveaux cas. Les approches « exploratory regression » et « collaborative regression » complètent l'automatisation. La seconde est utile quand l'automatisation n'est pas encore mature. | [CT-TAS v1.0 FR, §6.1.1, p. 49] ; [CTAL-AT v2.0 EN, §1.4, pp. 17-18] |
+| Pratique | Intention / en place | Verdict | Ce que dit l'ISTQB | Source |
+|---|---|---|---|---|
+| P1 Automatiser la régression | Intention | Partiellement aligné | La régression doit être « aussi complètement automatisée que possible » et intégrée à la conception du pipeline. Aucun passage lu ne fixe 100 % comme objectif. L'automatisation a aussi des risques : attentes irréalistes, coûts de maintenance mal estimés, outil utilisé là où le manuel conviendrait mieux, confiance excessive dans l'outil. Le choix de Playwright n'est pas évalué ici : ces passages ne traitent pas de la sélection d'outil. | [CT-QDO v1.0 EN, §3.2.1, p. 39] ; [CTFL v4.0.1 EN, §6.2, pp. 59-60] |
+| P2 Exécution à chaque commit | Intention | Partiellement aligné | Une régression incrémentale lance **un sous-ensemble** de tests à chaque commit, choisi selon l'impact et la probabilité de risque ainsi que la localisation et les dépendances du changement. Toute la suite n'est pas relancée à chaque fois : cela consommerait des ressources inutilement. Plusieurs suites, avec des fréquences et des moments différents (avant ou après fusion, de nuit), sont courantes. La suite complète tourne avant la mise en production. | [CTAL-AT v2.0 EN, §1.4, p. 17] ; [CT-QDO v1.0 EN, §3.2.1, p. 39] ; [CTAL-TAE v2.0 EN, §5.1.1, p. 35] |
+| P3 Supprimer les tests manuels | Intention | **Écart** | Même avec un haut niveau d'automatisation, le test manuel reste nécessaire, notamment du point de vue de l'utilisateur. Certains aspects de qualité (ex. l'utilisabilité) sont difficiles à évaluer automatiquement. Le test exploratoire complète l'automatisation. Un risque cité est de s'en remettre trop à l'outil et d'ignorer l'esprit critique humain. | [CTFL v4.0.1 EN, §2.1.4, p. 27] ; [CT-QDO v1.0 EN, §2.1.2, p. 24] ; [CTAL-AT v2.0 EN, §1.4, p. 17] ; [CTFL v4.0.1 EN, §6.2, p. 60] |
 
-## Ce qui manque
-- **Sélection et revue du périmètre de régression** à chaque cycle, par analyse d'impact, risques, historique, couverture, traçabilité ou profils opérationnels. L'ISTQB note que l'exécution complète est parfois impossible, y compris pour les tests automatisés de longue durée. [CTAL-TA v4.0 FR, §2.2.1, pp. 28-29]
-- **Traçabilité** entre stories, exigences et tests, pour savoir quoi rejouer et repérer les trous de couverture. [CTAL-AT v2.0 EN, §1.4, p. 18]
-- **Plan de transition manuel → automatisé** :
-  - coûts de double exécution pendant la transition ;
-  - chevauchement fonctionnel (par exemple le login factorisé en composant) ;
-  - données de test partagées ;
-  - interdépendance des tests ;
-  - préconditions d'exécution.
+**Ce qui manque**
+- **Sélection fondée sur les risques.** Aucune sélection des tests à automatiser ou à lancer n'est décrite. Le syllabus mentionne une sélection par risque, par analyse d'impact ou par tags et filtres. Il précise aussi que cette approche aide à décider où l'automatisation est inutile et où l'humain apporte plus de valeur [CTAL-AT v2.0 EN, §1.4, p. 17] ; [CT-QDO v1.0 EN, §3.2.1, p. 39].
+- **Stratification des suites.** Les suites (smoke, régression ciblée, régression complète) ne sont pas définies. Le syllabus les distingue selon leur finalité, avec des pipelines et des environnements différents [CTAL-TAE v2.0 EN, §5.1.2, p. 35]. Le smoke test peut servir de barrière qualité [CTAL-AT v2.0 EN, §1.4, p. 17].
+- **Rôle du test manuel et exploratoire.** Ce rôle n'est pas défini, alors que le syllabus prévoit explicitement une complémentarité avec l'automatisation [CTAL-AT v2.0 EN, §1.3, p. 17].
+- **Analyse des risques de l'automatisation.** Il n'y a ni estimation de l'effort de maintenance des scripts ni plan d'atténuation [CTFL v4.0.1 EN, §6.2, p. 60].
+- **Gestion de configuration du testware.** Elle couvre la configuration des environnements, les données de test et les suites. Elle n'est pas mentionnée [CTAL-TAE v2.0 EN, §5.1.2, p. 35].
+- **Environnements de test parallèles.** Ils ne sont pas mentionnés. Ils servent à raccourcir les temps d'exécution [CT-QDO v1.0 EN, §3.2.1, p. 39].
 
-  [CT-TAS v1.0 FR, §6.1.1, pp. 49-50]
-- **Analyse des risques de l'outil et de l'automatisation** : attentes irréalistes, maintenance sous-estimée, compétences. [CTFL v4.0.1 EN, §6.2, p. 60] ; [CTEL-TM 2011 EN, §2.3.7, p. 16]
-- **Conditions de succès de la stratégie** : tests maintenables, compétences de l'équipe, outils disponibles, périmètre produit changeant. [CTEL-TM 2011 EN, §2.3.7, p. 16]
-- **Amélioration continue de la sélection** : analyser l'efficacité des techniques après chaque cycle, garder les efficaces et remplacer les autres. [CTAL-TA v4.0 FR, §2.2.1, p. 29]
-- **Mesure** : rien n'est dit sur les indicateurs de succès (fiabilité de la suite, taux de tests instables, défauts échappés).
+**Niveau atteint : 1 — Initial · niveau visé : 2 — Discipliné**
+- Aucune pratique n'est « en place », donc le plafond est 1. Je n'ai aucune preuve d'une stratégie écrite, d'un pipeline existant ou d'indicateurs.
+- Visé : 2. Pour y arriver, il faudrait une stratégie d'automatisation écrite, des suites planifiées, un suivi des résultats et un environnement de test. Ces critères viennent de la grille du dépôt.
+- **Pour passer au niveau 2** :
+  - Garder le test manuel et exploratoire ciblé sur ce que l'automatisation évalue mal.
+  - Définir des suites par risque et par fréquence.
+  - Écrire la stratégie.
+  - Suivre les exécutions et la maintenance.
+- Les niveaux 3 à 5 sont une adaptation du dépôt, non issue des syllabus lus.
 
-## Niveau de maturité : 1 — Initial
-La démarche est une intention. Je ne vois ni étapes définies, ni rôles, ni planification, ni suivi. Aucun critère du niveau 2 n'est démontré, et un critère non mentionné compte comme non démontré. Ce n'est pas une évaluation TMMi officielle.
+**Confiance : 80/100.** Les passages cités sont lus : CTFL v4.0.1, CT-QDO, CTAL-AT v2.0 et CTAL-TAE v2.0. Ils convergent sur les trois pratiques. La confiance n'est pas plus haute pour deux raisons : la démarche est brève, et je n'ai pas lu les sections de CTAL-TAE sur la stratégie d'automatisation ni sur la maintenance.
 
-**Pour passer au niveau 2 (Géré), au niveau d'un projet :**
-- remplacer « 100 % » par un périmètre priorisé selon les risques ;
-- planifier la transition avec exécution manuelle et automatisée en parallèle, puis valider l'équivalence ;
-- définir les suites déclenchées par commit, par nuit et par déploiement ;
-- garder l'exploratoire et la régression collaborative ;
-- assigner des rôles et un suivi (revue du périmètre à chaque cycle).
+**Limites**
+- Aucun syllabus de la bibliothèque ne couvre Playwright ni un outil particulier.
+- Si ton domaine est réglementé, aucun syllabus lu ne couvre ce cadre. Les exigences correspondantes sont non vérifiables ici. Le syllabus mentionne seulement le risque de choisir un outil non conforme [CTFL v4.0.1 EN, §6.2, p. 60].
+- La conformité ISO/IEC/IEEE 29119 est non vérifiable : cette norme n'est pas dans la bibliothèque.
+- Si tu veux que je précise ou affines, deux questions utiles pour la suite.
 
-Les niveaux 3 à 5 demandent une stratégie d'automatisation commune à l'organisation, des métriques définies à l'avance, puis une amélioration continue fondée sur ces mesures.
+**Questions à choix**
+1. Ton contexte est-il réglementé (santé, finance, ferroviaire) ?
+   - Non
+   - Oui, je précise le domaine
+   - Je ne sais pas
+2. Quelle suite veux-tu ?
+   - Une liste de contrôle d'automatisation de la régression au format JSON, sans l'enregistrer
+   - Une recherche de Thomas sur la stratégie d'automatisation (CTAL-TAE)
+   - Aucune
 
-## Confiance : 72/100
-- La recherche sur la régression et l'automatisation est bien couverte : 4 syllabus contiennent toutes les notions, et j'ai lu les sections citées.
-- Je n'ai pas fait de recherche spécifique sur CI/CD « à chaque commit » en dehors du CTAL-AT et du CTAL-TAE.
-- Je n'ai pas lu les sections plus générales de CT-TAS sur la stratégie, ni la gestion des tests instables.
-- Votre message est bref : j'ai supposé que « supprimer les tests manuels » inclut l'exploratoire. Si vous visez seulement l'exécution manuelle de la régression, P4 devient conforme sous condition.
+**Traçabilité**
+- Date de l'avis : 2026-10-22.
+- Documents lus, tous publiés par l'ISTQB :
+  - CTFL-4.0.1-en (v4.0.1, 2024-09-15) : pp. 27, 59, 60.
+  - CTAL-AT-2.0-en (v2.0, 2026-04-17) : p. 17, §1.3 et §1.4.
+  - CT-QDO-1.0-en (v1.0, 2026-04-17) : pp. 24, 39.
+  - CTAL-TAE-2.0-en (v2.0, 2024-05-03) : p. 35, §5.1.1 et §5.1.2.
+- Requêtes `chercher` lancées :
+  - `"test automation regression suite benefits risks manual testing"`
+  - `"automatisation des tests régression intégration continue"`
+  - `"test automation not everything can be automated manual testing still needed suitability"`
 
-**Limites :**
-- L'ISO/IEC/IEEE 29119 n'est pas dans la bibliothèque, donc toute conformité ISO est non vérifiable.
-- Playwright n'est pas évaluable avec les syllabus. Thomas pourrait chercher sur le Web si vous voulez comparer les outils.
-- CTAL-AT v2.0 est un syllabus avancé en anglais seulement, et j'ai traduit les passages cités.
-
-## À capitaliser ?
-Une idée durable ressort : une liste de contrôle « passage du manuel à l'automatisation de la régression ». Elle comprendrait les prérequis (test exécutable, équivalence), les risques de l'outil, le périmètre par risque, la place de l'exploratoire et les déclencheurs en pipeline. Je ne l'ai pas enregistrée. Voulez-vous que je prépare la fiche et vérifie les doublons ?
+**Avis indicatif d'alignement sur les syllabus ISTQB locaux ; ni attestation de conformité, ni évaluation ISTQB/TMMi/ISO.**
 
 ## Commandes exécutées
 
-- `Skill {"skill": "qa-knowledge"}`
-- `Read {"file_path": "/home/user/istqbfinder/referentiel/grille-maturite.md"}`
-- `python qa.py chercher "test automation regression suite benefits risks" && python qa.py chercher "automatisation des tests régression 100 % tests manuels"`
-- `python qa.py section CTFL-4.0.1-en 6.2; echo ======; python qa.py section CT-TAS-1.0-fr 6.1.1; echo ======; python qa.py section CTEL-TM-2011-en 2.3.7`
-- `python qa.py section CTAL-AT-2.0-en 1.4; echo ======; python qa.py section CTAL-TAE-2.0-fr 5.1.1; echo ======; python qa.py section CTAL-TA-4.0-fr 2.2.1`
+- `Read {"file_path": "/tmp/claude-0/-home-user/da9346e2-ce5e-5882-830a-19be129b35c4/scratchpad/wt-G/referentiel/grille-maturite`
+- `python qa.py chercher "test automation regression suite benefits risks manual testing" 2>&1 | head -80`
+- `python qa.py chercher "automatisation des tests régression intégration continue" 2>&1 | head -80`
+- `python qa.py page CTFL-4.0.1-en 59; python qa.py page CTAL-AT-2.0-en 17; python qa.py page CT-QDO-1.0-en 39; python qa.py page CTAL-TAE-2.0-en 35`
+- `python qa.py page CTFL-4.0.1-en 60; python qa.py chercher "test automation not everything can be automated manual testing still needed suitability" 2>&1 | head -40`
+- `python qa.py page CTFL-4.0.1-en 27; python qa.py page CT-QDO-1.0-en 24`

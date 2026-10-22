@@ -25,6 +25,10 @@ Linux/macOS si `python` est absent). `--help` sur chaque commande.
    relance sans le filtre avant de dire qu'un syllabus manque.
 3. **Lire avant de citer** : `lire <passage> --contexte 1`, `section <doc> <num>`,
    `page <doc> <p>`. Un extrait de recherche ne suffit jamais pour affirmer.
+   **Jamais de `| head`** (ni `tail`, `cut`, `grep`) sur `lire`, `section` ou `page` : la
+   partie coupée n'est pas lue. Sortie trop longue → `--max-caracteres N`, ou la
+   sous-section précise (`section CTAL-TM-3.0-fr 1.3.3`) parmi celles que liste
+   « ✂ Sortie tronquée… Reste à lire ».
 4. **Web** seulement si un besoin identifiable le justifie (voir plus bas) — dis
    pourquoi en une phrase avant de chercher.
 5. **Capitalisation** : propose ce qui mérite d'être conservé (voir plus bas).
@@ -80,8 +84,16 @@ ailleurs ; jamais bloquant (`claude -p` : hypothèses explicites, questions en f
 - Ne cite **que** ce que tu as lu via `lire`/`section`/`page`. Jamais de numéro de page,
   de section ou de passage inventé. Format : `[CTAL-TM v3.0 FR, §1.3.2, p. 29]`
   (page physique du PDF ; préciser « imprimée » si l'outil l'affiche).
+- **Page affichée** = page d'un en-tête `── <doc> · … · p. N · §x.y` effectivement
+  affiché. Ce qui suit « ✂ Sortie tronquée » ou une troncature n'est pas lu, même si la
+  section voisine semble évidente.
+- **Code exact du document** : reprends le sigle du `doc_id` affiché (`CT-TAS-1.0-en` →
+  `[CT-TAS v1.0 EN, …]`, jamais « CTAL-TAS ») et la section telle que l'en-tête la donne.
+  Chaque `[référence]` nomme son document : jamais `[§1.3.4, p. 32]` seul.
+- Une page non affichée ne se cite pas, même assortie de « non lu » ou « d'après la
+  grille » : écris « à lire : CTEL-ITP §3.3.2 », sans page.
 - **Contrôle avant d'envoyer** : pour chaque `[référence]` de la réponse, retrouve le
-  `lire`/`section`/`page` qui a affiché **cette page de ce document**. Un extrait de
+  `lire`/`section`/`page` qui a affiché **cette page de ce document** (même sigle). Un extrait de
   `chercher` ne compte pas. Introuvable → lis le passage maintenant, ou retire la
   référence (au besoin « à lire : §x » sans page, dans « Où creuser »).
 - Distingue toujours : **ISTQB** (passage lu) · **Web** (URL + date) · **base capitalisée**

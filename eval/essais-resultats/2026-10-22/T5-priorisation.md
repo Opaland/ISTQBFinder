@@ -2,58 +2,73 @@
 
 **Question** : Compare les techniques de priorisation des tests décrites par l'ISTQB.
 
-**Tours** : 4 · **coût** : 0.114 $ · **confiance annoncée** : 90 · **citations** : 3/3 lues · **Web** : 0
+**Tours** : 6 · **coût** : 0.119 $ · **confiance annoncée** : 83 · **verdict** : réussi · **citations** : 3/3 lues · **Web** : 0
 
 ## Réponse
 
-Il y a deux niveaux dans les syllabus. Le Foundation donne trois **stratégies de priorisation des cas de test**. L'Advanced Test Management détaille la plus utilisée, la priorisation par les risques, avec deux variantes d'ordonnancement et des techniques d'analyse de risque. Les deux syllabus sont complémentaires et je n'ai pas trouvé de contradiction entre eux.
+Les syllabus ISTQB décrivent trois stratégies de priorisation au niveau Foundation. Le niveau Advanced ajoute des variantes de parcours (depth-first et breadth-first) et la sélection des tests de régression. Je n'ai pas fait de recherche Web, la question portant sur l'ISTQB.
+
+**Sources retenues**
+- Lus : CTFL v4.0.1 EN §5.1.5, CTAL-TM v3.0 EN §1.3.4, CTAL-TA v4.0 FR §2.2.1 (début de la section seulement, p. 28).
+- Base d'idées : aucune idée capitalisée sur ce sujet.
+- Repérés mais non lus : CTAL-AT v2.0 §1.4, CT-TAS §3.3.1, CT-GenAI §2.2.2.
+
+Hypothèse de contexte : aucun contexte projet n'est donné, donc la comparaison est générique.
 
 **Pistes par syllabus**
-- **CTFL v4.0.1 (EN) — §5.1.5 Test Case Prioritization**
-  - Trois stratégies : par les risques, par la couverture, par les exigences [CTFL v4.0.1 EN, §5.1.5, p. 50].
-  - La couverture a une variante, la couverture additionnelle. Le premier test est celui qui couvre le plus. Chaque test suivant est celui qui ajoute le plus de couverture [p. 50].
-  - Deux contraintes s'appliquent à toutes les stratégies. Si un test prioritaire dépend d'un test moins prioritaire, ce dernier passe d'abord. La disponibilité des ressources compte aussi : outils, environnements, personnes [p. 50].
-- **CTAL-TM v3.0 (EN) — §1.3.4 Quality Risk Mitigation Through Appropriate Testing**
-  - Deux ordonnancements. En *depth-first*, on exécute par niveau de risque décroissant. En *breadth-first*, on affecte au moins un test par risque en priorité maximale, puis on trie le reste par niveau de risque [CTAL-TM v3.0 EN, §1.3.4, p. 31].
-  - En pratique, on commence souvent en depth-first, puis on bascule en breadth-first quand le temps manque [p. 31].
-  - Si le temps est épuisé, l'approche par les risques permet de recommander à la direction soit d'étendre les tests, soit d'accepter le risque résiduel [p. 31].
-- **CTAL-TM v3.0 (EN) — §1.3.5 Techniques for Risk-Based Testing**
-  - Les techniques *heavyweight* sont formelles et adaptées aux systèmes critiques : hazard analysis, cost of exposure, FMEA, fault tree analysis [CTAL-TM v3.0 EN, §1.3.5, p. 32].
-  - Les techniques *lightweight* réduisent le risque à impact × probabilité sur une échelle ordinale : PRAM, PRISMA, SST [p. 32].
+- **CTFL v4.0.1, §5.1.5 Test Case Prioritization**
+  - Trois stratégies : basée sur les risques, basée sur la couverture (avec la variante « couverture additionnelle ») et basée sur les exigences (priorités fixées par les parties prenantes). [CTFL-4.0.1 EN, §5.1.5, p. 50]
+  - Limites communes : une dépendance entre tests peut imposer l'ordre (un test prioritaire qui dépend d'un test moins prioritaire passe après lui). La disponibilité des ressources compte aussi : outils, environnements, personnes. [CTFL-4.0.1 EN, §5.1.5, p. 50]
+- **CTAL-TM v3.0, §1.3.4 Réduction des risques qualité**
+  - La priorisation à l'implémentation suit les niveaux de risque. *Depth-first* : ordre strictement décroissant du risque couvert, pour traiter les risques majeurs au plus tôt. *Breadth-first* : au moins un test par risque en priorité haute, pour avoir une vue globale de la qualité le plus tôt possible. [CTAL-TM-3.0 EN, §1.3.4, p. 31]
+  - En pratique, on commence souvent en depth-first puis on bascule en breadth-first quand le temps manque. Si le temps s'épuise, le risque résiduel permet de recommander de prolonger ou d'accepter le risque. [CTAL-TM-3.0 EN, §1.3.4, p. 31]
+- **CTAL-TA v4.0, §2.2.1 Périmètre des tests de régression**
+  - Pour l'automatisé, l'analyse d'impact (outillée via la gestion de configuration) est présentée comme la technique la plus fiable. [CTAL-TA-4.0 FR, §2.2.1, p. 28]
+  - Pour le manuel, aucune technique n'est démontrée supérieure, et l'AT choisit selon la situation. La sélection basée sur les risques est la première technique citée. [CTAL-TA-4.0 FR, §2.2.1, p. 28] La suite de la liste est à lire p. 29.
 
-**Comparaison**
-
-| Approche | Principe | Quand l'utiliser | Source |
+| Technique | Principe | Quand l'utiliser | Source |
 |---|---|---|---|
-| Par les risques | Les tests qui couvrent les risques majeurs passent en premier | Quand il existe une analyse de risque | CTFL §5.1.5 |
-| Par la couverture (et additionnelle) | Les tests qui couvrent le plus passent en premier | Quand la couverture est mesurable, par exemple en code | CTFL §5.1.5 |
-| Par les exigences | On suit la priorité des exigences définie par les parties prenantes | Quand la traçabilité exigences ↔ tests existe | CTFL §5.1.5 |
-| Risque depth-first | Ordre strictement décroissant de risque | Quand il faut réduire les plus gros risques au plus tôt | CTAL-TM §1.3.4 |
-| Risque breadth-first | Au moins un test par risque d'abord | Quand les parties prenantes veulent une vue globale de la qualité au plus tôt | CTAL-TM §1.3.4 |
+| Basée sur les risques | Les tests couvrant les risques les plus élevés passent d'abord | Temps limité, enjeux métier ou sécurité | CTFL §5.1.5 ; CTAL-TM §1.3.4 |
+| Depth-first / breadth-first | Descente par niveau de risque, ou un test par risque d'abord | Depth-first : risques majeurs à traiter tôt. Breadth-first : vue globale rapide | CTAL-TM §1.3.4 |
+| Basée sur la couverture | Plus forte couverture d'abord, ou plus forte couverture additionnelle | Tests unitaires ou structurels, sans analyse de risque | CTFL §5.1.5 |
+| Basée sur les exigences | Priorité des exigences, définie par les parties prenantes | Traçabilité exigences-tests en place | CTFL §5.1.5 |
+| Analyse d'impact (régression) | Tests liés aux éléments de configuration modifiés | Suites automatisées, avec outillage | CTAL-TA §2.2.1 |
 
 **Ce que j'en retiens** (interprétation)
-- Les trois stratégies du CTFL ne s'excluent pas. Les critères de choix du syllabus sont la disponibilité des données (risques, couverture, traçabilité), les dépendances entre tests et les ressources.
-- Le CTAL-TM décrit le cas particulier du risque. Il ajoute le séquencement (depth/breadth) et le lien avec la décision de fin de test.
-- La priorisation du *plan d'amélioration* du CTEL-ITP (§6.4.1) porte sur un autre sujet. Je ne l'ai pas lue, donc je n'en dis rien de plus.
+- Ces techniques ne s'excluent pas. Le CTFL les présente comme des critères d'ordonnancement, et le CTAL-TM décrit le passage de l'un à l'autre dans le temps.
+- La couverture ne dit rien de la valeur métier. Elle sert de critère secondaire, par exemple pour départager des tests de même niveau de risque.
+- Dans tous les cas, il faut vérifier les dépendances et les ressources avant de figer l'ordre.
+
+**Par quoi je commencerais**
+1. Priorisation par les risques avec bascule depth-first vers breadth-first : impact fort, effort moyen (il faut une analyse de risques).
+2. Contrôle des dépendances et des ressources dans le plan d'exécution : impact moyen, effort faible.
+3. Analyse d'impact pour la régression automatisée : impact fort, effort fort (outillage).
 
 **Où creuser ensuite**
-- `section CTAL-TM-3.0-en 1.3` : l'identification et l'évaluation des risques, avant la priorisation.
-- `section CTAL-TA-4.0-en 2` : le rôle du Test Analyst dans le RBT, que je n'ai pas lu.
-- `section CTFL-4.0.1-en 5.2.3` : la section sur l'analyse de risque, vers laquelle renvoie le §5.1.5.
-- `section CT-GenAI-1.1-en 2.2.2` : un exercice de priorisation assistée par GenAI. Il apparaît dans les résultats mais je ne l'ai pas lu.
+- `section CTAL-TM-3.0-en 1.3.3` pour l'analyse de risques qui alimente la priorisation.
+- `page CTAL-TA-4.0-fr 29` pour la suite des techniques de sélection en régression.
+- `section CTAL-AT-2.0-en 1.4` pour la régression en agile.
+- `section CT-TAS-1.0-en 3.3.1` pour la priorisation des tests à automatiser.
 
-**Confiance : 90/100** (élevée)
-- La confiance documentaire est de 100/100 et j'ai lu intégralement deux syllabus pertinents, CTFL et CTAL-TM.
-- J'ai retiré 10 points parce que je n'ai lu ni le CTAL-TA ni le CTAL-TTA, qui concordent probablement. Je n'ai pas cherché la priorisation des tests de régression en particulier.
+**Confiance : 83/100 (élevée)** — base 88 × 0,6 = 53 ; 3 passages lus +20 ; 2 syllabus concordants +10 → 83. La section TA §2.2.1 n'est lue qu'en partie.
+
+**Questions à choix**
+1. Quel est ton contexte ?
+   1. Agile / itératif
+   2. Séquentiel
+   3. Réglementé / sûreté
+2. Quelle suite veux-tu ?
+   1. Approfondir la régression (TA §2.2.1, AT §1.4)
+   2. Approfondir la priorisation par les risques (TM §1.3)
+   3. Capitaliser la comparaison
 
 **À capitaliser ?**
-1. Les trois stratégies de priorisation du CTFL (risque, couverture, exigences), avec leurs contraintes de dépendances et de ressources.
-2. L'idée depth-first puis breadth-first quand le temps manque, avec la recommandation « étendre ou accepter le risque résiduel ».
-
-Je n'ai rien enregistré. Dis-moi si tu veux que je capitalise l'une de ces idées ou les deux.
+Je ne propose aucune entrée pour l'instant. Si tu choisis l'option 3, je prépare le JSON après `idee doublons`.
 
 ## Commandes exécutées
 
-- `cat .claude/skills/qa-knowledge/reference/strategie.md | head -80; python qa.py idee chercher priorisation des tests`
-- `python qa.py chercher test case prioritization; python qa.py chercher priorisation des cas de test; python qa.py chercher risk-based prioritization risk level`
-- `python qa.py section CTFL-4.0.1-en 5.1.5; python qa.py lire 4361 --contexte 1; python qa.py section CTAL-TM-3.0-en 1.3.5`
+- `Read {"file_path": "/tmp/claude-0/-home-user/da9346e2-ce5e-5882-830a-19be129b35c4/scratchpad/wt-G/.claude/skills/qa-knowledge`
+- `python qa.py idee chercher priorisation des tests; python qa.py chercher "test prioritization" | head -60; python qa.py chercher "priorisation des tests" | head -60`
+- `python qa.py section CTFL-4.0.1-en 5.1.5 --max-caracteres 4000; python qa.py section CTAL-TM-3.0-en 1.3.4 --max-caracteres 4500; python qa.py chercher "regression test selection prioritization" | head`
+- `python qa.py section CTAL-TA-4.0-en 2.2.1 --max-caracteres 3500; python qa.py confiance --help | head -20`
+- `python qa.py section CTAL-TA-4.0-fr 2.2.1 --max-caracteres 3500; python qa.py confiance --base 88 --lus 3 --concordants 2`

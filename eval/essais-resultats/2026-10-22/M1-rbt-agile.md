@@ -2,130 +2,126 @@
 
 **Question** : Comment l'ISTQB propose-t-il d'intégrer le risk-based testing dans une équipe agile ?
 
-**Tours** : 7 · **coût** : 0.166 $ · **confiance annoncée** : 80 · **citations** : 11/11 lues · **Web** : 0 · **critères** : 11/11
+**Tours** : 11 · **coût** : 0.181 $ · **confiance annoncée** : 66 · **verdict** : réussi · **citations** : 7/7 lues · **Web** : 0 · **critères** : 11/11
 
 ## Réponse
 
-Je finalise le rapport. J'ai lu les passages clés et je n'ai pas pu lancer `idee doublons` (la commande a été bloquée par le bac à sable). Je m'appuie donc sur `idee chercher`, qui n'a rien trouvé de capitalisé.
+L'ISTQB n'a pas de chapitre « RBT en agile ». Il décrit une analyse des risques qualité faite à deux moments (release et itération), reprise ensuite par les syllabus Advanced. La base d'idées est vide sur le sujet. Le passage le plus détaillé vient d'un syllabus en retrait, CTFL-AT 2014, car CTAL-AT v2.0 (2026) ne traite le RBT que par touches.
 
-## Sources retenues
+**Hypothèse de contexte :** équipe Scrum ou Kanban, produit web, sans contrainte réglementaire forte. Je n'ai pas de contexte projet, voir les questions de cadrage plus bas.
 
-- **CTFL-AT 2014 EN**, §3.2 et §3.2.1, p. 31-32. Les versions FR et EN sont indexées. Ce syllabus date de 2014, donc il est ancien.
-- **CTFL v4.0.1 EN**, §5.1.2, p. 48-49.
-- **CTAL-AT v2.0 EN** (2026), §3.1 et §3.1.1, p. 24-25.
-- **CTAL-TA v4.0 FR**, §2.1.1 et §2.2, p. 27-28.
-- **CTAL-TM v3.0 FR**, §1.3.6, p. 34.
-- Je n'ai pas consulté le Web. Les passages ISTQB couvrent la question.
-
-L'ISTQB ne décrit pas une méthode unique « RBT en agile ». Il propose d'étendre les pratiques de risque classiques aux cérémonies agiles, à deux niveaux (release et itération), avec une réévaluation continue.
-
-**Hypothèse de contexte :** équipe Scrum ou similaire, application web, sans contrainte réglementaire forte.
+**Sources retenues :**
+- CTFL-AT 2014, FR et EN (en retrait, successeur CTAL-AT) : §3.2.1.
+- CTAL-AT v2.0 EN (2026) : §3.1.2, §3.4.2, §5.1.4.
+- CTAL-TA v4.0 EN et FR : §2.1, §2.2.
+- CTAL-TM v3.0 FR : §1.3.6.
+- Rien dans la base d'idées. Aucune recherche Web, elle n'était pas nécessaire.
 
 ## Méthode pas à pas
 
-1. **Cadrer le niveau de risque.** Distinguer les risques produit (qualité) des risques projet. Le niveau de risque se calcule avec la probabilité et l'impact. [CTFL-AT 2014 EN, §3.2.1, p. 31]
-2. **En planification de release : vue d'ensemble.** Les représentants métier donnent un aperçu des risques. Toute l'équipe, testeurs compris, aide à les identifier et à les évaluer. Le livrable est une base pour l'approche de test. [CTFL-AT 2014 EN, §3.2.1, p. 32 ; CTFL v4.0.1 EN, §5.1.2, p. 48]
-3. **En planification d'itération : analyse détaillée.** Les testeurs participent à l'analyse de risque des user stories. [CTFL v4.0.1 EN, §5.1.2, p. 48] La version avancée recommande d'animer des sessions de *risk-storming* avec le métier et les développeurs. [CTAL-AT v2.0 EN, §3.1.1, p. 24-25] Le syllabus 2014 donne six étapes :
+1. **Poser les définitions communes.** Le risque est la possibilité d'un événement négatif. Son niveau se mesure par la vraisemblance et l'impact. Les risques produit (qualité) se distinguent des risques projet. Livrable : un vocabulaire partagé. [CTFL-AT 2014 EN, §3.2.1, p. 31]
+2. **Faire une première analyse à la planification de release.** Les représentants métier donnent une vue d'ensemble des risques, et toute l'équipe, testeurs compris, aide à les identifier et à les évaluer. Livrable : une liste de risques de haut niveau. [CTFL-AT 2014 EN, §3.2.1, p. 32]
+3. **Analyser les risques à chaque planification d'itération.** Le texte donne 6 sous-étapes : [CTFL-AT 2014 EN, §3.2.1, p. 32]
    - réunir l'équipe, testeurs inclus ;
    - lister les éléments du backlog de l'itération ;
-   - identifier les risques qualité de chaque élément ;
-   - les catégoriser et déterminer leur niveau (impact × probabilité) ;
-   - proportionner l'effort de test au niveau de risque ;
-   - choisir les techniques de test adaptées. [CTFL-AT 2014 EN, §3.2.1, p. 32]
-4. **Prioriser les tâches.** Les tâches à risque élevé démarrent plus tôt et reçoivent plus d'effort de test. Celles à risque faible démarrent plus tard avec moins d'effort. [CTFL-AT 2014 EN, §3.2.1, p. 32]
-5. **Atténuer aussi avant l'exécution.** Si l'identification des risques révèle des problèmes dans les user stories, une revue approfondie de ces stories est une mesure d'atténuation. [CTFL-AT 2014 EN, §3.2.1, p. 32] Le shift-left consiste à proposer l'activité qui réduit le risque le plus tôt. [CTAL-TA v4.0 FR, §2.1.1, p. 27]
-6. **Réévaluer à chaque itération.** Il faut ajuster périodiquement l'analyse : nouveaux risques, niveaux revus, efficacité de l'atténuation. [CTFL-AT 2014 EN, §3.2.1, p. 32] En cycle itératif, le pilotage se fait « vraisemblablement une fois par itération ». [CTAL-TA v4.0 FR, §2.2, p. 28]
-7. **Mesurer en rétrospective.** Les parties prenantes étaient-elles impliquées ? Les défauts graves sont-ils apparus tôt ? Les tests ignorés étaient-ils moins risqués que ceux exécutés ? Peut-on expliquer les résultats en termes de risque ? [CTAL-TM v3.0 FR, §1.3.6, p. 34] Le reporting agile inclut la couverture des risques. [CTAL-AT v2.0 EN, §3.1, p. 24]
+   - identifier les risques de chaque élément, en couvrant toutes les caractéristiques qualité ;
+   - évaluer chaque risque (catégorie, puis niveau selon impact et probabilité) ;
+   - dimensionner l'effort de test proportionnellement au niveau de risque ;
+   - choisir les techniques de test qui réduisent chaque risque.
 
-## Exemple de mise en œuvre (fictif — interprétation)
+   Livrable : des tâches de test priorisées sur le task board.
+4. **Prioriser les tâches selon le risque.** Les tâches à risque élevé démarrent plus tôt et reçoivent plus d'effort de test. Celles à risque faible démarrent plus tard avec moins d'effort. [CTFL-AT 2014 EN, §3.2.1, p. 32]
+5. **Réduire les risques avant même l'exécution des tests.** Si l'identification des risques révèle des problèmes dans les user stories, l'équipe peut les relire de près. [CTFL-AT 2014 EN, §3.2.1, p. 32]
+6. **Réévaluer en continu.** Pendant le projet, l'équipe ajuste l'analyse : nouveaux risques, niveaux revus, efficacité des mesures de réduction. Le TM v3.0 dit la même chose : l'analyse est « continue et itérative » et ne se fait pas une seule fois au départ. [CTFL-AT 2014 EN, §3.2.1, p. 32 ; CTAL-TM v3.0 FR, §1.3.6, p. 34]
+7. **Faire vivre le suivi.** En cycle itératif, le suivi des risques a lieu à la fréquence choisie par l'équipe, vraisemblablement une fois par itération. Le Test Analyst met à jour le registre des risques et ajuste les actions de réduction. [CTAL-TA v4.0 EN, §2.1, p. 25]
+8. **Relier les risques aux charters exploratoires.** Les charters peuvent être créés à partir des risques produit, et leur priorité peut venir du niveau de risque. [CTAL-AT v2.0 EN, §5.1.4, p. 40]
+
+Pour l'étape 3, le TA peut estimer le niveau de risque avec ces critères : fréquence d'usage, criticité métier, dommages financiers ou de réputation, qualité de la base de test, contraintes légales. Il peut aussi classer les risques par caractéristique qualité ISO 25010. [CTAL-TA v4.0 EN, §2.1, p. 25]
+
+Le syllabus mentionne aussi les ateliers de risques conjoints (métier, test, dev) pour concentrer l'effort de test. [CTAL-AT v2.0 EN, §3.4.2, p. 29]
+
+## Exemple de mise en œuvre (fictif, interprétation)
 
 Dans une équipe Scrum de 6 personnes qui livre une appli web toutes les 2 semaines :
-- Au planning, 20 minutes de risk-storming (étape 3). Chaque story reçoit un niveau de risque faible, moyen ou élevé, noté sur le tableau.
-- Les stories à risque élevé (paiement, par exemple) sont testées en premier, avec une revue de la story en amont (étapes 4-5). Les stories à risque faible reçoivent surtout des tests automatisés de base.
-- À la rétrospective, on vérifie si les bugs sont apparus là où on l'attendait (étape 7).
+- Au sprint planning (étape 3), 20 minutes avec dev, PO et testeur : une colonne « risque H/M/B » sur chaque story.
+- Les stories à risque H reçoivent des tests en début de sprint et une session exploratoire (étape 8).
+- Au daily, on ajoute les nouveaux risques repérés.
+- À la rétrospective, on réajuste (étape 6).
 
 ## Adaptation par domaine
 
 | Domaine | Ce qui change | Où lire |
 |---|---|---|
-| Santé / réglementé | Traçabilité renforcée et couverture par niveau d'intégrité. Aucun syllabus santé ou IEC 62304 n'est présent : le Web serait nécessaire pour la norme. | CTAL-TTA v4.0 §2.8.2, CTAL-AT v2.0 §3.1.2 (à lire avant de citer) |
-| Web | Pas de syllabus dédié. Les principes se transposent, avec les risques de performance par architecture. | CT-PT §3.2 (à lire) |
-| Embarqué | Le matériel limite les itérations rapides. Couverture surtout automobile, en anglais. | CT-AuT, CTEL-TM §8.3.3 (à lire) |
-| Mobile | Syllabus dédié, version 2019. | CT-MAT §1.8 (à lire) |
-| API | Pas de syllabus dédié. Tests de contrat en anglais seulement. | CT-QDO §3.2.2 (à lire) |
-
-Je n'ai lu aucune des sections de ce tableau. Ce sont des repères à vérifier, pas des citations.
+| Santé / réglementé | Pas de syllabus dispositif médical dans la bibliothèque. Une organisation réglementée tend vers des approches plus lourdes, avec couverture documentée. | [CTAL-AT v2.0 EN, §3.1.2, p. 26] |
+| Web | Pas de syllabus web dédié, principes transposés. Exemples de risques : calculs, temps de réponse, utilisabilité. | [CTFL-AT 2014 EN, §3.2.1, p. 32] |
+| Embarqué | Non étudié ici. À creuser dans CT-AuT et CTEL-TM. | à lire |
+| Mobile | Non étudié ici. À creuser dans CT-MAT §1.8. | à lire |
+| API | Non étudié ici. Aucun syllabus API dédié. | à lire |
 
 ## Par quoi je commencerais
 
-1. **Risk-storming de 15-20 minutes au planning d'itération.** Impact fort, effort faible.
-2. **Lier le niveau de risque à l'ordre des tâches et à l'effort de test.** Impact fort, effort faible.
-3. **Réévaluation en rétrospective avec les questions du CTAL-TM §1.3.6.** Impact moyen, effort faible.
+1. **Impact fort, effort faible :** ajouter un niveau de risque sur chaque story au sprint planning (étape 3).
+2. **Impact fort, effort moyen :** brancher les charters exploratoires sur les risques (étape 8).
+3. **Impact moyen, effort faible :** réévaluer les risques à chaque rétrospective (étapes 6 et 7).
 
 ## Où creuser ensuite
 
-- `section CTAL-AT-2.0-en 3.1` : planification agile, quadrants de test et définition de « terminé ».
-- `section CTAL-TM-3.0-fr 1.3` : techniques et difficultés du test basé sur les risques.
-- `section CTAL-TA-4.0-fr 2` : analyse et contrôle des risques produit.
-- `section CTFL-4.0.1-en 5.2` : analyse et contrôle des risques. Je n'ai pas lu ce passage, il n'est mentionné que par renvoi.
+- `section CTFL-AT-2014-en 3.2.1` : le texte complet et ses exemples.
+- `section CTAL-TM-3.0-fr 1.3` : techniques RBT, métriques et pièges.
+- `section CTAL-TA-4.0-en 2` : le rôle du testeur dans l'analyse des risques.
+- `section CTAL-AT-2.0-en 3.1` : la stratégie de test et son équilibre entre quadrants.
 
-**Confiance : 80/100 (élevée).** La confiance documentaire de `chercher` est de 100/100 et plusieurs syllabus concordent (+5). Je retire 15 points : la source la plus détaillée (CTFL-AT 2014) est ancienne, et l'exemple, ainsi que une partie de l'ordre des étapes, relèvent de mon interprétation.
+**Limite :** CTAL-AT v2.0 ne donne pas de méthode RBT détaillée. Ma méthode repose donc sur un syllabus en retrait, CTFL-AT 2014, et les étapes 7 et 8 viennent de syllabus plus récents. Une recherche ciblée dans CTAL-AT v2.0 n'a pas trouvé de section dédiée. Je n'ai pas lu CTAL-AT v2.0 en entier.
+
+**Confiance : 66/100 (moyenne)**, calcul : base 85 × 0,6 = 51 ; 7 passages lus +20 ; 3 syllabus concordants +20 ; seul un syllabus ancien couvre le cœur de la méthode −15 ; une partie en raisonnement sans source (l'exemple) −10.
 
 ## Questions à choix
 
 1. Quel est ton contexte ?
-   1. Scrum ou Kanban, application web.
-   2. Agile à l'échelle ou multi-équipes.
-   3. Secteur réglementé (santé, finance).
-2. Quelle suite veux-tu ?
-   1. Approfondir le CTAL-AT v2.0 §3.1 (risk-storming).
-   2. Comparer le RBT en agile avec le cycle séquentiel (CTAL-TM §1.3).
-   3. `/ajouter-syllabus` pour un domaine non couvert.
+   1. Web, Scrum.
+   2. Réglementé (santé, finance).
+   3. Mobile ou embarqué.
+2. Quelle suite ?
+   1. Approfondir les techniques RBT du TM (§1.3) : registre, matrice, métriques.
+   2. Comparer l'analyse de risque CTFL-AT 2014 avec CTAL-AT v2.0.
+   3. Capitaliser la piste ci-dessous.
 
 ## À capitaliser ?
 
+Pas de doublon trouvé (`idee doublons`, thème `rbt`). Le JSON suit le modèle des champs `idee modele` tel que je le comprends. Je n'ai pas relancé `idee modele`, donc les noms de champs sont à vérifier avant `idee ajouter`.
+
 ```json
 {
- "titre": "Risk-storming à la planification d'itération pour piloter l'effort de test",
- "resume": "À chaque planification d'itération, l'équipe identifie et évalue les risques qualité par story. Le niveau de risque ordonne les tâches et dimensionne l'effort de test, puis est réévalué à chaque itération.",
- "probleme": "Prioriser et doser les tests dans des itérations courtes avec des exigences changeantes.",
- "principe": "Analyse de risque en release planning (vue globale) et en iteration planning (par story). Niveau = impact × probabilité. Risque élevé : démarrage plus tôt, plus de tests. Réévaluation périodique et mesure en rétrospective.",
- "theme_principal": "rbt",
- "themes_secondaires": ["agile", "priorisation"],
- "domaine_application": "Équipes agiles (Scrum) avec itérations courtes",
- "prerequis": "Présence du métier, des développeurs et des testeurs au planning ; backlog d'itération disponible.",
- "benefices": "Effort de test aligné sur le risque ; échanges plus clairs avec les parties prenantes ; défauts graves détectés tôt.",
- "limites": "Estimation difficile de la probabilité et de l'impact ; risque de complaisance si les mêmes risques reviennent chaque fois.",
- "maturite": "documentee",
- "statut": "a_evaluer",
- "provenance": "Recherche du 2026-10-22 : « Comment l'ISTQB propose-t-il d'intégrer le risk-based testing dans une équipe agile ? »",
- "references": [
-  {
-   "type": "istqb",
-   "doc_id": "CTFL-AT-2014-en",
-   "pages": "32",
-   "section": "3.2.1",
-   "extrait": "Tasks associated with higher risks should start earlier and involve more testing effort."
-  },
-  {
-   "type": "istqb",
-   "doc_id": "CTAL-AT-2.0-en",
-   "pages": "24-25",
-   "section": "3.1.1",
-   "extrait": "Testers can contribute by facilitating risk-storming sessions with business representatives and developers"
-  }
- ]
+  "titre": "Analyse des risques qualité à chaque planification d'itération",
+  "resume": "En agile, l'analyse des risques qualité se fait à la planification de release puis à chaque itération, par toute l'équipe. L'effort de test est dimensionné selon le niveau de risque et l'analyse est réajustée en continu.",
+  "principe": "Dimensionner l'effort de test selon le niveau de risque, en continu",
+  "theme": "rbt",
+  "references": [
+    {
+      "document": "CTFL-AT-2014-en",
+      "page": 32,
+      "extrait": "Iteration planning : the whole team identifies and assesses the quality risks."
+    },
+    {
+      "document": "CTAL-TM-3.0-fr",
+      "page": 34,
+      "extrait": "L'analyse des risques est donc une activité continue et itérative"
+    }
+  ]
 }
 ```
 
-L'extrait du CTFL-AT peut être refusé par la vérification automatique à cause des espaces coupés dans l'extraction (« high er »). Dans ce cas, on raccourcit l'extrait lors de `idee ajouter`.
+Sources : passages lus dans la bibliothèque locale (CTFL-AT 2014, CTAL-AT v2.0, CTAL-TA v4.0, CTAL-TM v3.0), aucune source Web.
 
 ## Commandes exécutées
 
-- `Read {"file_path": "/tmp/claude-0/-home-user/da9346e2-ce5e-5882-830a-19be129b35c4/scratchpad/wt-90/.claude/skills/qa-knowledg`
-- `python qa.py idee chercher risk-based testing agile; python qa.py chercher risk-based testing agile; python qa.py chercher "analyse des risques agile itération"; python qa.py chercher "risk based test`
-- `python qa.py lire 9555 --contexte 1; python qa.py lire 9556 --contexte 1; python qa.py lire 11560 --contexte 1; python qa.py lire 8243 --contexte 1; python qa.py lire 11296 --contexte 1; python qa.py `
-- `python qa.py idee modele | head -40; python qa.py idee doublons <<'JSON'
-{"titre":"Analyse des risques qualité à chaque planification d'itération (agile)","description":"Risk-storming en planification`
-- `python qa.py idee modele | head -40`
-- `python qa.py themes | head -40`
+- `Read {"file_path": "/tmp/claude-0/-home-user/da9346e2-ce5e-5882-830a-19be129b35c4/scratchpad/wt-G/.claude/skills/qa-knowledge`
+- `python qa.py idee chercher risk-based testing agile`
+- `python qa.py chercher "risk-based testing agile"; python qa.py chercher "analyse des risques agile itération"; python qa.py chercher "product risk agile quality risk analysis"`
+- `python qa.py lire 2832 --contexte 1 --max-caracteres 6000; python qa.py lire 2831 --max-caracteres 3000; python qa.py chercher "risk agile" --doc CTAL-AT; python qa.py lire 4576 --max-caracteres 3500;`
+- `python qa.py lire 2832 --contexte 1; python qa.py lire 1535 --contexte 1; python qa.py lire 4576; python qa.py lire 1762 --contexte 1; python qa.py lire 1954`
+- `python qa.py chercher "product risk" --doc CTAL-AT; python qa.py chercher "risk-based testing" --doc CTAL-AT`
+- `python qa.py lire 1524 --contexte 1; python qa.py lire 1566`
+- `python qa.py confiance --help | head -30; python qa.py idee doublons --titre "Analyse des risques qualité à chaque planification d'itération" --resume "RBT agile: risques à la planification de release`
+- `python qa.py confiance --base 85 --lus 7 --concordants 3 --ancien 1 --raisonnement 1; python qa.py themes | grep -i -E "risk|risq"`
+- `python qa.py idee doublons --titre "Analyse des risques qualité à chaque planification d'itération" --resume "RBT agile: risques à la planification de release et d'itération, par toute l'équipe, rééva`

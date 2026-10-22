@@ -3,11 +3,16 @@
   "id": "T1-couverture",
   "agent": "thomas",
   "question": "Quelles techniques ISTQB permettent d'améliorer la couverture des tests ?",
-  "tours": 6,
-  "cout_usd": 0.161,
+  "tours": 9,
+  "cout_usd": 0.164,
   "commandes_qa": [
-   "python qa.py idee chercher couverture des tests coverage 2>&1 | head -40; echo ----; python qa.py chercher \"test coverage techniques\" 2>&1 | head -60; echo ----; python qa.py chercher \"couverture des tests techniques boîte noire boîte blanche\" 2>&1 | head -60; echo ----; python qa.py chercher \"coverage improvement experience-based techniques\" 2>&1 | head -50",
-   "python qa.py lire 4797 --contexte 1; echo =====; python qa.py lire 4811 --contexte 1; echo =====; python qa.py lire 2135 --contexte 1; echo =====; python qa.py lire 2948 --contexte 1; echo =====; python qa.py lire 3388 --contexte 1; echo =====; python qa.py lire 1813 --contexte 1; echo ====; python qa.py lire 4540 --contexte 1"
+   "python qa.py idee chercher couverture des tests techniques; python qa.py chercher \"test coverage techniques\"; python qa.py chercher \"couverture techniques de test boîte noire\"; python qa.py chercher \"white-box coverage statement branch\"",
+   "python qa.py lire 4812 --contexte 1 --max-caracteres 3500; python qa.py lire 4823 --contexte 1 --max-caracteres 3500; python qa.py lire 2137 --contexte 1 --max-caracteres 3500; python qa.py lire 1976 --contexte 1 --max-caracteres 3000; python qa.py lire 2958 --contexte 0 --max-caracteres 2000",
+   "for i in 4812 4823 2137 1976 2958; do echo \"=== $i\"; python qa.py lire $i --contexte 1; done",
+   "python qa.py lire 4812 --contexte 1; python qa.py lire 4823 --contexte 1; python qa.py lire 2137 --contexte 1; python qa.py lire 1976 --contexte 1; python qa.py lire 2958 --contexte 1",
+   "python qa.py idee doublons --titre \"Mesurer la couverture : boîte noire d'abord, puis boîte blanche pour combler\" --resume \"Appliquer les techniques boîte noire, mesurer la couverture structurelle, n'ajouter des tests boîte blanche que pour les écarts\" --principe \"Exiger 100 % sur un seul critère; niveaux différents selon le risque\" --theme techniques-de-test; python qa.py confiance --help | head -30",
+   "python qa.py themes | head -40; python qa.py confiance --base 80 --lus 8 --concordants 3",
+   "python qa.py idee doublons --titre \"Mesurer la couverture : boîte noire d'abord, puis boîte blanche pour combler\" --resume \"Appliquer les techniques boîte noire, mesurer la couverture structurelle, n'ajouter des tests boîte blanche que pour les écarts\" --principe \"Exiger 100 % sur un seul critère; niveaux différents selon le risque\" --theme couverture"
   ],
   "web": [],
   "citations": [
@@ -16,7 +21,11 @@
     "lue": true
    },
    {
-    "citation": "CTFL §4.3.2, p. 43",
+    "citation": "CTFL §4, p. 38",
+    "lue": true
+   },
+   {
+    "citation": "CTFL §4.2.4, p. 42",
     "lue": true
    },
    {
@@ -24,49 +33,85 @@
     "lue": true
    },
    {
-    "citation": "CTAL-TA §3.5.1, p. 41",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-TA §3.5.2, p. 42",
-    "lue": true
-   },
-   {
-    "citation": "CT-MBT §5.1.1, p. 38",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-TM §1.2.6, p. 26",
+    "citation": "CTAL-TA §3.2.2, p. 35",
     "lue": true
    },
    {
     "citation": "CT-AI §3.4.3, p. 37",
     "lue": true
-   },
-   {
-    "citation": "CTAL-AT §3.1, p. 24",
-    "lue": false
    }
   ],
-  "citations_non_lues": [
-   "CTAL-AT §3.1, p. 24"
-  ],
-  "confiance": 90
+  "citations_non_lues": [],
+  "confiance": 88,
+  "echec": []
  },
  {
   "id": "T2-rbt-agile",
   "agent": "thomas",
   "question": "Recherche des idées pour intégrer le risk-based testing dans une équipe produit agile.",
-  "tours": 5,
-  "cout_usd": 0.149,
+  "tours": 13,
+  "cout_usd": 0.261,
   "commandes_qa": [
-   "python qa.py idee chercher risk-based testing agile; python qa.py chercher \"risk-based testing agile\" ; python qa.py chercher \"risk-based testing iteration planning\"; python qa.py chercher \"analyse de risque agile sprint\"; cat .claude/skills/qa-knowledge/reference/strategie.md | head -80",
-   "python qa.py lire 2822 --contexte 1; python qa.py lire 4826 --contexte 1; python qa.py lire 1519 --contexte 1; python qa.py lire 4562 --contexte 1; python qa.py lire 1762 --contexte 1"
+   "python qa.py idee chercher risk-based testing agile; python qa.py idee chercher \"risque agile\"",
+   "python qa.py chercher \"risk-based testing agile\"; python qa.py chercher \"risk-based testing\"; python qa.py chercher \"tests basés sur les risques agile\"; python qa.py chercher \"quality risk analysis iteration planning\"",
+   "python qa.py lire 4841 --contexte 1 --max-caracteres 5000; echo ------; python qa.py lire 1520 --contexte 1 --max-caracteres 5000; echo ------; python qa.py lire 4576 --contexte 1 --max-caracteres 5000; echo -----; python qa.py lire 2832 --contexte 1 --max-caracteres 5000",
+   "python qa.py lire 1762 --contexte 1 --max-caracteres 4000; echo -----; python qa.py lire 3841 --contexte 1 --max-caracteres 3000; echo ----; python qa.py chercher \"risk-based testing\" --doc CTAL-AT-2.0-en",
+   "python qa.py lire --help | head -20; python qa.py section --help | head -20",
+   "python qa.py lire 4841 --contexte 1; echo ------; python qa.py lire 1520 --contexte 1; echo ------; python qa.py lire 4576 --contexte 1; echo -----; python qa.py lire 2832 --contexte 1",
+   "python qa.py lire 1762 --contexte 1; echo -----; python qa.py lire 1524 --contexte 1; echo ----; python qa.py lire 3841 --contexte 1",
+   "python qa.py section CTAL-TM-3.0-en 1.3 --max-caracteres 14000; echo; echo =======; python qa.py section CTFL-4.0.1-en 5.2 --max-caracteres 7000",
+   "python qa.py confiance --help | head -30; python qa.py idee doublons --titre \"Analyse de risque qualité à chaque planification d'itération\" --resume \"Intégrer le RBT en agile via une analyse légère des risques en planification de release et d'itération\" --principe \"Le risque pilote l'effort de test, réévalué à chaque itération\" --theme risques",
+   "python qa.py confiance --base 85 --lus 8 --concordants 4 --raisonnement 1; python qa.py themes | head -40",
+   "python qa.py idee doublons --titre \"Analyse de risque qualité légère à chaque planification d'itération\" --resume \"Intégrer le RBT en agile : analyse de risque en planification de release puis d'itération, effort de test proportionnel au niveau de risque, réévaluation chaque itération\" --principe \"Le niveau de risque pilote l'effort, la priorité et la technique de test ; il est réévalué à chaque itération\" --theme rbt; python qa.py idee modele | head -40"
   ],
   "web": [],
   "citations": [
    {
-    "citation": "CTFL-AT §3.2.1, p. 32",
+    "citation": "CTFL §5.1.2, p. 48-49",
+    "lue": true
+   },
+   {
+    "citation": "CTFL §5.2, p. 51",
+    "lue": true
+   },
+   {
+    "citation": "CTFL §5.2.3, p. 53",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-AT §3.1.1, p. 25",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-AT §3.1.2, p. 26",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-AT §3.1.2, p. 27",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.2, p. 28-29",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.2, p. 29",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.3, p. 29-30",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.4, p. 31",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.5, p. 31-32",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.6, p. 34",
     "lue": true
    },
    {
@@ -74,103 +119,11 @@
     "lue": true
    },
    {
-    "citation": "CTAL-TM §1.3.6, p. 34",
-    "lue": true
-   }
-  ],
-  "citations_non_lues": [],
-  "confiance": 82
- },
- {
-  "id": "T3-playwright",
-  "agent": "thomas",
-  "question": "Comment réduire le coût de maintenance de nos tests Playwright ?",
-  "tours": 6,
-  "cout_usd": 0.137,
-  "commandes_qa": [
-   "python qa.py idee chercher maintenance automatisation tests 2>&1 | head -40; echo ----; python qa.py chercher \"test automation maintenance cost\" 2>&1 | head -60",
-   "python qa.py chercher \"maintainability of testware automation architecture\" 2>&1 | head -50; echo ----; python qa.py chercher \"coût de maintenance scripts de test automatisés\" 2>&1 | head -50; cat .claude/skills/qa-knowledge/reference/strategie.md | head -80",
-   "python qa.py lire 4268 --contexte 1 2>&1 | head -50; echo =====; python qa.py lire 3643 --contexte 1 2>&1 | head -40; echo =====; python qa.py lire 4207 --contexte 2 2>&1 | head -60; echo ====; python qa.py lire 2244 --contexte 1 2>&1 | head -30"
-  ],
-  "web": [],
-  "citations": [
-   {
-    "citation": "CTAL-TAE §3.1.4, p. 25",
+    "citation": "CTFL-AT §3.2.1, p. 32",
     "lue": true
    },
    {
-    "citation": "CTAL-TAE §8.1.2, p. 50",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-TTA §6.1.2, p. 50",
-    "lue": true
-   },
-   {
-    "citation": "CT-TAS §5.1.1, p. 38",
-    "lue": true
-   }
-  ],
-  "citations_non_lues": [],
-  "confiance": 95
- },
- {
-  "id": "T4-qualification",
-  "agent": "thomas",
-  "question": "Quelles pratiques pourraient améliorer notre processus de qualification ?",
-  "tours": 5,
-  "cout_usd": 0.125,
-  "commandes_qa": [
-   "python qa.py idee chercher \"processus de test amélioration qualification\" 2>&1 | head -40; python qa.py chercher \"test process improvement\" 2>&1 | head -40; python qa.py chercher \"amélioration du processus de test\" 2>&1 | head -40; python qa.py chercher \"acceptance testing entry exit criteria\" 2>&1 | head -30",
-   "python qa.py lire 4579 --contexte 1 2>&1 | head -50; python qa.py lire 1536 --contexte 1 2>&1 | head -40; python qa.py lire 5854 --contexte 1 2>&1 | head -40; python qa.py lire 2389 2>&1 | head -30"
-  ],
-  "web": [],
-  "citations": [
-   {
-    "citation": "CTAL-TM §1.5.1, p. 40",
-    "lue": true
-   },
-   {
-    "citation": "CTEL-ITP §3.3.1, p. 28",
-    "lue": false
-   },
-   {
-    "citation": "CTEL-ITP §5, p. 36",
-    "lue": true
-   },
-   {
-    "citation": "CTEL-ITP §2.5.4.3, p. 21",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-AT §3.4.2, p. 29-30",
-    "lue": true
-   }
-  ],
-  "citations_non_lues": [
-   "CTEL-ITP §3.3.1, p. 28"
-  ],
-  "confiance": 70
- },
- {
-  "id": "T5-priorisation",
-  "agent": "thomas",
-  "question": "Compare les techniques de priorisation des tests décrites par l'ISTQB.",
-  "tours": 4,
-  "cout_usd": 0.114,
-  "commandes_qa": [
-   "cat .claude/skills/qa-knowledge/reference/strategie.md | head -80; python qa.py idee chercher priorisation des tests",
-   "python qa.py chercher test case prioritization; python qa.py chercher priorisation des cas de test; python qa.py chercher risk-based prioritization risk level",
-   "python qa.py section CTFL-4.0.1-en 5.1.5; python qa.py lire 4361 --contexte 1; python qa.py section CTAL-TM-3.0-en 1.3.5"
-  ],
-  "web": [],
-  "citations": [
-   {
-    "citation": "CTFL §5.1.5, p. 50",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-TM §1.3.4, p. 31",
+    "citation": "CT-ATLAS §4.2, p. 58-59",
     "lue": true
    },
    {
@@ -179,54 +132,196 @@
    }
   ],
   "citations_non_lues": [],
-  "confiance": 90
+  "confiance": 81,
+  "echec": []
+ },
+ {
+  "id": "T3-playwright",
+  "agent": "thomas",
+  "question": "Comment réduire le coût de maintenance de nos tests Playwright ?",
+  "tours": 11,
+  "cout_usd": 0.144,
+  "commandes_qa": [
+   "python qa.py idee chercher maintenance automatisation tests 2>&1 | head -40; python qa.py idee chercher Playwright 2>&1 | head -20",
+   "python qa.py chercher maintenance scripts de test automatisés 2>&1 | head -50; python qa.py chercher test automation maintainability 2>&1 | head -50",
+   "python qa.py section CTAL-TAE-2.0-en 4.3 --max-caracteres 9000 2>&1; python qa.py chercher playwright 2>&1 | head -15",
+   "python qa.py lire 4220 --contexte 1 --max-caracteres 5000 2>&1; python qa.py lire 1580 --contexte 1 --max-caracteres 4000 2>&1; python qa.py lire 3602 --contexte 1 --max-caracteres 3500 2>&1",
+   "python qa.py section CTAL-TAE-2.0-en 4.3.2 --max-caracteres 6000 2>&1; python qa.py lire 4220 --contexte 1 2>&1 | head -60",
+   "python qa.py lire 1580 --contexte 1 2>&1 | head -50; python qa.py lire 3656 --contexte 1 2>&1 | head -40",
+   "python qa.py confiance --help 2>&1 | head -20; python qa.py idee doublons --titre \"Réduire la maintenance des tests E2E automatisés\" --resume \"Approche structurée, données externalisées, indépendance des tests\" --principe \"Séparer logique métier et scripts, éviter le hardcoding, tests indépendants\" --theme automatisation 2>&1 | head -8",
+   "python qa.py confiance --base 91 --lus 4 --concordants 3 --web 1 --raisonnement 1 2>&1"
+  ],
+  "web": [
+   "WebFetch {\"url\": \"https://playwright.dev/docs/best-practices\", \"prompt\": \"List the best practices that reduce test maintenance (l"
+  ],
+  "citations": [
+   {
+    "citation": "CTAL-TAE §3.1.4, p. 25-26",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TAE §3.1.4, p. 26",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TAE §3.1.3, p. 25",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TAE §4.3.1, p. 32",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-AT §5.3, p. 45",
+    "lue": true
+   },
+   {
+    "citation": "CT-TAS §5.1.1, p. 38",
+    "lue": true
+   }
+  ],
+  "citations_non_lues": [],
+  "confiance": 75,
+  "echec": []
+ },
+ {
+  "id": "T4-qualification",
+  "agent": "thomas",
+  "question": "Quelles pratiques pourraient améliorer notre processus de qualification ?",
+  "tours": 10,
+  "cout_usd": 0.164,
+  "commandes_qa": [
+   "python qa.py idee chercher \"amélioration processus de test qualification\" ; python qa.py idee chercher \"test process improvement\"",
+   "python qa.py chercher \"amélioration du processus de test\"; python qa.py chercher \"test process improvement\"; python qa.py chercher \"qualification validation recette acceptance\"",
+   "python qa.py section CTAL-TM-3.0-fr 1.5.2 --max-caracteres 5000; echo ======; python qa.py section CTAL-AT-2.0-en 3.4 --max-caracteres 5000",
+   "python qa.py lire 5892 --contexte 1 --max-caracteres 3500; echo ======; python qa.py section CTEL-ITP-2011-en 5 --max-caracteres 4000",
+   "python qa.py section CTAL-TM-3.0-fr 1.5.1 --max-caracteres 3500; echo =====; python qa.py section CTAL-AT-2.0-en 3.4.2 --max-caracteres 3500; echo =====; python qa.py chercher \"IDEAL initiating diagnosing establishing acting learning improvement process\" --doc CTEL-ITP-2011-en",
+   "python qa.py confiance --help | head -30; python qa.py idee doublons --titre \"Choisir l'approche d'amélioration du processus de test\" --resume \"Choisir entre modèle de processus, modèle de contenu et approche analytique selon le contexte\" --principe \"Le choix dépend du contexte\" --theme amelioration-processus",
+   "python qa.py confiance --base 91 --lus 5 --concordants 2 --raisonnement 1; python qa.py themes | grep -i -E \"process|amélio|ameli\"",
+   "python qa.py idee doublons --titre \"Choisir l'approche d'amélioration du processus de test\" --resume \"Choisir entre modèle de processus, modèle de contenu et approche analytique selon le contexte\" --principe \"Le choix dépend du contexte\" --theme maturite"
+  ],
+  "web": [],
+  "citations": [
+   {
+    "citation": "CTAL-TM §1.5.1, p. 39",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.5.1, p. 40",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.5.2, p. 40-41",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-AT §3.4.1, p. 28-29",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-AT §3.4.1, p. 29",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-AT §3.4.2, p. 29-30",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-AT §3.4.2, p. 30",
+    "lue": true
+   },
+   {
+    "citation": "CTEL-ITP §5.1, p. 36",
+    "lue": true
+   },
+   {
+    "citation": "CTEL-ITP §5.1, p. 36-37",
+    "lue": true
+   },
+   {
+    "citation": "CTEL-ITP §5.1, p. 37",
+    "lue": true
+   }
+  ],
+  "citations_non_lues": [],
+  "confiance": 75,
+  "echec": []
+ },
+ {
+  "id": "T5-priorisation",
+  "agent": "thomas",
+  "question": "Compare les techniques de priorisation des tests décrites par l'ISTQB.",
+  "tours": 6,
+  "cout_usd": 0.119,
+  "commandes_qa": [
+   "python qa.py idee chercher priorisation des tests; python qa.py chercher \"test prioritization\" | head -60; python qa.py chercher \"priorisation des tests\" | head -60",
+   "python qa.py section CTFL-4.0.1-en 5.1.5 --max-caracteres 4000; python qa.py section CTAL-TM-3.0-en 1.3.4 --max-caracteres 4500; python qa.py chercher \"regression test selection prioritization\" | head -30; python qa.py chercher \"test case prioritization coverage dependencies\" --doc CTAL-TA | head -30",
+   "python qa.py section CTAL-TA-4.0-en 2.2.1 --max-caracteres 3500; python qa.py confiance --help | head -20",
+   "python qa.py section CTAL-TA-4.0-fr 2.2.1 --max-caracteres 3500; python qa.py confiance --base 88 --lus 3 --concordants 2"
+  ],
+  "web": [],
+  "citations": [
+   {
+    "citation": "CTAL-TA §2.2.1 (début de la section seulement, p. 28",
+    "lue": true
+   },
+   {
+    "citation": "CTFL §5.1.5, p. 50",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.4, p. 31",
+    "lue": true
+   }
+  ],
+  "citations_non_lues": [],
+  "confiance": 83,
+  "echec": []
  },
  {
   "id": "T6-lacunes",
   "agent": "thomas",
   "question": "Identifie les thèmes QA sur lesquels notre base de connaissances est encore pauvre.",
-  "tours": 5,
-  "cout_usd": 0.082,
+  "tours": 4,
+  "cout_usd": 0.08,
   "commandes_qa": [
-   "python qa.py couverture 2>&1 | head -80; python qa.py idee --help 2>&1 | head -5",
-   "python qa.py inventaire 2>&1 | head -15; wc -l connaissances/connaissances.jsonl"
+   "python qa.py inventaire; python qa.py themes; python qa.py couverture 2>&1 | head -80",
+   "python qa.py idee lister 2>&1 | tail -5; python qa.py confiance --help 2>&1 | head -20"
   ],
   "web": [],
   "citations": [],
   "citations_non_lues": [],
-  "confiance": 80
+  "confiance": 70,
+  "echec": []
  },
  {
   "id": "S1-rbt",
   "agent": "sylvie",
   "question": "J'ai vu qu'on pouvait mettre en place une stratégie de test basée sur les risques. Je pense faire ceci : un atelier en début de release avec le PO pour lister les fonctionnalités risquées, on teste ces fonctionnalités en premier et plus en profondeur, et on ne fait que du smoke test sur le reste. Est-ce que je suis aligné ISTQB ? Quel est le niveau de maturité de ma démarche ?",
-  "tours": 9,
-  "cout_usd": 0.171,
+  "tours": 6,
+  "cout_usd": 0.117,
   "commandes_qa": [
-   "python qa.py chercher \"risk-based testing identification évaluation atténuation\" 2>&1 | head -60",
-   "python qa.py inventaire 2>&1 | head -40",
-   "for s in 1.3.1 1.3.2 1.3.3 1.3.4 1.3.5 1.3.6; do echo \"=== TM-fr §$s\"; python qa.py section CTAL-TM-3.0-fr $s 2>&1 | head -60; done",
-   "python qa.py section CTFL-4.0.1-en 5.2 2>&1 | head -60; echo ======; python qa.py section CTAL-TA-4.0-fr 2.1 2>&1 | head -60",
-   "python qa.py section CTFL-4.0.1-en 5.2.3 2>&1 | tail -25; echo; python qa.py section CTFL-4.0.1-en 5.2.4 2>&1 | head -30",
-   "python qa.py section CTAL-TM-3.0-fr 1.3 2>&1 | head -120",
-   "python qa.py section CTAL-TM-3.0-fr 1.3.4 2>&1 | head -70; python qa.py section CTAL-TM-3.0-fr 1.3.5 2>&1 | head -50; python qa.py section CTAL-TM-3.0-fr 1.3.6 2>&1 | head -60"
+   "python qa.py chercher \"risk-based testing identification évaluation atténuation\" 2>&1 | head -80",
+   "python qa.py section CTAL-TM-3.0-fr 1.3 --max-caracteres 9000 2>&1",
+   "python qa.py chercher \"risk-based testing\" CTFL 2>&1 | head -30; python qa.py chercher \"test basé sur les risques smoke test régression agile release\" 2>&1 | head -40",
+   "python qa.py section CTAL-TM-3.0-fr 1.3.4 2>&1; python qa.py section CTAL-TM-3.0-fr 1.3.6 2>&1"
   ],
   "web": [],
   "citations": [
    {
-    "citation": "CTAL-TM §1.3.2, p. 29-30",
+    "citation": "CTAL-TM §1.3.2, pp. 29-30",
     "lue": true
    },
    {
-    "citation": "CTAL-TM §1.3.3, p. 30-31",
+    "citation": "CTAL-TM §1.3.3, pp. 30-31",
     "lue": true
    },
    {
-    "citation": "CTFL §5.2.3, p. 52-53",
+    "citation": "CTAL-TM §1.3, p. 29",
     "lue": true
    },
    {
-    "citation": "CTAL-TM §1.3.4, p. 32-33",
+    "citation": "CTAL-TM §1.3.4, pp. 32-33",
     "lue": true
    },
    {
@@ -234,310 +329,81 @@
     "lue": true
    },
    {
-    "citation": "CTFL §5.2.4, p. 53",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-TM §1.3.2 et §1.3.4 ; CTAL-TA 4.0 fr §2.1.1, p. 27",
-    "lue": false
-   },
-   {
-    "citation": "CTAL-TM §1.3.4, p. 33",
-    "lue": true
-   },
-   {
     "citation": "CTAL-TM §1.3.6, p. 34",
-    "lue": true
-   },
-   {
-    "citation": "CTFL §5.2.4 (p. 53-54",
     "lue": true
    }
   ],
-  "citations_non_lues": [
-   "CTAL-TM §1.3.2 et §1.3.4 ; CTAL-TA 4.0 fr §2.1.1, p. 27"
-  ],
-  "confiance": 82
+  "citations_non_lues": [],
+  "confiance": 78,
+  "echec": []
  },
  {
   "id": "S2-automatisation",
   "agent": "sylvie",
   "question": "On veut automatiser 100 % de nos tests de régression avec Playwright, les lancer à chaque commit et supprimer les tests manuels. Est-ce aligné avec les recommandations ISTQB ? Niveau de maturité ?",
   "tours": 7,
-  "cout_usd": 0.164,
+  "cout_usd": 0.131,
   "commandes_qa": [
-   "python qa.py chercher \"test automation regression suite benefits risks\" && python qa.py chercher \"automatisation des tests régression 100 % tests manuels\"",
-   "python qa.py section CTFL-4.0.1-en 6.2; echo ======; python qa.py section CT-TAS-1.0-fr 6.1.1; echo ======; python qa.py section CTEL-TM-2011-en 2.3.7",
-   "python qa.py section CTAL-AT-2.0-en 1.4; echo ======; python qa.py section CTAL-TAE-2.0-fr 5.1.1; echo ======; python qa.py section CTAL-TA-4.0-fr 2.2.1"
+   "python qa.py chercher \"test automation regression suite benefits risks manual testing\" 2>&1 | head -80",
+   "python qa.py chercher \"automatisation des tests régression intégration continue\" 2>&1 | head -80",
+   "python qa.py page CTFL-4.0.1-en 59; python qa.py page CTAL-AT-2.0-en 17; python qa.py page CT-QDO-1.0-en 39; python qa.py page CTAL-TAE-2.0-en 35",
+   "python qa.py page CTFL-4.0.1-en 60; python qa.py chercher \"test automation not everything can be automated manual testing still needed suitability\" 2>&1 | head -40",
+   "python qa.py page CTFL-4.0.1-en 27; python qa.py page CT-QDO-1.0-en 24"
   ],
   "web": [],
   "citations": [
    {
+    "citation": "CT-QDO §3.2.1, p. 39",
+    "lue": true
+   },
+   {
+    "citation": "CTFL §6.2, pp. 59-60",
+    "lue": true
+   },
+   {
     "citation": "CTAL-AT §1.4, p. 17",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TAE §5.1.1, p. 35",
+    "lue": true
+   },
+   {
+    "citation": "CTFL §2.1.4, p. 27",
+    "lue": true
+   },
+   {
+    "citation": "CT-QDO §2.1.2, p. 24",
     "lue": true
    },
    {
     "citation": "CTFL §6.2, p. 60",
     "lue": true
-   },
-   {
-    "citation": "CT-TAS §6.1.1, p. 49",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-AT §1.4, p. 18",
-    "lue": true
-   },
-   {
-    "citation": "CTEL-TM §2.3.7, p. 16",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-TA §2.2.1, p. 29",
-    "lue": true
-   }
-  ],
-  "citations_non_lues": [],
-  "confiance": 72
- },
- {
-  "id": "M2-sante",
-  "agent": "thomas",
-  "question": "Je suis Test Manager sur le logiciel d'un dispositif médical. Comment mettre en place la traçabilité des exigences vers les tests et un test basé sur les risques ?",
-  "tours": 6,
-  "cout_usd": 0.163,
-  "commandes_qa": [
-   "python qa.py idee chercher traçabilité risques exigences dispositif médical; python qa.py chercher traçabilité exigences tests; python qa.py chercher risk-based testing risk analysis",
-   "python qa.py lire 11487 --contexte 1; python qa.py section CTAL-TM-3.0-fr 1.3 | head -150; python qa.py chercher IEC 62304 dispositif médical | head -20; python qa.py chercher safety-critical integrity level risk | head -30",
-   "python qa.py lire 6874 --contexte 1; python qa.py lire 11094 --contexte 1; python qa.py lire 11295 --contexte 0; python qa.py lire 8676 --contexte 0"
-  ],
-  "web": [
-   "WebSearch {\"query\": \"IEC 62304 traceability requirements tests ISO 14971 risk control verification software medical device\", \"mode"
-  ],
-  "citations": [
-   {
-    "citation": "CTFL §1.4.4, p. 20-21",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-TM §1.3.2, p. 29-30",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-TM §1.3.3, p. 30-31",
-    "lue": true
-   },
-   {
-    "citation": "CT-FT §3.3, p. 27",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-TM §1.3.4, p. 32",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-TM §1.3.4, p. 31",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-TM §1.3.1, p. 29",
-    "lue": true
-   },
-   {
-    "citation": "CTFL §1.4.4, p. 21",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-TM §1.3.6, p. 34",
-    "lue": true
-   }
-  ],
-  "citations_non_lues": [],
-  "confiance": 55,
-  "criteres": {
-   "methode": true,
-   "etapes_sourcees": true,
-   "exemple": true,
-   "domaines:m[ée]dical|sant[ée]|r[ée]glement": true,
-   "mentions:tra[çc]abilit": true,
-   "non_couvert": true,
-   "confiance": true
-  },
-  "criteres_ko": []
- },
- {
-  "id": "M3-web",
-  "agent": "thomas",
-  "question": "Comment mettre en place la stratégie de test et l'automatisation d'une application web e-commerce livrée chaque semaine ?",
-  "tours": 11,
-  "cout_usd": 0.197,
-  "commandes_qa": [
-   "python qa.py idee chercher \"stratégie de test automatisation livraison continue\" ; python qa.py idee chercher \"test automation strategy continuous delivery\"",
-   "python qa.py chercher \"test automation strategy\" ; python qa.py chercher \"stratégie de test basée sur les risques\" ; python qa.py chercher \"pyramide de tests automatisation\" ; python qa.py chercher \"continuous testing DevOps release\"",
-   "for p in 10322 10200 10379 8226 11567 11501; do python qa.py lire $p --contexte 1 | head -60; echo ======; done",
-   "python qa.py section CT-TAS-1.0-en 4 | head -80; echo =====; python qa.py chercher \"regression test approaches agile smoke quality gate\" | head -20; python qa.py chercher \"maintenance of automated tests flaky\" | head -20",
-   "python qa.py lire 10322 --contexte 1 | head -50; echo =====; python qa.py lire 10200 --contexte 1 | head -40; echo =====; python qa.py lire 8226 --contexte 1 | head -40; echo =====; python qa.py lire 8247 --contexte 1 | head -40",
-   "python qa.py idee modele",
-   "python qa.py themes | head -40",
-   "python qa.py idee doublons <<'JSON'\n{\"titre\":\"Stratégie d'automatisation pour livraison hebdomadaire : régression incrémentale, smoke en quality gate, pyramide cible\",\"resume\":\"Pour une appli web livrée chaque semaine, cadrer l'automatisation par une stratégie explicite (objectifs, risques, périmètre, outils, architecture, environnements), une pyramide cible mesurée par rapport à l'existant, et une régression DevOps (smoke en quality gate, tests prioritaires post-déploiement).\",\"probleme\":\"Livraisons hebdomadaires : le temps de test manuel ne suffit plus et l'automatisation sans stratégie dérive en suite UI lente et instable.\",\"principe\":\"Définir la stratégie d'automatisation, dessiner pyramide actuelle vs cible, régression incrémentale basée sur le risque, smoke tests comme quality gate dans le pipeline CI/CD.\",\"theme_principal\":\"strategie-automatisation\",\"themes_secondaires\":[\"cicd\",\"rbt\"],\"domaine_application\":\"Application web e-commerce, livraison hebdomadaire, équipe agile\",\"prerequis\":\"Pipeline CI/CD, environnements de test, testabilité du SUT\",\"benefices\":\"Feedback rapide, délai de mise sur le marché réduit, régression maîtrisée\",\"limites\":\"Investissement initial et maintenance des tests; syllabus sans guide web dédié\",\"maturite\":\"documentee\",\"statut\":\"a_evaluer\",\"provenance\":\"Recherche du 2026-10-22 : mise en place stratégie de test et automatisation web e-commerce livrée chaque semaine\",\"references\":[{\"type\":\"istqb\",\"doc_id\":\"CT-TAS-1.0-en\",\"pages\":\"16\",\"section\":\"1.1.1\",\"extrait\":\"Defining the intended purpose\"},{\"type\":\"istqb\",\"doc_id\":\"CTAL-AT-2.0-en\",\"pages\":\"17\",\"section\":\"1.4\",\"extrait\":\"smoke tests acting as quality gates\"}]}\nJSON"
-  ],
-  "web": [
-   "WebSearch {\"query\": \"Playwright best practices CI test isolation web e-commerce\", \"mode\": \"standard\"}"
-  ],
-  "citations": [
-   {
-    "citation": "CT-TAS §1.1.1, p. 16",
-    "lue": true
-   },
-   {
-    "citation": "CT-TAS §3.1.1, p. 25",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-AT §1.4, p. 17",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-AT §3.1.2, p. 26",
-    "lue": true
-   },
-   {
-    "citation": "CT-TAS §4.1.1, p. 30",
-    "lue": true
-   }
-  ],
-  "citations_non_lues": [],
-  "confiance": 66,
-  "criteres": {
-   "methode": true,
-   "etapes_sourcees": true,
-   "exemple": true,
-   "domaines:web": true,
-   "mentions:automatis": true,
-   "confiance": true
-  },
-  "criteres_ko": []
- },
- {
-  "id": "M6-api",
-  "agent": "thomas",
-  "question": "Comment mettre en place les tests d'une API REST utilisée par plusieurs équipes : tests de contrat, test d'intégration et performance ?",
-  "tours": 19,
-  "cout_usd": 0.216,
-  "commandes_qa": [
-   "python qa.py idee chercher \"contrat API\" ; python qa.py idee chercher \"API REST intégration\"; python qa.py idee chercher \"performance API\"",
-   "for q in \"contract testing API\" \"test de contrat\" \"API testing\" \"integration testing approach\" \"tests d'intégration API\" \"performance testing API\" \"test de performance\" \"service virtualization\" \"consumer-driven contract\"; do echo \"=== $q\"; python qa.py chercher \"$q\" 2>&1 | head -30; done",
-   "python qa.py chercher \"contract testing API\" 2>&1 | head -40",
-   "python qa.py chercher \"API testing integration\" 2>&1 | head -40",
-   "python qa.py chercher \"performance testing load API\" 2>&1 | head -40",
-   "python qa.py chercher \"service virtualization test doubles\" 2>&1 | head -40",
-   "python qa.py section CT-QDO-1.0-en 3.2.2 2>&1 | head -80",
-   "python qa.py section CTAL-TAE-2.0-en 5.1.3 2>&1 | head -60",
-   "python qa.py section CTAL-TTA-4.0-en 2.7 2>&1 | head -50",
-   "python qa.py lire 7575 --contexte 1 2>&1 | head -40; python qa.py lire 10338 --contexte 1 2>&1 | head -30",
-   "python qa.py chercher \"performance test objectives metrics load profile\" --doc CT-PT 2>&1 | head -30",
-   "python qa.py chercher \"integration testing strategy big bang incremental interfaces between teams\" 2>&1 | head -30",
-   "python qa.py lire 8859 --contexte 1 2>&1 | head -40",
-   "python qa.py lire 7590 --contexte 1 2>&1 | head -50; python qa.py lire 11304 --contexte 1 2>&1 | head -30",
-   "python qa.py idee modele 2>&1 | head -50",
-   "python qa.py themes 2>&1 | head -60",
-   "python qa.py idee doublons <<'JSON'\n{\n \"titre\": \"Contrats d'API versionnés et vérifiés en CI pour une API partagée par plusieurs équipes\",\n \"resume\": \"Pour une API REST consommée par plusieurs équipes, formaliser le contrat consommateur/fournisseur, le versionner et le vérifier dans chaque pipeline CI/CD.\",\n \"probleme\": \"Les changements d'une API partagée cassent des consommateurs découverts tard, en intégration ou en production.\",\n \"principe\": \"Définir le contrat, écrire des tests de contrat côté consommateur et fournisseur, les exécuter en CI/CD, versionner les contrats sous gestion de configuration.\",\n \"theme_principal\": \"api\",\n \"themes_secondaires\": [\"cicd\", \"shift-left\"],\n \"domaine_application\": \"API REST / microservices consommés par plusieurs équipes\",\n \"prerequis\": \"Standards partagés et outillage de tests de contrat\",\n \"benefices\": \"Retour rapide et isolé, détection des ruptures avant déploiement\",\n \"limites\": \"Ne couvre pas tous les aspects fonctionnels ; coordination entre équipes requise\",\n \"maturite\": \"documentee\",\n \"statut\": \"a_evaluer\",\n \"provenance\": \"Recherche du 2026-10-22 : mise en place des tests d'une API REST multi-équipes\",\n \"references\": [\n  {\"type\": \"istqb\", \"doc_id\": \"CT-QDO-1.0-en\", \"pages\": \"41\", \"section\": \"3.2.2\", \"extrait\": \"contracts should be versioned and stored in version control\"}\n ]\n}\nJSON"
-  ],
-  "web": [],
-  "citations": [
-   {
-    "citation": "CT-TAS §3.1.1, p. 23",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-TM §1.4.2, p. 37",
-    "lue": true
-   },
-   {
-    "citation": "CT-QDO §3.2.2, p. 40-41",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-TAE §5.1.3, p. 36",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-TTA §2.7, p. 18",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-TTA §2.7, p. 17-18",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-TTA §2.7, p. 17",
-    "lue": true
-   },
-   {
-    "citation": "CT-QDO §3.2.2, p. 41",
-    "lue": true
-   },
-   {
-    "citation": "CT-PT §4.1.2, p. 33-34",
-    "lue": true
-   },
-   {
-    "citation": "CT-PT §3.2, p. 27",
-    "lue": true
-   },
-   {
-    "citation": "CT-PT §3.2, p. 26",
-    "lue": true
    }
   ],
   "citations_non_lues": [],
   "confiance": 80,
-  "criteres": {
-   "methode": true,
-   "etapes_sourcees": true,
-   "exemple": true,
-   "domaines:API": true,
-   "mentions:contrat|contract": true,
-   "mentions:performance": true,
-   "confiance": true
-  },
-  "criteres_ko": []
+  "echec": []
  },
  {
   "id": "M1-rbt-agile",
   "agent": "thomas",
   "question": "Comment l'ISTQB propose-t-il d'intégrer le risk-based testing dans une équipe agile ?",
-  "tours": 7,
-  "cout_usd": 0.166,
+  "tours": 11,
+  "cout_usd": 0.181,
   "commandes_qa": [
-   "python qa.py idee chercher risk-based testing agile; python qa.py chercher risk-based testing agile; python qa.py chercher \"analyse des risques agile itération\"; python qa.py chercher \"risk based testing agile iteration planning\"",
-   "python qa.py lire 9555 --contexte 1; python qa.py lire 9556 --contexte 1; python qa.py lire 11560 --contexte 1; python qa.py lire 8243 --contexte 1; python qa.py lire 11296 --contexte 1; python qa.py lire 8679 --contexte 1",
-   "python qa.py idee modele | head -40; python qa.py idee doublons <<'JSON'\n{\"titre\":\"Analyse des risques qualité à chaque planification d'itération (agile)\",\"description\":\"Risk-storming en planification d'itération, niveau de risque pilote ordre et effort de test, réévaluation à chaque itération.\"}\nJSON",
-   "python qa.py idee modele | head -40",
-   "python qa.py themes | head -40"
+   "python qa.py idee chercher risk-based testing agile",
+   "python qa.py chercher \"risk-based testing agile\"; python qa.py chercher \"analyse des risques agile itération\"; python qa.py chercher \"product risk agile quality risk analysis\"",
+   "python qa.py lire 2832 --contexte 1 --max-caracteres 6000; python qa.py lire 2831 --max-caracteres 3000; python qa.py chercher \"risk agile\" --doc CTAL-AT; python qa.py lire 4576 --max-caracteres 3500; python qa.py lire 1762 --contexte 1 --max-caracteres 3500",
+   "python qa.py lire 2832 --contexte 1; python qa.py lire 1535 --contexte 1; python qa.py lire 4576; python qa.py lire 1762 --contexte 1; python qa.py lire 1954",
+   "python qa.py chercher \"product risk\" --doc CTAL-AT; python qa.py chercher \"risk-based testing\" --doc CTAL-AT",
+   "python qa.py lire 1524 --contexte 1; python qa.py lire 1566",
+   "python qa.py confiance --help | head -30; python qa.py idee doublons --titre \"Analyse des risques qualité à chaque planification d'itération\" --resume \"RBT agile: risques à la planification de release et d'itération, par toute l'équipe, réévalués périodiquement\" --principe \"Dimensionner l'effort de test selon le niveau de risque, en continu\" --theme risques",
+   "python qa.py confiance --base 85 --lus 7 --concordants 3 --ancien 1 --raisonnement 1; python qa.py themes | grep -i -E \"risk|risq\"",
+   "python qa.py idee doublons --titre \"Analyse des risques qualité à chaque planification d'itération\" --resume \"RBT agile: risques à la planification de release et d'itération, par toute l'équipe, réévalués périodiquement\" --principe \"Dimensionner l'effort de test selon le niveau de risque, en continu\" --theme rbt"
   ],
   "web": [],
   "citations": [
-   {
-    "citation": "CTFL-AT §3.2 et §3.2.1, p. 31-32",
-    "lue": true
-   },
-   {
-    "citation": "CTFL §5.1.2, p. 48-49",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-AT §3.1 et §3.1.1, p. 24-25",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-TA §2.1.1 et §2.2, p. 27-28",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-TM §1.3.6, p. 34",
-    "lue": true
-   },
    {
     "citation": "CTFL-AT §3.2.1, p. 31",
     "lue": true
@@ -547,24 +413,28 @@
     "lue": true
    },
    {
-    "citation": "CTFL §5.1.2, p. 48",
+    "citation": "CTAL-TM §1.3.6, p. 34",
     "lue": true
    },
    {
-    "citation": "CTAL-TA §2.1.1, p. 27",
+    "citation": "CTAL-TA §2.1, p. 25",
     "lue": true
    },
    {
-    "citation": "CTAL-TA §2.2, p. 28",
+    "citation": "CTAL-AT §5.1.4, p. 40",
     "lue": true
    },
    {
-    "citation": "CTAL-AT §3.1, p. 24",
+    "citation": "CTAL-AT §3.4.2, p. 29",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-AT §3.1.2, p. 26",
     "lue": true
    }
   ],
   "citations_non_lues": [],
-  "confiance": 80,
+  "confiance": 66,
   "criteres": {
    "methode": true,
    "etapes_sourcees": true,
@@ -578,28 +448,168 @@
    "questions_choix": true,
    "confiance": true
   },
-  "criteres_ko": []
+  "criteres_ko": [],
+  "echec": []
+ },
+ {
+  "id": "M2-sante",
+  "agent": "thomas",
+  "question": "Je suis Test Manager sur le logiciel d'un dispositif médical. Comment mettre en place la traçabilité des exigences vers les tests et un test basé sur les risques ?",
+  "tours": 11,
+  "cout_usd": 0.194,
+  "commandes_qa": [
+   "python qa.py idee chercher traçabilité exigences tests risques; python qa.py idee chercher dispositif médical",
+   "python qa.py chercher traçabilité exigences tests; python qa.py chercher risk-based testing risk assessment; python qa.py chercher medical device regulated safety-critical traceability",
+   "python qa.py lire 4768 --contexte 1 --max-caracteres 3500; python qa.py section CTAL-TM-3.0-en 1.3.1 --max-caracteres 4000; python qa.py lire 137 --contexte 1 --max-caracteres 3000; python qa.py lire 2707 --contexte 1 --max-caracteres 3500",
+   "python qa.py section CTAL-TM-3.0-en 1.3.2 --max-caracteres 4000; python qa.py section CTAL-TM-3.0-en 1.3.3 --max-caracteres 3500; python qa.py lire 3204 --contexte 1 --max-caracteres 3000",
+   "python qa.py lire 4768 --contexte 1; python qa.py lire 137 --contexte 1; python qa.py lire 2707 --contexte 1; python qa.py lire 3204 --contexte 1; python qa.py section CTAL-TM-3.0-en 1.3.4 --max-caracteres 4000",
+   "python qa.py idee doublons --titre \"Traçabilité exigences-risques-tests pour dispositif médical\" --resume \"Chaîne de traçabilité bidirectionnelle et test basé sur les risques en contexte réglementé\" --principe \"Le niveau de risque pilote la rigueur de test et la traçabilité fournit la preuve\" --theme tracabilite; python qa.py confiance --help",
+   "python qa.py themes | head -40; python qa.py confiance --base 88 --lus 9 --concordants 3 --web 1 --raisonnement 1",
+   "python qa.py idee doublons --titre \"Chaîne risque-exigence-test pour logiciel réglementé\" --resume \"Traçabilité bidirectionnelle exigences-risques-tests et rigueur de test proportionnée au niveau de risque\" --principe \"Le niveau de risque pilote la rigueur de test; la traçabilité fournit la preuve de couverture\" --theme reglementee"
+  ],
+  "web": [
+   "WebSearch {\"query\": \"IEC 62304 software safety classification traceability requirements tests ISO 14971 risk control verification\""
+  ],
+  "citations": [
+   {
+    "citation": "CTFL §1.4.4, p. 20-21",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.4, p. 28-31",
+    "lue": true
+   },
+   {
+    "citation": "CTEL-TM §8.3.4, p. 66",
+    "lue": true
+   },
+   {
+    "citation": "CT-FT §2.4.1, p. 22",
+    "lue": true
+   },
+   {
+    "citation": "CT-AUT §2.1.2.6, p. 23",
+    "lue": true
+   },
+   {
+    "citation": "CTFL §1.4.4, p. 20",
+    "lue": true
+   },
+   {
+    "citation": "CTFL §1.4.4, p. 21",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.2, p. 28-29",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.3, p. 29-30",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.4, p. 30",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.4, p. 31",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.1, p. 28",
+    "lue": true
+   }
+  ],
+  "citations_non_lues": [],
+  "confiance": 73,
+  "criteres": {
+   "methode": true,
+   "etapes_sourcees": true,
+   "exemple": true,
+   "domaines:m[ée]dical|sant[ée]|r[ée]glement": true,
+   "mentions:tra[çc]abilit": true,
+   "non_couvert": true,
+   "confiance": true
+  },
+  "criteres_ko": [],
+  "echec": []
+ },
+ {
+  "id": "M3-web",
+  "agent": "thomas",
+  "question": "Comment mettre en place la stratégie de test et l'automatisation d'une application web e-commerce livrée chaque semaine ?",
+  "tours": 9,
+  "cout_usd": 0.135,
+  "commandes_qa": [
+   "python qa.py idee chercher stratégie de test automatisation livraison continue",
+   "python qa.py chercher \"test automation strategy continuous delivery\"",
+   "python qa.py chercher \"stratégie de test approche basée sur les risques régression\"",
+   "python qa.py lire 1501 --contexte 1 --max-caracteres 3500; python qa.py lire 1520 --contexte 1 --max-caracteres 3500; python qa.py lire 3610 --contexte 1 --max-caracteres 3500; python qa.py lire 985 --contexte 1 --max-caracteres 3000; python qa.py section CTAL-TAE-2.0-en 5.1 --max-caracteres 4000",
+   "python qa.py lire 1501 --contexte 1; python qa.py lire 1520 --contexte 1; python qa.py lire 3610 --contexte 1; python qa.py lire 985 --contexte 1",
+   "python qa.py confiance --help | head -30; python qa.py idee doublons --titre \"Régression en livraison hebdomadaire\" --resume \"Combiner régression incrémentale, basée risques et exploratoire dans le pipeline CI/CD\" --principe \"Smoke tests comme quality gates, régression risquée automatisée, exploratoire en complément\" --theme automatisation",
+   "python qa.py confiance --base 88 --lus 5 --concordants 3 --raisonnement 1"
+  ],
+  "web": [],
+  "citations": [
+   {
+    "citation": "CTAL-AT §3.1.1, p. 25",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-AT §1.4, p. 17-18",
+    "lue": true
+   },
+   {
+    "citation": "CT-TAS §2.1.3, p. 20",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TAE §5.1.1, p. 34-35",
+    "lue": true
+   },
+   {
+    "citation": "CT-QDO §2.2.3, p. 28",
+    "lue": true
+   }
+  ],
+  "citations_non_lues": [],
+  "confiance": 83,
+  "criteres": {
+   "methode": true,
+   "etapes_sourcees": true,
+   "exemple": true,
+   "domaines:web": true,
+   "mentions:automatis": true,
+   "confiance": true
+  },
+  "criteres_ko": [],
+  "echec": []
  },
  {
   "id": "M4-embarque",
   "agent": "thomas",
   "question": "Comment organiser les niveaux de test et le test d'intégration matériel/logiciel d'un système embarqué (calculateur industriel) ?",
-  "tours": 10,
-  "cout_usd": 0.175,
+  "tours": 11,
+  "cout_usd": 0.174,
   "commandes_qa": [
-   "python qa.py idee chercher \"embarqué intégration matériel logiciel niveaux de test\"; python qa.py idee chercher \"embedded hardware software integration\"",
-   "python qa.py chercher \"test levels embedded systems hardware software integration\"; echo ----; python qa.py chercher \"niveaux de test système embarqué intégration matériel logiciel\"; echo ----; python qa.py chercher \"hardware-in-the-loop software-in-the-loop\"; echo ----; python qa.py chercher \"test d'intégration logiciel matériel\"",
-   "python qa.py section CTEL-TM-2011-en 8.3.3; echo ======; python qa.py section CT-AuT-2.1.1-en 2.4.2; echo ======; python qa.py section CT-AuT-2.1.1-en 3.2.4.3; echo =====; python qa.py section CT-AuT-2.1.1-en 3.2.3.2",
-   "python qa.py lire 10502 --contexte 1; echo =====; python qa.py lire 8889 --contexte 1",
-   "python qa.py idee modele",
-   "python qa.py themes | head -60",
-   "python qa.py idee doublons <<'JSON'\n{\"titre\":\"Laboratoire d'intégration matériel/firmware avec critère de « graduation » avant le test système\",\"resume\":\"Isoler le matériel et le firmware non testés de l'environnement de test logiciel dans un labo d'intégration ; ils n'entrent en test système qu'après avoir « gradué ».\",\"probleme\":\"Les changements répétés de matériel/firmware/logiciel provoquent des ré-intégrations qui cassent l'avancement de l'équipe de test.\",\"principe\":\"Labo d'intégration séparé, critères de sortie explicites, planning de livraison des composants coordonné par le Test Manager.\",\"theme_principal\":\"environnements\",\"themes_secondaires\":[\"test-management\"],\"domaine_application\":\"Systèmes embarqués / combinaisons matériel-logiciel (calculateur industriel)\",\"prerequis\":\"Équipes matériel, firmware et logiciel qui partagent un planning de livraisons\",\"benefices\":\"Moins d'arrêts dus aux équipements prototypes, test système plus stable\",\"limites\":\"Source ancienne (CTEL-TM 2011) ; coût d'un second banc\",\"maturite\":\"documentee\",\"statut\":\"a_evaluer\",\"provenance\":\"Recherche du 2026-10-22 : niveaux de test et intégration matériel/logiciel d'un calculateur industriel\",\"references\":[{\"type\":\"istqb\",\"doc_id\":\"CTEL-TM-2011-en\",\"pages\":\"65\",\"section\":\"8.3.3\",\"extrait\":\"An integration test lab is often used to separate the untested equipment/firmware from the software testing environment.\"}]}\nJSON",
-   "python qa.py idee chercher \"laboratoire d'intégration matériel firmware graduate système\"; python qa.py idee chercher \"HiL SiL niveaux de test calculateur ECU\""
+   "python qa.py idee chercher \"embarqué intégration matériel logiciel niveaux de test\" 2>&1 | head -40",
+   "python qa.py chercher \"embedded systems test levels hardware software integration\" 2>&1 | head -60",
+   "python qa.py chercher \"systèmes embarqués intégration matériel logiciel\" 2>&1 | head -60",
+   "python qa.py section CTEL-TM-2011-en 8.3.3 --max-caracteres 5000 2>&1; echo ======; python qa.py section CT-AuT-2.1.1-en 2.4.2 --max-caracteres 6000 2>&1",
+   "python qa.py section CT-AuT-2.1.1-en 3.2.3 --max-caracteres 7000 2>&1; echo ======; python qa.py section CTAL-TTA-4.0-en 4.1 --max-caracteres 4000 2>&1",
+   "python qa.py section CT-AuT-2.1.1-en 3.2 --max-caracteres 3500 2>&1; echo ======; python qa.py section CTAL-TTA-4.0-en 2.8.2 --max-caracteres 4500 2>&1",
+   "python qa.py section CT-AuT-2.1.1-en 3.2.4.3 --max-caracteres 3000 2>&1; echo =====; python qa.py section CT-AuT-2.1.1-en 3.2.2.2 --max-caracteres 2500 2>&1; echo ====; python qa.py confiance --help 2>&1 | head -25",
+   "python qa.py confiance --base 60 --lus 8 --concordants 3 --raisonnement 1 2>&1; python qa.py idee doublons --titre \"Intégration matériel/logiciel embarqué : laboratoire d'intégration et passage de relais\" --resume \"Isoler le matériel/firmware non testé dans un labo d'intégration; il doit être validé avant le test système\" --principe \"Faire graduer le matériel/firmware depuis le labo d'intégration avant le test système\" --theme niveaux-test 2>&1 | head -8; python qa.py themes 2>&1 | head -30",
+   "python qa.py idee doublons --titre \"Intégration matériel/logiciel embarqué : laboratoire d'intégration et passage de relais\" --resume \"Isoler le matériel/firmware non testé dans un labo d'intégration; il doit être validé avant le test système\" --principe \"Faire graduer le matériel/firmware depuis le labo d'intégration avant le test système\" --theme niveaux-types 2>&1 | head -8; python qa.py idee doublons --titre \"Aligner chaque niveau de test sur un environnement XiL (MiL, SiL, HiL)\" --resume \"Affecter l'environnement de test au niveau pour décaler les tests vers des niveaux virtuels moins coûteux\" --principe \"Associer MiL/SiL/HiL aux niveaux de test pour réduire coût et risque\" --theme niveaux-types 2>&1 | head -8"
   ],
   "web": [],
   "citations": [
    {
-    "citation": "CT-AUT §2.4.2, p. 30-31",
+    "citation": "CT-AUT §2.4.2, p. 30",
+    "lue": true
+   },
+   {
+    "citation": "CT-AUT §2.4.2, p. 31",
     "lue": true
    },
    {
@@ -607,7 +617,7 @@
     "lue": true
    },
    {
-    "citation": "CT-AUT §3.2.3.2, p. 37",
+    "citation": "CT-AUT §3.2.2.2, p. 36",
     "lue": true
    },
    {
@@ -615,12 +625,20 @@
     "lue": true
    },
    {
+    "citation": "CT-AUT §3.2.3.1, p. 37",
+    "lue": true
+   },
+   {
     "citation": "CTAL-TTA §4.1, p. 28",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TTA §2.8.2, p. 20",
     "lue": true
    }
   ],
   "citations_non_lues": [],
-  "confiance": 68,
+  "confiance": 66,
   "criteres": {
    "methode": true,
    "etapes_sourcees": true,
@@ -630,53 +648,36 @@
    "mentions:mat[ée]riel|hardware|HiL": true,
    "confiance": true
   },
-  "criteres_ko": []
- },
- {
-  "id": "C1-ambigu",
-  "agent": null,
-  "question": "Comment on gère les risques ?",
-  "tours": 4,
-  "cout_usd": 0.123,
-  "commandes_qa": [
-   "python qa.py idee chercher \"gestion des risques\" 2>&1 | head -40; python qa.py chercher \"gestion des risques produit\" 2>&1 | head -60",
-   "python qa.py section CTAL-TM-3.0-fr 1.3.1 2>&1 | head -70; python qa.py section CTAL-TM-3.0-fr 1.3.5 2>&1 | head -50; python qa.py chercher \"risk-based testing\" --doc CTFL 2>&1 | head -25"
-  ],
-  "web": [],
-  "citations": [
-   {
-    "citation": "CTAL-TM §1.3.1, p. 29",
-    "lue": true
-   }
-  ],
-  "citations_non_lues": [],
-  "confiance": 82,
-  "criteres": {
-   "questions_choix": true,
-   "hypotheses": true,
-   "confiance": true
-  },
-  "criteres_ko": []
+  "criteres_ko": [],
+  "echec": []
  },
  {
   "id": "M5-mobile",
   "agent": "thomas",
   "question": "Comment mettre en place les tests d'une application mobile iOS et Android : choix des appareils, risques, automatisation ?",
-  "tours": 9,
-  "cout_usd": 0.197,
+  "tours": 13,
+  "cout_usd": 0.205,
   "commandes_qa": [
-   "python qa.py idee chercher mobile appareils automatisation; python qa.py chercher \"mobile testing devices\" | head -60; python qa.py chercher \"tests mobiles appareils\" | head -60",
-   "python qa.py section CT-MAT-2019-fr 1.6; python qa.py lire 10808 --contexte 1; python qa.py chercher \"mobile app automation emulators cloud device farm\" | head -30",
-   "python qa.py section CT-MAT-2019-fr 5.4; python qa.py section CT-MAT-2019-fr 4.3",
-   "python qa.py section CT-MAT-2019-fr 5.2 --max-caracteres 5000; python qa.py section CT-MAT-2019-fr 4.4 --max-caracteres 5000; python qa.py idee modele | head -40",
-   "python qa.py confiance --base 86 --lus 5 --syllabus 3 2>&1 | tail -5; python qa.py confiance --help | head -20",
-   "python qa.py confiance --base 86 --lus 5 --concordants 2 --raisonnement 1; python qa.py idee doublons <<'JSON'\n{\"titre\":\"Choisir la stratégie d'appareils mobiles selon les données d'usage\",\"resume\":\"Réduire la matrice d'appareils iOS/Android à une sélection représentative issue des analytics, complétée par émulateurs en amont et laboratoire distant.\",\"theme_principal\":\"strategie\",\"references\":[]}\nJSON",
-   "python qa.py confiance --base 86 --lus 5 --concordants 2 --raisonnement 1; python qa.py themes | head -40"
+   "python qa.py idee chercher mobile appareils automatisation",
+   "python qa.py chercher mobile application testing devices",
+   "python qa.py chercher tests applications mobiles appareils",
+   "python qa.py section CT-MAT-2019-fr 1.6 --max-caracteres 7000; python qa.py section CT-MAT-2019-fr 1.8 --max-caracteres 5000",
+   "python qa.py lire 4083 --contexte 1 --max-caracteres 4000; python qa.py lire 189 --contexte 1 --max-caracteres 3000; python qa.py lire 3468 --contexte 1 --max-caracteres 3000",
+   "python qa.py chercher emulators simulators real devices mobile --doc CT-MAT",
+   "python qa.py page CT-MAT-2019-fr 19-20 --max-caracteres 6000; python qa.py page CT-MAT-2019-fr 46 --max-caracteres 5000; python qa.py lire 4083 --contexte 1; python qa.py lire 189 --contexte 1",
+   "python qa.py chercher automatisation tests mobiles outils --doc CT-MAT; python qa.py lire 3468 --contexte 1",
+   "python qa.py page CT-MAT-2019-fr 49-51 --max-caracteres 9000",
+   "python qa.py confiance --base 84 --lus 5 --concordants 2 2>&1 | tail -5; python qa.py idee doublons --titre \"Choisir les appareils mobiles par données d'usage\" --resume \"Matrice appareils/OS issue des analytics, émulateurs tôt, appareils réels et cloud ensuite\" --principe \"Réduire la combinatoire par sélection représentative\" --theme mobile 2>&1 | tail -5",
+   "python qa.py themes | head -40; python qa.py idee doublons --titre \"Matrice d'appareils mobiles fondée sur les données d'usage\" --resume \"Sélection représentative d'appareils/OS, émulateurs tôt, appareils réels et cloud ensuite\" --principe \"Réduire la combinatoire par sélection représentative\" --theme strategie 2>&1 | tail -5"
   ],
   "web": [],
   "citations": [
    {
     "citation": "CT-MAT §1.6, p. 17",
+    "lue": true
+   },
+   {
+    "citation": "CT-MAT §1.7, p. 18-19",
     "lue": true
    },
    {
@@ -692,15 +693,11 @@
     "lue": true
    },
    {
-    "citation": "CT-MAT §4.3.1-4.3.2, p. 45-46",
+    "citation": "CT-MAT §5.4, p. 51",
     "lue": true
    },
    {
-    "citation": "CT-MAT §4.3.1, p. 45",
-    "lue": true
-   },
-   {
-    "citation": "CT-MAT §4.4, p. 46-47",
+    "citation": "CT-MAT §5.1, p. 49",
     "lue": true
    },
    {
@@ -708,16 +705,24 @@
     "lue": true
    },
    {
-    "citation": "CT-MAT §5.4, p. 51-52",
+    "citation": "CT-MAT §5.3, p. 50-51",
+    "lue": true
+   },
+   {
+    "citation": "CT-TAS §2.1.2-2.1.3, p. 21",
     "lue": true
    },
    {
     "citation": "CTAL-TAE §4.2.1, p. 34",
     "lue": true
+   },
+   {
+    "citation": "CT-FT §6.4, p. 46",
+    "lue": true
    }
   ],
   "citations_non_lues": [],
-  "confiance": 72,
+  "confiance": 80,
   "criteres": {
    "methode": true,
    "etapes_sourcees": true,
@@ -730,27 +735,120 @@
   "echec": []
  },
  {
+  "id": "M6-api",
+  "agent": "thomas",
+  "question": "Comment mettre en place les tests d'une API REST utilisée par plusieurs équipes : tests de contrat, test d'intégration et performance ?",
+  "tours": 14,
+  "cout_usd": 0.193,
+  "commandes_qa": [
+   "python qa.py idee chercher \"contrat API\" ; python qa.py idee chercher \"performance API\" ; python qa.py idee chercher \"intégration API REST\"",
+   "python qa.py chercher \"contract testing API\" ; python qa.py chercher \"API testing REST\" ; python qa.py chercher \"tests d'intégration API\" ; python qa.py chercher \"performance testing API load\"",
+   "python qa.py section CT-QDO-1.0-en 3.2.2 --max-caracteres 7000",
+   "python qa.py section CTAL-TAE-2.0-en 5.1.3 --max-caracteres 5000",
+   "python qa.py section CTAL-TTA-4.0-en 2.7 --max-caracteres 6000",
+   "python qa.py lire 3477 --contexte 1 --max-caracteres 5000; python qa.py lire 850 --contexte 0 --max-caracteres 3000; python qa.py lire 886 --contexte 0 --max-caracteres 3000",
+   "python qa.py lire 3477 --contexte 1; python qa.py lire 850; python qa.py lire 886",
+   "python qa.py section CT-PT-2018-en 4.2.6 --max-caracteres 3500",
+   "python qa.py chercher \"performance test objectives service level agreements throughput response time\" --doc CT-PT | head -30; python qa.py chercher \"Pact consumer-driven contract\" ; python qa.py chercher \"k6 Pact\"",
+   "python qa.py lire 865; python qa.py lire 833",
+   "python qa.py confiance --help | head -20; python qa.py idee doublons --titre \"Mise en place tests API REST multi-équipes : contrat, intégration, performance\" --resume \"Séquencer tests de contrat versionnés, intégration et performance pour une API partagée\" --principe \"Contrat consommateur/fournisseur en CI, API testing fonctionnel, perf sur SLA\" --theme automatisation",
+   "python qa.py confiance --base 85 --lus 7 --concordants 4 --raisonnement 1"
+  ],
+  "web": [],
+  "citations": [
+   {
+    "citation": "CTAL-TAE §5.1.3, p. 36",
+    "lue": true
+   },
+   {
+    "citation": "CT-TAS §3.1.1, p. 25",
+    "lue": true
+   },
+   {
+    "citation": "CT-QDO §3.2.2, p. 40-41",
+    "lue": true
+   },
+   {
+    "citation": "CT-QDO §3.2.2, p. 41",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TTA §2.7, p. 17-18",
+    "lue": true
+   },
+   {
+    "citation": "CT-PT §4.1.2, p. 34",
+    "lue": true
+   },
+   {
+    "citation": "CT-PT §2.1.2, p. 19",
+    "lue": true
+   },
+   {
+    "citation": "CT-PT §4.2.6, p. 45-46",
+    "lue": true
+   },
+   {
+    "citation": "CT-PT §3.2, p. 27",
+    "lue": true
+   }
+  ],
+  "citations_non_lues": [],
+  "confiance": 81,
+  "criteres": {
+   "methode": true,
+   "etapes_sourcees": true,
+   "exemple": true,
+   "domaines:API": true,
+   "mentions:contrat|contract": true,
+   "mentions:performance": true,
+   "confiance": true
+  },
+  "criteres_ko": [],
+  "echec": []
+ },
+ {
   "id": "S3-reglemente",
   "agent": "sylvie",
   "question": "Pour le logiciel de notre dispositif médical, je prévois : une matrice de traçabilité exigences → tests tenue dans un tableur, une analyse de risques faite une seule fois en début de projet, et des tests système manuels avant chaque release. Est-ce aligné ISTQB ? Quel niveau de maturité ?",
   "tours": 8,
-  "cout_usd": 0.159,
+  "cout_usd": 0.161,
   "commandes_qa": [
-   "python qa.py chercher \"risk-based testing identification évaluation atténuation\" 2>&1 | head -60",
-   "python qa.py chercher \"traceability requirements test cases coverage\" 2>&1 | head -50",
-   "python qa.py chercher \"risk analysis regular review risk register product risk\" 2>&1 | head -50",
-   "python qa.py section CTAL-TM-3.0-fr 1.3 2>&1 | head -120; echo ======; python qa.py section CTFL-4.0.1-en 1.4.4 2>&1 | head -40; echo =====; python qa.py section CTFL-4.0.1-en 5.2.4 2>&1 | head -40",
-   "python qa.py chercher \"regression testing automation manual repeated release system testing\" 2>&1 | head -30; python qa.py section CTAL-TM-3.0-fr 1.3.4 2>&1 | head -40; python qa.py section CTFL-4.0.1-en 5.2.3 2>&1 | head -30",
-   "python qa.py section CTFL-4.0.1-en 2.2.3 2>&1 | head -25"
+   "python qa.py chercher \"risk-based testing\" identification évaluation atténuation 2>&1 | head -60",
+   "python qa.py chercher \"traçabilité exigences tests couverture\" 2>&1 | head -60",
+   "python qa.py section CTAL-TM-3.0-fr 1.3 2>&1; python qa.py section CTFL-4.0.1-en 1.4.4 2>&1",
+   "python qa.py chercher \"test d'intégration système manuel régression release exécution des tests\" 2>&1; python qa.py chercher \"medical device regulatory software testing\" 2>&1",
+   "python qa.py section CTFL-4.0.1-en 5.2 2>&1; python qa.py section CTFL-4.0.1-en 2.2.1 2>&1",
+   "python qa.py page CTAL-TA-4.0-fr 29 2>&1; python qa.py section CTAL-TM-3.0-fr 1.3.6 2>&1"
   ],
   "web": [],
   "citations": [
+   {
+    "citation": "CTFL §1.4.4, pp. 20-21",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TA §2.2.1, p. 29",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.6, p. 34",
+    "lue": true
+   },
    {
     "citation": "CTAL-TM §1.3.1, p. 29",
     "lue": true
    },
    {
-    "citation": "CTFL §5.2.4, p. 53",
+    "citation": "CTFL §5.2.3-5.2.4, pp. 52-53",
+    "lue": true
+   },
+   {
+    "citation": "CTFL §2.2.1, p. 29",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.4, pp. 32-33",
     "lue": true
    },
    {
@@ -758,11 +856,27 @@
     "lue": true
    },
    {
-    "citation": "CTFL §1.4.4, p. 21",
+    "citation": "CTAL-TM §1.3.2-1.3.3, pp. 29-31",
     "lue": true
    },
    {
-    "citation": "CTFL §2.2.3, p. 31",
+    "citation": "CTAL-TM §1.3.3, p. 31",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3 à 1.3.4 (pp. 29-33",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.5 partielle (p. 33",
+    "lue": true
+   },
+   {
+    "citation": "CTFL §2.2.1 (pp. 28-29",
+    "lue": true
+   },
+   {
+    "citation": "CTFL §5.2 à 5.2.4 (pp. 51-53",
     "lue": true
    }
   ],
@@ -777,5 +891,45 @@
   },
   "criteres_ko": [],
   "echec": []
+ },
+ {
+  "id": "C1-ambigu",
+  "agent": null,
+  "question": "Comment on gère les risques ?",
+  "tours": 6,
+  "cout_usd": 0.147,
+  "commandes_qa": [
+   "python qa.py idee chercher risque risk-based 2>&1 | head -40; echo ======; python qa.py chercher \"risk-based testing gestion des risques\" 2>&1 | head -60",
+   "python qa.py section CTAL-TM-3.0-fr 1.3.1 --max-caracteres 3500 2>&1; echo =====; python qa.py section CTAL-TA-4.0-fr 2.2 --max-caracteres 2500 2>&1",
+   "python qa.py section CTAL-TM-3.0-fr 1.3.2 --max-caracteres 3500 2>&1; python qa.py confiance --base 94 --lus 3 --concordants 2 --ancien 0 --contradiction 0 --web 0 --raisonnement 1 --non-couvert 0 2>&1"
+  ],
+  "web": [],
+  "citations": [
+   {
+    "citation": "CTAL-TM §1.3.1, p. 29",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.2, pp. 29-30",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TA §2.2, p. 28",
+    "lue": true
+   }
+  ],
+  "citations_non_lues": [],
+  "confiance": 76,
+  "criteres": {
+   "questions_choix": false,
+   "hypotheses": true,
+   "confiance": true
+  },
+  "criteres_ko": [
+   "questions_choix"
+  ],
+  "echec": [
+   "critère : questions_choix"
+  ]
  }
 ]

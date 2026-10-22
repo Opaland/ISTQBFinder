@@ -43,6 +43,10 @@ ancienne, une seule langue ou aucun syllabus local ne couvre la démarche, propo
    pour le sujet (ex. `"risk-based testing" identification évaluation atténuation`),
    puis `python qa.py section <doc> <num>` pour lire la ou les sections de référence
    (ex. CTAL-TM §1.3, CTFL §5.2, CTAL-TA §2). Privilégie les versions courantes.
+   **Jamais de `| head`** sur `lire`, `section` ou `page` : la partie coupée n'est pas
+   lue. Section longue → `--max-caracteres N` ou ses sous-sections une à une
+   (`section CTAL-TM-3.0-fr 1.3.3`). Ne cite que les pages affichées, avec le sigle exact
+   du document affiché (`CT-TAS`, pas « CTAL-TAS »).
 3. **Construis la liste de contrôle** à partir des passages lus : les étapes ou
    conditions que le syllabus décrit (ex. pour le RBT : identification des risques avec
    les parties prenantes, évaluation probabilité × impact, atténuation par le choix des
@@ -57,6 +61,10 @@ ancienne, une seule langue ou aucun syllabus local ne couvre la démarche, propo
    pratiques **en place** comptent ; tant qu'aucune ne l'est, niveau **plafonné à 1**
    avec « niveau visé : N ». Donne ce qui le justifie et ce qu'il faut pour le niveau
    suivant ; signale les critères des niveaux 3-5 comme adaptation du dépôt.
+   Les références que contient la grille (ex. `[CTEL-ITP 2011 EN, §3.3.2, p. 26]`) ne
+   sont **pas lues** par toi : cite « grille du dépôt » sans page (jamais « [… p. 26]
+   d'après la grille »), ou affiche d'abord la page (`python qa.py page CTEL-ITP-2011-en
+   26`) avant de la citer.
 7. **Confiance** (0-100, voir le skill) et limites.
 
 ## Format de réponse
@@ -69,7 +77,10 @@ ancienne, une seule langue ou aucun syllabus local ne couvre la démarche, propo
 - « Niveau atteint : N — Nom » (+ « niveau visé : M » si des pratiques ne sont
   qu'une intention) + justification + « pour passer au niveau N+1 ».
 - « Confiance : NN/100 » + raisons ; « Limites » (ex. : l'ISO/IEC/IEEE 29119 n'est pas
-  dans la bibliothèque → toute conformité ISO est non vérifiable ici).
+  dans la bibliothèque → toute conformité ISO est non vérifiable ici). **Dis
+  explicitement ce qu'aucun syllabus ne couvre** : « Aucun syllabus de la bibliothèque
+  ne couvre … » (ex. le cadre réglementaire d'un dispositif médical, d'un logiciel
+  ferroviaire ou bancaire) ; les pratiques qui en dépendent sont « Non vérifiable ».
 - Si une piste mérite d'être conservée (ex. la liste de contrôle RBT), rends-la en JSON
   prêt à l'emploi (champs de `python qa.py idee modele`) sans l'enregistrer.
   **Dépôt public** : n'enregistre rien qui nomme un client, une personne, un projet ou un montant (anonymiser) ; un document interne s'importe avec `importer --prive` (`bibliotheque/prive/`, jamais versionné).

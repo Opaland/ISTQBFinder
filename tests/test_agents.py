@@ -167,3 +167,20 @@ def test_mode_conversationnel():
         assert "Questions à choix" in texte and "AskUserQuestion" in texte, nom
         assert "/ajouter-syllabus" in texte, nom
     assert "Hypothèse : " in corps(AGENTS / "thomas.md")
+
+
+@pytest.mark.parametrize("chemin", [SKILL, AGENTS / "thomas.md", AGENTS / "sylvie.md"],
+                         ids=lambda c: c.stem if c != SKILL else "qa-knowledge")
+def test_consigne_pas_de_head_et_sigle_exact(chemin):
+    """#140 : pas de `| head` sur lire/section/page, ne citer que les pages affichées,
+    sigle exact du document (CT-TAS, pas « CTAL-TAS »)."""
+    texte = corps(chemin)
+    assert "Jamais de `| head`" in texte and "--max-caracteres" in texte
+    assert "affichée" in texte and "CTAL-TAS" in texte
+
+
+def test_sylvie_signale_ce_qu_aucun_syllabus_ne_couvre():
+    """#140 (S3-reglemente) : le cadre réglementaire hors bibliothèque est dit explicitement."""
+    assert "Aucun syllabus de la bibliothèque" in corps(AGENTS / "sylvie.md")
+    # Références de la grille de maturité : citées de seconde main sinon (S1, S3).
+    assert "cite « grille du dépôt » sans page" in corps(AGENTS / "sylvie.md")

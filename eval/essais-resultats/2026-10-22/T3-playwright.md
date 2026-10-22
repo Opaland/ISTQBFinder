@@ -2,56 +2,102 @@
 
 **Question** : Comment réduire le coût de maintenance de nos tests Playwright ?
 
-**Tours** : 6 · **coût** : 0.137 $ · **confiance annoncée** : 95 · **citations** : 4/4 lues · **Web** : 0
+**Tours** : 11 · **coût** : 0.144 $ · **confiance annoncée** : 75 · **verdict** : réussi · **citations** : 6/6 lues · **Web** : 1
 
 ## Réponse
 
-La bibliothèque ne mentionne pas Playwright, mais le syllabus CTAL-TAE v2.0 couvre bien la maintenabilité d'une solution d'automatisation. Les pistes ci-dessous viennent de la lecture de 4 passages. Les liens avec Playwright sont mon interprétation, signalée à chaque fois. La base d'idées capitalisées ne contient rien sur ce sujet.
+**Sources retenues**
+- **Base d'idées** : aucune idée capitalisée sur la maintenance, ni sur Playwright.
+- **CTAL-TAE v2.0 EN** (2024-05-03), lu : §3.1.3, §3.1.4, §4.3.1.
+- **CT-TAS v1.0 EN** (2024-05-03), lu : §5.1.1.
+- **CTAL-AT v2.0 EN** (2026-04-17), lu : §5.3.
+- **Web** : `chercher playwright` ne donne rien en local. J'ai donc lu la page officielle des bonnes pratiques [Web — Best Practices, playwright.dev/docs/best-practices, consulté le 2026-10-22]. Elle ne traite ni le Page Object Model ni les retries comme pratiques de maintenance.
+
+Les syllabus donnent les principes de conception, et la doc Playwright donne la mise en œuvre. Ils se recoupent bien.
+
+Hypothèse de contexte : application web, équipe agile, tests E2E écrits en TypeScript. Tu ne m'as pas donné ces éléments.
 
 **Pistes par syllabus**
+- **CTAL-TAE v2.0 — §3.1.4 Approches d'automatisation**
+  - Le *capture/playback* est « hard to maintain, scale and evolve », et la capture dépend de la version du SUT (System Under Test, le système testé). Le *linear scripting* a le même défaut. [CTAL-TAE v2.0 EN, §3.1.4, p. 25-26]
+  - Le *structured scripting* est « easy to maintain, scale, port, adapt and evolve », car la logique métier est séparée des scripts. [CTAL-TAE v2.0 EN, §3.1.4, p. 26]
+  - Piste : si vos tests viennent de `codegen`, refactorez-les en briques réutilisables (parcours, composants).
+- **CTAL-TAE v2.0 — §3.1.3 Couches du framework**
+  - Les bibliothèques indépendantes du SUT (*core libraries*) sont séparées de celles qui en dépendent (*business logic*). Les premières se réutilisent d'un projet à l'autre. [CTAL-TAE v2.0 EN, §3.1.3, p. 25]
+- **CTAL-TAE v2.0 — §4.3.1 Maintenabilité**
+  - Principes *clean code* : nommage commun, structure logique, pas de valeurs en dur, méthodes courtes, logs, design patterns utiles. [CTAL-TAE v2.0 EN, §4.3.1, p. 32]
+  - Données externalisées (*data-driven*) plutôt que codées en dur, constantes pour ce qui change peu. [CTAL-TAE v2.0 EN, §4.3.1, p. 32]
+  - Analyseurs statiques, formateurs de code et stratégie de branches claire. [CTAL-TAE v2.0 EN, §4.3.1, p. 32]
+  - *À creuser* : la suite de §4.3 (autres facteurs, mises à jour du SUT). Ma commande `section 4.3.2` a échoué, donc la suite n'est pas lue : voir `plan CTAL-TAE-2.0-en`.
+- **CTAL-AT v2.0 — §5.3 Test smells**
+  - Un *test smell* « suggests potential risks and increased maintenance costs ». Le syllabus ne décrit que les smells des tests manuels. [CTAL-AT v2.0 EN, §5.3, p. 45]
+  - *Interdependent Tests* : rendre les tests autonomes et exécutables dans n'importe quel ordre. *Hidden Dependencies* : rendre les dépendances explicites. [CTAL-AT v2.0 EN, §5.3, p. 45]
+  - *Oracle* : pas de logique de décision dans le test. [CTAL-AT v2.0 EN, §5.3, p. 45]
+  - Ces principes se transposent aux tests automatisés (c'est une interprétation de ma part). Le syllabus renvoie à Aljedaani et al., 2021 pour les smells d'automatisation, une source que je n'ai pas lue.
+- **CT-TAS v1.0 — §5.1.1 ROI**
+  - Le « temps moyen de maintenance par script » et le « % de scripts en échec » font partie du calcul du ROI. [CT-TAS v1.0 EN, §5.1.1, p. 38]
+  - Piste : mesurer ces deux valeurs chez vous pour cibler les tests les plus coûteux.
 
-- **CTAL-TAE v2.0 EN — §3.1.3 Layering of test automation frameworks**
-  - Sépare trois couches. Les scripts de test appellent la logique métier, et la logique métier s'appuie sur les bibliothèques cœur indépendantes de l'application testée. Les scripts n'appellent jamais directement les bibliothèques cœur. Un changement d'interface n'est alors à corriger qu'à un seul endroit. [CTAL-TAE v2.0 EN, §3.1.3, pp. 24-25]
-  - Garde peu de couches : en créer une par usage complique la conception. [idem, p. 24]
-  - *Lien Playwright (interprétation)* : c'est le principe du Page Object Model, avec les locators et les actions regroupés hors des specs.
-- **CTAL-TAE v2.0 EN — §3.1.4 Approaches for automating test cases**
-  - Le capture/playback (`codegen`) est facile à démarrer mais « hard to maintain, scale and evolve ». [CTAL-TAE v2.0 EN, §3.1.4, p. 25]
-  - La même section décrit les autres approches (scripting, keyword-driven, TDD/BDD). Lis-la en entier pour les comparer.
-- **CTAL-TAE v2.0 EN — §8.1.2 Analyse d'une solution déployée**
-  - Le code répété avant ou après chaque test va dans le setup/teardown. Les préconditions de tests UI (création d'utilisateur, nettoyage, profil) passent par des appels de services web. Cela réduit l'effort de maintenance et le temps d'exécution. [CTAL-TAE v2.0 EN, §8.1.2, p. 50]
-  - *Lien Playwright (interprétation)* : ce sont les fixtures et `storageState`, avec des préconditions faites par API plutôt que par l'UI.
-  - N'ajoute que les fonctionnalités du framework qui seront utilisées : le reste augmente la complexité et réduit la fiabilité et la maintenabilité. [idem, p. 51]
-  - Avant de monter de version l'outil ou le framework, lance des tests d'échantillon représentatifs. Planifie aussi la mise à jour des bibliothèques cœur : pilote, analyse d'impact, puis plan d'adoption. [idem, pp. 50-51]
-  - Améliorer la testabilité de l'application (par exemple des API dédiées) coûte beaucoup plus cher si on le fait tard. [idem, p. 50]
-- **CTAL-TTA v4.0 EN — §6.1.2 Keyword-driven**
-  - Le keyword-driven « peut réduire significativement » les coûts de maintenance. Il coûte plus cher à mettre en place et ne devient rentable que si le projet dure assez longtemps. [CTAL-TTA v4.0 EN, §6.1.2, p. 50]
-  - Des mots-clés de trop bas niveau (« ClickButton ») sont liés à l'interface graphique et demandent plus de maintenance. Des mots-clés agrégés compliquent la maintenance. [idem, pp. 49-50]
-- **CT-TAS v1.0 EN — §5.1.1 ROI**
-  - Estime le coût de mise en place et de maintenance avant de démarrer. Le modèle ROI = économies / investissement intègre le temps moyen de maintenance par script et le pourcentage de scripts en échec. [CT-TAS v1.0 EN, §5.1.1, p. 38]
-  - Tu peux t'en servir pour mesurer ton coût de maintenance actuel.
+**Côté Playwright** (Web, doc officielle)
+- Locators orientés utilisateur (`getByRole`) plutôt que CSS ou XPath, qui cassent quand le DOM change.
+- Assertions *web-first* (`toBeVisible()`) qui attendent et réessayent, ce qui évite les `sleep`.
+- Tests isolés (stockage, cookies et données propres à chaque test), connexion faite une seule fois dans un *setup project*.
+- Appels tiers simulés avec `page.route`, et données maîtrisées sur un environnement de test stable.
+- Trace viewer sur la CI pour diagnostiquer vite, et `tsc --noEmit` avec un linter sur la CI.
 
-**Ce que j'en retiens** (interprétation, hors ISTQB)
-- Le coût vient surtout du couplage entre les tests et l'interface. Il faut donc des couches, des préconditions par API et un setup centralisé.
-- À l'inverse, des locators stables (`getByRole`, `data-testid`), la réduction des tests flaky et la suppression des tests à faible valeur sont des conseils courants sur Playwright, mais aucun passage lu ne les couvre. Si tu veux les sourcer, je peux faire une recherche Web ciblée sur la documentation officielle de Playwright.
+**Ce que j'en retiens** (interprétation)
+- Le coût de maintenance vient surtout de l'**architecture** (scripts linéaires, valeurs en dur, tests dépendants), plus que de l'outil.
+- Les bonnes pratiques de Playwright sont l'application concrète des principes de la TAE : locators stables pour la couche d'accès au SUT, setup project pour l'indépendance des tests.
+
+**Par quoi je commencerais**
+1. Remplacer les locators CSS/XPath fragiles par des locators par rôle, et les attentes fixes par des assertions web-first. Impact fort, effort faible à moyen.
+2. Rendre les tests indépendants (données et état propres à chaque test, connexion en setup). Impact fort, effort moyen.
+3. Structurer les tests (briques ou Page Objects, données externalisées) et mesurer le temps de maintenance par script. Impact fort, effort moyen à fort.
 
 **Où creuser ensuite**
-- `section CTAL-TAE-2.0-en 3.1` : architecture, couches, facades et héritage (§3.1.5).
-- `section CTAL-TAE-2.0-en 8.1` : améliorer une solution déployée, et la partie sur les tests automatisés qui demandent le plus d'effort de maintenance (§8.1.2).
-- `section CT-TAS-1.0-en 5.1` : ROI, et les mesures à suivre.
+- `section CTAL-TAE-2.0-en 3.1.5` : design patterns, facades, inheritance.
+- `section CTAL-TAE-2.0-en 4.3` : le reste de la section.
+- `section CT-TAS-1.0-en 5.1` : ROI et mesures.
 
-**Indicateurs pour valider** : temps de maintenance par script, pourcentage de tests en échec sans bug produit, ROI cumulé par sprint.
+**Confiance : 75/100** (élevée). Calcul : base 91 × 0,6 = 55 ; 4 passages lus +20 ; 3 syllabus concordants +20 ; Web −10 ; raisonnement sans source −10.
 
-**Confiance : 95/100** (élevée). La recherche donne 100/100 de confiance documentaire et trois syllabus courants concordent (+5). J'ai retiré 10 points pour les liens avec Playwright, qui relèvent de mon raisonnement.
+**Questions à choix**
+1. Quelle est la cause dominante de votre maintenance ?
+   1. Tests instables (flaky)
+   2. Tests cassés à chaque évolution de l'UI
+   3. Code dupliqué et difficile à relire
+2. Que veux-tu faire ensuite ?
+   1. Approfondir TAE §3.1.5 et §4.3
+   2. Comparer *structured scripting*, Page Object et BDD
+   3. Chercher la gestion des tests instables (flaky) dans les syllabus
 
-**À capitaliser ?**
-1. **Pattern** : architecture en couches avec préconditions par API et setup centralisé pour réduire la maintenance (CTAL-TAE §3.1.3 et §8.1.2).
-2. **Comparaison** : capture/playback, scripting, keyword-driven et BDD, selon leur maintenabilité (CTAL-TAE §3.1.4 et CTAL-TTA §6.1.2).
+**À capitaliser ?** Un doublon vérifié : aucune idée similaire. Thèmes suggérés : `maintenance-automatisation`, `strategie-automatisation`. Je n'enregistre rien. Les extraits sont copiés des passages lus.
 
-Je n'enregistre rien sans ton accord.
+```json
+{
+  "titre": "Réduire la maintenance des tests E2E automatisés : structurer, externaliser les données, isoler",
+  "resume": "Le coût de maintenance dépend de l'architecture : scripts structurés plutôt que capturés, données externalisées, tests indépendants. Se transpose à Playwright (locators par rôle, assertions web-first, setup project).",
+  "principe": "Séparer la logique métier des scripts, éviter les valeurs en dur, rendre les tests autonomes, mesurer le temps de maintenance par script.",
+  "theme": "maintenance-automatisation",
+  "references": [
+    {"document": "CTAL-TAE-2.0-en", "page": 26, "extrait": "Easy to maintain, scale, port, adapt and evolve"},
+    {"document": "CTAL-TAE-2.0-en", "page": 32, "extrait": "Hardcoding is the process of embedding values in the software without the ability to change them directly."},
+    {"document": "CTAL-AT-2.0-en", "page": 45, "extrait": "Make tests independent, self-contained, and executable in any order."}
+  ]
+}
+```
+
+Les champs sont ceux que je suppose pour `idee modele`, que je n'ai pas lancé : vérifie-les avant `idee ajouter`.
 
 ## Commandes exécutées
 
-- `Skill {"skill": "qa-knowledge"}`
-- `python qa.py idee chercher maintenance automatisation tests 2>&1 | head -40; echo ----; python qa.py chercher "test automation maintenance cost" 2>&1 | head -60`
-- `python qa.py chercher "maintainability of testware automation architecture" 2>&1 | head -50; echo ----; python qa.py chercher "coût de maintenance scripts de test automatisés" 2>&1 | head -50; cat .cl`
-- `python qa.py lire 4268 --contexte 1 2>&1 | head -50; echo =====; python qa.py lire 3643 --contexte 1 2>&1 | head -40; echo =====; python qa.py lire 4207 --contexte 2 2>&1 | head -60; echo ====; python`
+- `Read {"file_path": "/tmp/claude-0/-home-user/da9346e2-ce5e-5882-830a-19be129b35c4/scratchpad/wt-G/.claude/skills/qa-knowledge`
+- `python qa.py idee chercher maintenance automatisation tests 2>&1 | head -40; python qa.py idee chercher Playwright 2>&1 | head -20`
+- `python qa.py chercher maintenance scripts de test automatisés 2>&1 | head -50; python qa.py chercher test automation maintainability 2>&1 | head -50`
+- `python qa.py section CTAL-TAE-2.0-en 4.3 --max-caracteres 9000 2>&1; python qa.py chercher playwright 2>&1 | head -15`
+- `python qa.py lire 4220 --contexte 1 --max-caracteres 5000 2>&1; python qa.py lire 1580 --contexte 1 --max-caracteres 4000 2>&1; python qa.py lire 3602 --contexte 1 --max-caracteres 3500 2>&1`
+- `WebFetch {"url": "https://playwright.dev/docs/best-practices", "prompt": "List the best practices that reduce test maintenance (l`
+- `python qa.py section CTAL-TAE-2.0-en 4.3.2 --max-caracteres 6000 2>&1; python qa.py lire 4220 --contexte 1 2>&1 | head -60`
+- `python qa.py lire 1580 --contexte 1 2>&1 | head -50; python qa.py lire 3656 --contexte 1 2>&1 | head -40`
+- `python qa.py confiance --help 2>&1 | head -20; python qa.py idee doublons --titre "Réduire la maintenance des tests E2E automatisés" --resume "Approche structurée, données externalisées, indépendance `
+- `python qa.py confiance --base 91 --lus 4 --concordants 3 --web 1 --raisonnement 1 2>&1`

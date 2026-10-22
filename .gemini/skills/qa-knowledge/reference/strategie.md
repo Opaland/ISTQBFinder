@@ -12,6 +12,9 @@
 | « Classe / enregistre cette idée » | C — capitalisation | doublons → thème → ajout tracé |
 | « Idées sur le thème X », « Où notre base est-elle pauvre ? » | D — exploration | `idee lister --theme`, `chercher --theme`, `couverture`, regroupement par sous-thème |
 
+Question ambiguë, trop large ou sans syllabus proche : clarifier d'abord par des
+questions à choix, puis montrer le plan de recherche — voir [conversation.md](conversation.md).
+
 ## Formuler les requêtes locales
 
 - Découper la question en 2-4 notions et lancer une requête par angle :

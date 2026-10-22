@@ -53,8 +53,22 @@ def _ref_doc(r: dict) -> str:
     return f"{r['doc_id']} · {r.get('titre', '')} · v{r.get('version') or '?'} ({r.get('date_publication') or 'date ?'}){etat}"
 
 
+def lire_entree_standard() -> str:
+    """Entrée standard lue en octets et décodée en UTF-8 : sous Windows, `sys.stdin` suit la
+    page de code de la console (cp1252) et corrompait les accents (« Ã‰valuer »). Le BOM
+    éventuel (Bloc-notes, PowerShell) est retiré."""
+    tampon = getattr(sys.stdin, "buffer", None)
+    if tampon is None:  # flux texte déjà décodé (tests, redirection Python)
+        return sys.stdin.read().lstrip("\ufeff")
+    try:
+        return tampon.read().decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise ErreurValidation("Entrée standard illisible : enregistrer le JSON en UTF-8 "
+                               f"(octet invalide en position {exc.start}).") from exc
+
+
 def _lire_donnees(source: str) -> dict:
-    brut = sys.stdin.read() if source == "-" else Path(source).read_text(encoding="utf-8")
+    brut = lire_entree_standard() if source == "-" else Path(source).read_text(encoding="utf-8-sig")
     try:
         return json.loads(brut)
     except json.JSONDecodeError as exc:
@@ -644,8 +658,9 @@ def analyseur() -> argparse.ArgumentParser:
 
 
 def main(argv=None) -> int:
-    if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding="utf-8")  # console Windows
+    for flux in (sys.stdout, sys.stderr):  # console Windows : sorties et erreurs en UTF-8
+        if hasattr(flux, "reconfigure"):
+            flux.reconfigure(encoding="utf-8")
     a = analyseur().parse_args(argv)
     if a.commande == "idee":
         _normaliser_idee(a)

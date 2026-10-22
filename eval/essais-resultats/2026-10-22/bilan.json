@@ -419,95 +419,6 @@
   "criteres_ko": []
  },
  {
-  "id": "M5-mobile",
-  "agent": "thomas",
-  "question": "Comment mettre en place les tests d'une application mobile iOS et Android : choix des appareils, risques, automatisation ?",
-  "tours": 14,
-  "cout_usd": 0.197,
-  "commandes_qa": [
-   "python qa.py idee chercher mobile appareils automatisation",
-   "python qa.py chercher mobile application testing devices",
-   "python qa.py chercher tests applications mobiles appareils",
-   "python qa.py section CT-MAT-2019-fr 1.6; python qa.py section CT-MAT-2019-fr 1.8; python qa.py section CT-MAT-2019-fr 1.7 | head -60",
-   "python qa.py lire 10805 --contexte 1; python qa.py lire 10191 --contexte 1; python qa.py lire 6914",
-   "python qa.py chercher \"mobile test automation emulator simulator real device\" ; python qa.py chercher émulateur simulateur",
-   "python qa.py section CT-MAT-2019-en 5.4 | head -70; python qa.py lire 7352 --contexte 1 | head -50; python qa.py lire 13140 --contexte 1 | head -40",
-   "python qa.py plan CT-MAT-2019-fr | head -60",
-   "python qa.py section CT-MAT-2019-fr 5.1 | head -60; python qa.py section CT-MAT-2019-fr 5.3 | head -40; python qa.py section CT-MAT-2019-fr 1.1 | head -20",
-   "python qa.py idee modele | head -40",
-   "python qa.py themes | grep -i -E \"mobile|automat|risque|strat\" | head; ",
-   "python qa.py idee doublons <<'JSON'\n{\"titre\":\"Matrice d'appareils mobiles pilotée par les données d'usage\",\"resume\":\"Choisir les appareils/OS à tester à partir des analytics (géographie, OS, modèle), avec émulateurs tôt, appareils réels ensuite, labo distant en complément.\",\"probleme\":\"Fragmentation des appareils mobiles : impossible de tout couvrir.\",\"principe\":\"Approche multiplateforme : sélection représentative selon analytics.\",\"theme_principal\":\"strategie\",\"themes_secondaires\":[\"automatisation\"],\"domaine_application\":\"Application mobile iOS/Android\",\"prerequis\":\"Accès aux analytics\",\"benefices\":\"Couverture ciblée à coût maîtrisé\",\"limites\":\"Données ISTQB de 2019\",\"maturite\":\"documentee\",\"statut\":\"a_evaluer\",\"provenance\":\"Recherche du 2026-10-22 : mise en place tests mobiles iOS Android\",\"references\":[{\"type\":\"istqb\",\"doc_id\":\"CT-MAT-2019-fr\",\"pages\":\"18\",\"section\":\"1.6\",\"extrait\":\"Approche multiplateforme : Réduire la portée à une sélection représentative d’appareils\"}]}\nJSON"
-  ],
-  "web": [],
-  "citations": [
-   {
-    "citation": "CT-MAT §1.1, p. 10",
-    "lue": true
-   },
-   {
-    "citation": "CT-MAT §1.6, p. 18",
-    "lue": true
-   },
-   {
-    "citation": "CT-MAT §1.8, p. 20",
-    "lue": true
-   },
-   {
-    "citation": "CT-MAT §1.6 p. 17",
-    "lue": true
-   },
-   {
-    "citation": "CT-MAT §4.3.1 p. 37",
-    "lue": true
-   },
-   {
-    "citation": "CT-MAT §4.3.2 p. 46",
-    "lue": true
-   },
-   {
-    "citation": "CT-MAT §5.4, p. 41",
-    "lue": true
-   },
-   {
-    "citation": "CT-TAS §2.1.2, p. 21",
-    "lue": true
-   },
-   {
-    "citation": "CT-MAT §5.1, p. 48-49",
-    "lue": true
-   },
-   {
-    "citation": "CT-MAT §5.3, p. 50-51",
-    "lue": true
-   },
-   {
-    "citation": "CT-FT §6.4, p. 46",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-TAE §4.2.1, p. 34",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-TAE §4.2.1, p. 32",
-    "lue": false
-   }
-  ],
-  "citations_non_lues": [
-   "CTAL-TAE §4.2.1, p. 32"
-  ],
-  "confiance": 68,
-  "criteres": {
-   "methode": true,
-   "etapes_sourcees": true,
-   "exemple": true,
-   "domaines:mobile": true,
-   "mentions:CT-MAT": true,
-   "confiance": true
-  },
-  "criteres_ko": []
- },
- {
   "id": "M6-api",
   "agent": "thomas",
   "question": "Comment mettre en place les tests d'une API REST utilisée par plusieurs équipes : tests de contrat, test d'intégration et performance ?",
@@ -588,62 +499,6 @@
    "domaines:API": true,
    "mentions:contrat|contract": true,
    "mentions:performance": true,
-   "confiance": true
-  },
-  "criteres_ko": []
- },
- {
-  "id": "S3-reglemente",
-  "agent": "sylvie",
-  "question": "Pour le logiciel de notre dispositif médical, je prévois : une matrice de traçabilité exigences → tests tenue dans un tableur, une analyse de risques faite une seule fois en début de projet, et des tests système manuels avant chaque release. Est-ce aligné ISTQB ? Quel niveau de maturité ?",
-  "tours": 6,
-  "cout_usd": 0.151,
-  "commandes_qa": [
-   "python qa.py chercher \"risk-based testing identification évaluation atténuation\" 2>&1 | head -60; python qa.py chercher \"traceability requirements test cases\" 2>&1 | head -50; python qa.py chercher \"risk management regular reassessment product risks\" 2>&1 | head -50",
-   "python qa.py section CTFL-4.0.1-en 1.4.4 2>&1 | head -40; echo ======; python qa.py section CTFL-4.0.1-en 5.2 2>&1 | head -120; echo ======; python qa.py section CTAL-TA-4.0-en 2.1 2>&1 | head -60",
-   "python qa.py section CTAL-TM-3.0-en 1.3 2>&1 | head -120; echo =====; python qa.py chercher \"medical device regulatory safety-critical\" 2>&1 | head -30",
-   "python qa.py section CTFL-4.0.1-en 2.2.1 2>&1 | head -40; echo ====; python qa.py chercher \"regression testing automation change impact release\" 2>&1 | head -25; echo ===; python qa.py section CTFL-4.0.1-en 2.3.4 2>&1 | head -30"
-  ],
-  "web": [],
-  "citations": [
-   {
-    "citation": "CTAL-TA §2.1, p. 25",
-    "lue": true
-   },
-   {
-    "citation": "CTAL-TM §1.3.1, p. 28",
-    "lue": true
-   },
-   {
-    "citation": "CTFL §5.2.4, p. 53",
-    "lue": true
-   },
-   {
-    "citation": "CTFL §2.2.1, p. 29",
-    "lue": true
-   },
-   {
-    "citation": "CTFL §2.2.3, p. 31",
-    "lue": false
-   },
-   {
-    "citation": "CTAL-TM §1.3.4, p. 30",
-    "lue": true
-   },
-   {
-    "citation": "CTFL §1.4.4, p. 21",
-    "lue": true
-   }
-  ],
-  "citations_non_lues": [
-   "CTFL §2.2.3, p. 31"
-  ],
-  "confiance": 72,
-  "criteres": {
-   "mentions:tra[çc]abilit": true,
-   "mentions:risque": true,
-   "questions_choix": true,
-   "non_couvert": true,
    "confiance": true
   },
   "criteres_ko": []
@@ -802,5 +657,125 @@
    "confiance": true
   },
   "criteres_ko": []
+ },
+ {
+  "id": "M5-mobile",
+  "agent": "thomas",
+  "question": "Comment mettre en place les tests d'une application mobile iOS et Android : choix des appareils, risques, automatisation ?",
+  "tours": 9,
+  "cout_usd": 0.197,
+  "commandes_qa": [
+   "python qa.py idee chercher mobile appareils automatisation; python qa.py chercher \"mobile testing devices\" | head -60; python qa.py chercher \"tests mobiles appareils\" | head -60",
+   "python qa.py section CT-MAT-2019-fr 1.6; python qa.py lire 10808 --contexte 1; python qa.py chercher \"mobile app automation emulators cloud device farm\" | head -30",
+   "python qa.py section CT-MAT-2019-fr 5.4; python qa.py section CT-MAT-2019-fr 4.3",
+   "python qa.py section CT-MAT-2019-fr 5.2 --max-caracteres 5000; python qa.py section CT-MAT-2019-fr 4.4 --max-caracteres 5000; python qa.py idee modele | head -40",
+   "python qa.py confiance --base 86 --lus 5 --syllabus 3 2>&1 | tail -5; python qa.py confiance --help | head -20",
+   "python qa.py confiance --base 86 --lus 5 --concordants 2 --raisonnement 1; python qa.py idee doublons <<'JSON'\n{\"titre\":\"Choisir la stratégie d'appareils mobiles selon les données d'usage\",\"resume\":\"Réduire la matrice d'appareils iOS/Android à une sélection représentative issue des analytics, complétée par émulateurs en amont et laboratoire distant.\",\"theme_principal\":\"strategie\",\"references\":[]}\nJSON",
+   "python qa.py confiance --base 86 --lus 5 --concordants 2 --raisonnement 1; python qa.py themes | head -40"
+  ],
+  "web": [],
+  "citations": [
+   {
+    "citation": "CT-MAT §1.6, p. 17",
+    "lue": true
+   },
+   {
+    "citation": "CT-MAT §1.8, p. 20",
+    "lue": true
+   },
+   {
+    "citation": "CT-MAT §1.6, p. 18",
+    "lue": true
+   },
+   {
+    "citation": "CT-MAT §4.4, p. 46",
+    "lue": true
+   },
+   {
+    "citation": "CT-MAT §4.3.1-4.3.2, p. 45-46",
+    "lue": true
+   },
+   {
+    "citation": "CT-MAT §4.3.1, p. 45",
+    "lue": true
+   },
+   {
+    "citation": "CT-MAT §4.4, p. 46-47",
+    "lue": true
+   },
+   {
+    "citation": "CT-MAT §5.2, p. 49-50",
+    "lue": true
+   },
+   {
+    "citation": "CT-MAT §5.4, p. 51-52",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TAE §4.2.1, p. 34",
+    "lue": true
+   }
+  ],
+  "citations_non_lues": [],
+  "confiance": 72,
+  "criteres": {
+   "methode": true,
+   "etapes_sourcees": true,
+   "exemple": true,
+   "domaines:mobile": true,
+   "mentions:CT-MAT": true,
+   "confiance": true
+  },
+  "criteres_ko": [],
+  "echec": []
+ },
+ {
+  "id": "S3-reglemente",
+  "agent": "sylvie",
+  "question": "Pour le logiciel de notre dispositif médical, je prévois : une matrice de traçabilité exigences → tests tenue dans un tableur, une analyse de risques faite une seule fois en début de projet, et des tests système manuels avant chaque release. Est-ce aligné ISTQB ? Quel niveau de maturité ?",
+  "tours": 8,
+  "cout_usd": 0.159,
+  "commandes_qa": [
+   "python qa.py chercher \"risk-based testing identification évaluation atténuation\" 2>&1 | head -60",
+   "python qa.py chercher \"traceability requirements test cases coverage\" 2>&1 | head -50",
+   "python qa.py chercher \"risk analysis regular review risk register product risk\" 2>&1 | head -50",
+   "python qa.py section CTAL-TM-3.0-fr 1.3 2>&1 | head -120; echo ======; python qa.py section CTFL-4.0.1-en 1.4.4 2>&1 | head -40; echo =====; python qa.py section CTFL-4.0.1-en 5.2.4 2>&1 | head -40",
+   "python qa.py chercher \"regression testing automation manual repeated release system testing\" 2>&1 | head -30; python qa.py section CTAL-TM-3.0-fr 1.3.4 2>&1 | head -40; python qa.py section CTFL-4.0.1-en 5.2.3 2>&1 | head -30",
+   "python qa.py section CTFL-4.0.1-en 2.2.3 2>&1 | head -25"
+  ],
+  "web": [],
+  "citations": [
+   {
+    "citation": "CTAL-TM §1.3.1, p. 29",
+    "lue": true
+   },
+   {
+    "citation": "CTFL §5.2.4, p. 53",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.4, p. 32",
+    "lue": true
+   },
+   {
+    "citation": "CTFL §1.4.4, p. 21",
+    "lue": true
+   },
+   {
+    "citation": "CTFL §2.2.3, p. 31",
+    "lue": true
+   }
+  ],
+  "citations_non_lues": [],
+  "confiance": 72,
+  "criteres": {
+   "mentions:tra[çc]abilit": true,
+   "mentions:risque": true,
+   "questions_choix": true,
+   "non_couvert": true,
+   "confiance": true
+  },
+  "criteres_ko": [],
+  "echec": []
  }
 ]

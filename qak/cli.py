@@ -127,8 +127,8 @@ def cmd_importer(a):
                 _ecrire(f"{x} : introuvable")
                 rc = 2
                 continue
-            r = bibliotheque.importer(x, meta)
-            if r["etat"] == "echec":
+            r = bibliotheque.importer(x, meta, remplacer=a.remplacer, motif=a.motif)
+            if r["etat"] in ("echec", "refuse"):
                 rc = 2
             _ecrire(f"{x.name} → {r['etat']} {r.get('doc_id', '')} — {r['message']}")
             if r.get("meta"):
@@ -143,7 +143,7 @@ def cmd_importer(a):
 def cmd_actualiser(a):
     r = bibliotheque.actualiser(forcer=a.forcer)
     _ecrire(f"Inchangés : {r['inchanges']} · importés : {len(r['importes'])} · réindexés : {len(r['reindexes'])}")
-    for cle, titre in (("importes", "Importés"), ("modifies", "Modifiés sur place"), ("reindexes", "Réindexés"), ("doublons", "Doublons ignorés"),
+    for cle, titre in (("importes", "Importés"), ("a_confirmer", "MODIFIÉS SUR PLACE (à confirmer)"), ("reindexes", "Réindexés"), ("doublons", "Doublons ignorés"),
                        ("absents", "Sources disparues (passages retirés de l'index)"), ("echecs", "ÉCHECS"),
                        ("versions", "Versions remplacées")):
         if r[cle]:
@@ -162,8 +162,8 @@ def cmd_inventaire(a):
     alertes = []
     _ecrire(f"{'document':24} {'type':8} {'niveau':11} {'date':10} {'pages':>5} {'passages':>8}  extraction / version")
     for d in docs:
-        ver = "" if d["statut_version"] == "courant" else f" → remplacé par {d['remplace_par']}" \
-            if d["statut_version"] == "remplace" else " (source absente)"
+        ver = {"courant": "", "remplace": f" → remplacé par {d['remplace_par']}",
+               "a_confirmer": " (modifié sur place : à confirmer)"}.get(d["statut_version"], " (source absente)")
         _ecrire(f"{d['doc_id']:24} {d['type'] or '?':8} {d['niveau'] or '?':11} {d['date_publication'] or '?':10} "
                 f"{d['nb_pages'] or 0:>5} {d['nb_passages']:>8}  {d['statut_extraction']}{ver}")
         if d["statut_extraction"] != "ok" or not d["code"] or not d["nb_titres"]:
@@ -590,6 +590,9 @@ def analyseur() -> argparse.ArgumentParser:
     x = sp.add_parser("importer", help="importer des PDF / .txt / .md (fichiers ou dossiers)")
     x.add_argument("fichiers", nargs="+")
     meta(x)
+    x.add_argument("--remplacer", action="store_true",
+                   help="confirmer le nouveau contenu d'un fichier modifié sur place (avec --motif, journalisé)")
+    x.add_argument("--motif", help="raison du remplacement (obligatoire avec --remplacer)")
     x.set_defaults(f=cmd_importer)
     x = sp.add_parser("actualiser", help="réindexation incrémentale de bibliotheque/sources/")
     x.add_argument("--forcer", action="store_true", help="tout réextraire")

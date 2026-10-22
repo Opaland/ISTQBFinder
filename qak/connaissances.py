@@ -11,11 +11,13 @@ import hashlib
 import json
 import os
 import re
+import secrets
 import sqlite3
 from datetime import date, datetime
 
 from . import bibliotheque, chemins, journal, taxonomie
-from .textes import jaccard, mots, motif_sous_sections, normaliser, recouvrement, signature
+from .textes import (MOTS_VIDES, jaccard, mots, motif_sous_sections, normaliser, recouvrement, signature,
+                     termes_thesaurus)
 
 STATUTS = {
     "a_explorer": "à explorer — piste repérée, pas encore étudiée",
@@ -128,9 +130,101 @@ def _action_miroir(cx) -> str | None:
     return "exporter" if cx.execute("SELECT 1 FROM idees LIMIT 1").fetchone() else None
 
 
+COLONNES_REQUISES = ("id", "titre", "resume", "probleme", "principe", "theme_principal", "maturite", "statut",
+                     "cree_le", "maj_le")
+_AVERTISSEMENTS: list[str] = []
+
+
+def avertissements() -> list[str]:
+    """Avertissements produits à l'ouverture (reconstruction depuis un JSONL modifié hors
+    de l'outil) ; la liste est vidée à la lecture. La CLI les affiche après chaque commande."""
+    out = list(_AVERTISSEMENTS)
+    _AVERTISSEMENTS.clear()
+    return out
+
+
+def _lire_jsonl() -> list[dict]:
+    p = chemins.connaissances_jsonl()
+    idees = []
+    for n, ligne in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+        if not ligne.strip():
+            continue
+        try:
+            idee = json.loads(ligne)
+        except json.JSONDecodeError as exc:
+            raise ErreurValidation(f"{p.name}, ligne {n} : JSON invalide ({exc.msg}). Corriger la ligne "
+                                   "à la main (ou `git checkout` du fichier), puis relancer.") from exc
+        manquants = [c for c in COLONNES_REQUISES if not isinstance(idee, dict) or not idee.get(c)]
+        if manquants:
+            raise ErreurValidation(f"{p.name}, ligne {n} : champ(s) obligatoire(s) absent(s) : "
+                                   f"{', '.join(manquants)}. Compléter la ligne, puis relancer.")
+        idees.append(idee)
+    return idees
+
+
+def _anomalies(idee: dict, ids: set[str]) -> list[str]:
+    """Règles que l'outil applique à l'écriture, recontrôlées sur une idée relue depuis le
+    JSONL (qui peut avoir été modifié à la main) : rien n'interdit de reconstruire, mais
+    l'écart doit être vu et tracé."""
+    out = []
+    inconnus = sorted(k for k in idee if k not in CHAMPS_SAISIE and k not in CHAMPS_GERES)
+    if inconnus:
+        out.append(f"champ(s) inconnu(s) : {', '.join(inconnus)}")
+    saisie = {k: v for k, v in idee.items() if k in CHAMPS_SAISIE and k != "statut"}
+    try:
+        valider(saisie)
+    except (ErreurValidation, KeyError) as exc:
+        out.append(exc.args[0] if exc.args else str(exc))
+    statut = idee.get("statut")
+    if statut not in STATUTS:
+        out.append(f"statut invalide : {statut}")
+    elif statut == "experimentee" and not idee.get("retours"):
+        out.append("« expérimentée » sans retour d'expérience")
+    elif statut == "validee" and not idee.get("references") and not idee.get("retours"):
+        out.append("« validée » sans référence ni retour d'expérience")
+    for r in idee.get("relations", []):
+        if not isinstance(r, dict) or r.get("type") not in RELATIONS:
+            out.append(f"relation invalide : {r}")
+        elif r.get("cible") not in ids:
+            out.append(f"relation {r.get('type')} vers {r.get('cible')} : idée cible inexistante (orpheline)")
+    return [f"{idee['id']} : {m}" for m in out]
+
+
+def _differentiel(avant: dict[str, dict], apres: dict[str, dict]) -> dict:
+    """Changements que le journal n'explique pas : idée ajoutée sans `idee_creee`, retirée
+    sans `idee_retiree`, modifiée sans entrée de journal à sa date de mise à jour
+    (une modification par l'outil, même sur un autre poste, met à jour `maj_le` et journalise)."""
+    entrees = journal.lire(limite=10 ** 9)
+    actions = {(e["cible"], e["action"]) for e in entrees}
+    dernieres = {}
+    for e in entrees:
+        dernieres[e["cible"]] = max(dernieres.get(e["cible"], ""), e["horodatage"][:19])
+    diff = {}
+    ajoutees = sorted(i for i in apres.keys() - avant.keys() if (i, "idee_creee") not in actions)
+    supprimees = sorted(i for i in avant.keys() - apres.keys() if (i, "idee_retiree") not in actions)
+    modifiees = {}
+    for i in sorted(avant.keys() & apres.keys()):
+        a, b = avant[i], apres[i]
+        champs = {k: {"avant": a.get(k), "apres": b.get(k)} for k in sorted(a.keys() | b.keys())
+                  if k != "maj_le" and _forme(a.get(k)) != _forme(b.get(k))}
+        if not champs:
+            continue
+        explique = b.get("maj_le") != a.get("maj_le") and dernieres.get(i, "") >= str(b.get("maj_le"))[:19]
+        if not explique:
+            modifiees[i] = champs
+    for cle, val in (("ajoutees", ajoutees), ("supprimees", supprimees), ("modifiees", modifiees)):
+        if val:
+            diff[cle] = val
+    return diff
+
+
+def _forme(v):
+    """Valeur comparable : listes vides et absences sont équivalentes."""
+    return None if v in (None, "", []) else json.dumps(v, sort_keys=True, ensure_ascii=False)
+
+
 def _reconstruire(cx: sqlite3.Connection) -> None:
-    idees = [json.loads(l) for l in chemins.connaissances_jsonl().read_text(encoding="utf-8").splitlines()
-             if l.strip()]
+    idees = _lire_jsonl()
     vus, doubles = set(), set()
     for i in idees:
         (doubles if i["id"] in vus else vus).add(i["id"])
@@ -141,12 +235,29 @@ def _reconstruire(cx: sqlite3.Connection) -> None:
         raise ErreurValidation(
             f"Identifiants en double dans {chemins.connaissances_jsonl().name} : {', '.join(sorted(doubles))}. "
             "Fusionner ou renuméroter ces lignes à la main (conflit Git ?), puis relancer.")
+    base_connue = cx.execute("SELECT 1 FROM meta WHERE cle='hash_jsonl'").fetchone() is not None
+    avant = {r["id"]: _charger(cx, r["id"]) for r in cx.execute("SELECT id FROM idees")} if base_connue else {}
+    anomalies = [m for i in idees for m in _anomalies(i, vus)]
     for t in ("idees", "idee_themes", "refs", "relations", "retours", "idees_fts"):
         cx.execute(f"DELETE FROM {t}")
     for idee in idees:
         _inserer(cx, idee, relations=True)
     cx.execute("INSERT OR REPLACE INTO meta VALUES ('hash_jsonl', ?)", (_empreinte_fichier(),))
     cx.commit()
+    diff = _differentiel(avant, {i["id"]: _charger(cx, i["id"]) for i in idees}) if base_connue else {}
+    if diff or anomalies:
+        if diff:
+            # Seul un changement inexpliqué est journalisé : une base neuve (clone) ou un
+            # `git pull` d'ajouts faits avec l'outil ne produit pas d'entrée.
+            journal.noter("modification_externe", chemins.connaissances_jsonl().name,
+                          {**diff, **({"anomalies": anomalies} if anomalies else {})},
+                          "JSONL modifié hors de l'outil (édition manuelle, fusion ou revert Git)")
+        libelles = {"ajoutees": "ajoutée(s)", "supprimees": "supprimée(s)", "modifiees": "modifiée(s)"}
+        resume = ", ".join(f"{len(v)} idée(s) {libelles[k]}" for k, v in diff.items())
+        if diff:
+            _AVERTISSEMENTS.append(f"{chemins.connaissances_jsonl().name} modifié hors de l'outil ({resume}) : "
+                                   "écart tracé dans le journal (`journal --cible connaissances.jsonl`).")
+        _AVERTISSEMENTS.extend(f"anomalie {a}" for a in anomalies)
 
 
 def _inserer(cx, idee: dict, relations: bool = False, nouvelle: bool = False) -> None:
@@ -253,6 +364,39 @@ def _verifier_extrait(extrait: str, texte_source: str, lieu: str) -> None:
             "lu (`lire` / `page`), sans reformuler ni couper au milieu.")
 
 
+MARQUEURS_LANGUE = {
+    "fr": {"le", "la", "les", "des", "est", "et", "pour", "une", "dans", "du", "sont", "qui", "par", "au"},
+    "en": {"the", "and", "of", "is", "to", "for", "in", "with", "are", "be", "which", "by", "that"},
+}
+
+
+def _langue_extrait(extrait: str | None) -> str | None:
+    """Langue d'un extrait d'après ses mots-outils ; None si rien ne la départage."""
+    toks = normaliser(extrait or "").split()
+    fr, en = (sum(t in MARQUEURS_LANGUE[l] for t in toks) for l in ("fr", "en"))
+    return None if fr == en else "fr" if fr > en else "en"
+
+
+def _document_reference(cx, doc: str, extrait: str | None):
+    """Document désigné par `doc` : identifiant exact, sinon code ISTQB. Un code peut
+    désigner plusieurs documents courants (EN et FR, syllabus et BoK) : on départage par
+    la langue de l'extrait, sinon on exige l'identifiant exact plutôt que de choisir au
+    hasard (une vraie citation FR était vérifiée contre la version EN, #37)."""
+    exact = cx.execute("SELECT * FROM documents WHERE doc_id=? COLLATE NOCASE", (doc,)).fetchone()
+    if exact:
+        return exact
+    docs = cx.execute("SELECT * FROM documents WHERE code=? COLLATE NOCASE ORDER BY doc_id", (doc,)).fetchall()
+    candidats = [x for x in docs if x["statut_version"] == "courant"] or docs
+    if len(candidats) > 1:
+        langue = _langue_extrait(extrait)
+        candidats = [x for x in candidats if x["langue"] == langue] or candidats
+    if len(candidats) > 1:
+        raise ErreurValidation(
+            f"Code « {doc} » ambigu ({', '.join(x['doc_id'] for x in candidats)}) : préciser le doc_id exact"
+            + (" (la langue de l'extrait ne suffit pas à départager)." if extrait else "."))
+    return candidats[0] if candidats else None
+
+
 def _verifier_reference_istqb(ref: dict) -> list[str]:
     """Contrôle une référence ISTQB contre la bibliothèque indexée : document présent,
     pages existantes, section du plan présente sur les pages citées, extrait recopié
@@ -263,8 +407,7 @@ def _verifier_reference_istqb(ref: dict) -> list[str]:
     cx = bibliotheque.connecter()
     try:
         doc = ref.get("doc_id")
-        d = cx.execute("SELECT * FROM documents WHERE doc_id=? COLLATE NOCASE OR code=? COLLATE NOCASE "
-                       "ORDER BY statut_version='courant' DESC", (doc, doc)).fetchone() if doc else None
+        d = _document_reference(cx, doc, ref.get("extrait")) if doc else None
         if not d:
             return [f"document « {doc} » absent de la bibliothèque : référence non vérifiable"]
         ref["doc_id"] = d["doc_id"]
@@ -380,9 +523,20 @@ def valider(donnees: dict, partiel: bool = False) -> tuple[dict, list[str]]:
         refs.append(r)
     if "references" in d:
         d["references"] = refs
-    if not partiel and d["maturite"] in ("documentee", "pratiquee") and not refs:
-        avert.append("maturité « documentée/pratiquée » sans aucune référence : à étayer")
+    if not partiel:
+        _exiger_source(d)
     return d, avert
+
+
+MOTIF_MIN = 10
+
+
+def _exiger_source(idee: dict) -> None:
+    """« documentée » / « pratiquée » affirment une source : sans référence, c'est faux."""
+    if idee.get("maturite") in ("documentee", "pratiquee") and not idee.get("references"):
+        raise ErreurValidation(
+            f"Maturité « {idee['maturite']} » sans aucune référence : ajouter la source (syllabus, norme, "
+            "publication) dans `references`, ou garder « hypothese ».")
 
 
 # ---------------------------------------------------------------- déduplication
@@ -395,11 +549,50 @@ def _sig_contenu(i: dict) -> set:
     return signature(" ".join(str(i.get(c) or "") for c in ("titre", "resume", "probleme", "principe")))
 
 
+TERMES_BANALS = {"qa", "istqb", "test", "tests", "testeur", "testeurs", "tester"}
+
+
+def _termes_distinctifs(texte: str) -> set[str]:
+    """Noms propres et sigles d'un texte (Herzberg, TMMi, IDEAL) : un sigle (au moins deux
+    majuscules) partout ; un mot capitalisé seulement hors début de phrase et s'il n'apparaît
+    jamais en minuscules dans le texte (« Équipe … équipe » n'est pas un nom propre)."""
+    minuscules = set(re.findall(r"\b[^\W\d_]+\b", texte))
+    out = set()
+    for m in re.finditer(r"[^\W\d_]+", texte):
+        mot = m.group()
+        if len(mot) < 3:
+            continue
+        avant = texte[:m.start()].rstrip()
+        sigle = sum(c.isupper() for c in mot) >= 2
+        nom_propre = (mot[0].isupper() and mot[1:].islower() and avant and avant[-1] not in ".!?:;"
+                      and mot.lower() not in minuscules)
+        n = normaliser(mot)
+        if (sigle or nom_propre) and n not in MOTS_VIDES and n not in TERMES_BANALS:
+            out.add(n)
+    return out
+
+
+def _termes_idee(i: dict, champs=("titre", "resume", "probleme", "principe")) -> set[str]:
+    return set().union(*(_termes_distinctifs(str(i.get(c) or "")) for c in champs))
+
+
 def similarite(a: dict, b: dict) -> float:
+    """Signatures du thésaurus (titre, contenu), plus deux indices qui manquaient pour une
+    même idée reformulée ou traduite (#27) : le thème principal commun et les noms
+    propres / sigles partagés absents du thésaurus (Herzberg), surtout s'ils figurent dans les
+    deux titres."""
     st, sb = _sig_titre(a), _sig_titre(b)
     titre = max(jaccard(st, sb), 0.8 * recouvrement(st, sb))
     contenu = jaccard(_sig_contenu(a), _sig_contenu(b))
-    return round(0.55 * titre + 0.45 * min(1.0, contenu * 1.6), 2)
+    score = 0.55 * titre + 0.45 * min(1.0, contenu * 1.6)
+    if a.get("theme_principal") and a.get("theme_principal") == b.get("theme_principal"):
+        score += 0.1
+    # Les sigles du thésaurus (TMMi, IDEAL, API) pèsent déjà dans les signatures :
+    # seuls les termes qu'il ignore (Herzberg, Maslow…) reçoivent ce bonus.
+    communs = {t for t in _termes_idee(a) & _termes_idee(b) if t not in termes_thesaurus()}
+    titres = set(normaliser(a.get("titre", "")).split()) & set(normaliser(b.get("titre", "")).split())
+    score += 0.3 if communs & titres else 0.15 if communs else 0.0
+    return round(min(1.0, score), 2)
 
 
 def doublons(candidat: dict, exclure: str | None = None, cx: sqlite3.Connection | None = None) -> list[dict]:
@@ -424,12 +617,16 @@ def doublons(candidat: dict, exclure: str | None = None, cx: sqlite3.Connection 
 # ---------------------------------------------------------------- écriture
 
 def _nouvel_id(cx) -> str:
-    """Prochain identifiant, jamais réattribué : on tient compte des idées présentes, des
-    cibles de relations et du journal (une idée retirée du JSONL y laisse sa trace)."""
+    """Identifiant daté et aléatoire, QA-AAAAMMJJ-xxxx : jamais réattribué, même après un
+    `git revert` qui efface l'idée ET sa trace dans le journal (un compteur séquentiel
+    redonnait alors le même numéro à une autre idée, #34). Les anciens QA-0001… restent
+    valides. Unicité vérifiée contre les idées, les cibles de relations et le journal."""
     vus = {r[0] for r in cx.execute("SELECT id FROM idees UNION SELECT cible FROM relations")}
     vus |= {e["cible"] for e in journal.lire(limite=10 ** 9)}
-    n = max([int(m.group(1)) for v in vus if (m := re.fullmatch(r"QA-(\d+)", v or ""))] or [0])
-    return f"QA-{n + 1:04d}"
+    while True:
+        candidat = f"QA-{date.today():%Y%m%d}-{secrets.token_hex(2)}"
+        if candidat not in vus:
+            return candidat
 
 
 def ajouter(donnees: dict, forcer: bool = False, motif: str | None = None) -> dict:
@@ -439,7 +636,7 @@ def ajouter(donnees: dict, forcer: bool = False, motif: str | None = None) -> di
     cx = ouvrir()
     try:
         # Verrou d'écriture AVANT de lire les doublons et le dernier identifiant : deux
-        # ajouts simultanés ne peuvent plus obtenir le même QA-xxxx.
+        # ajouts simultanés ne peuvent pas obtenir le même identifiant.
         cx.execute("BEGIN IMMEDIATE")
         sim = doublons(idee, cx=cx)
         probables = [s for s in sim if s["verdict"] == "doublon probable"]
@@ -479,6 +676,7 @@ def modifier(idee_id: str, donnees: dict, remplacer_listes: bool = False, motif:
                 apres[k] = existant + [x for x in v if cle(x) not in vus]
             else:
                 apres[k] = v
+        _exiger_source(apres)
         apres["maj_le"] = datetime.now().isoformat(timespec="seconds")
         changes = {k: {"avant": avant.get(k), "apres": apres.get(k)} for k in maj if avant.get(k) != apres.get(k)}
         if not changes:
@@ -497,8 +695,13 @@ def changer_statut(idee_id: str, statut: str, motif: str | None) -> dict:
     cx = ouvrir()
     try:
         idee = _charger(cx, idee_id)
-        if statut in ("validee", "abandonnee", "experimentee") and not motif:
-            raise ErreurValidation(f"Le statut « {statut} » exige un motif (--motif) : sur quoi repose la décision ?")
+        motif = (motif or "").strip()
+        if statut in ("validee", "abandonnee", "experimentee") and len(motif) < MOTIF_MIN:
+            raise ErreurValidation(f"Le statut « {statut} » exige un motif d'au moins {MOTIF_MIN} caractères "
+                                   "(--motif) : sur quoi repose la décision ?")
+        if statut == "validee" and not idee["references"] and not idee["retours"]:
+            raise ErreurValidation("« validée » exige au moins une référence (`idee modifier`) ou un retour "
+                                   "d'expérience (`idee retour`) : sur quelle source repose la validation ?")
         if statut == "experimentee" and not idee["retours"]:
             raise ErreurValidation("« expérimentée » exige au moins un retour d'expérience (`idee retour`).")
         avant = idee["statut"]
@@ -537,9 +740,38 @@ def lier(source: str, cible: str, type_: str, note: str | None = None) -> dict:
         _charger(cx, source), _charger(cx, cible)
         cx.execute("INSERT OR REPLACE INTO relations VALUES (?,?,?,?,?)",
                    (source, cible, type_, note, date.today().isoformat()))
+        cx.execute("UPDATE idees SET maj_le=? WHERE id=?", (datetime.now().isoformat(timespec="seconds"), source))
         _exporter(cx)
         journal.noter("relation_ajoutee", source, {"cible": cible, "type": type_, "note": note})
         return {"etat": "lie", "source": source, "cible": cible, "type": type_}
+    finally:
+        cx.close()
+
+
+def retirer(idee_id: str, motif: str | None) -> dict:
+    """Supprime proprement une idée (au lieu d'effacer sa ligne du JSONL) : relations
+    sortantes et entrantes retirées, instantané complet conservé dans le journal (l'idée
+    reste restaurable et son identifiant n'est jamais réattribué)."""
+    motif = (motif or "").strip()
+    if len(motif) < 10:
+        raise ErreurValidation("Retirer une idée exige un motif d'au moins 10 caractères (--motif) : "
+                               "pourquoi la supprimer plutôt que l'« abandonner » (`idee statut … abandonnee`) ?")
+    cx = ouvrir()
+    try:
+        cx.execute("BEGIN IMMEDIATE")
+        idee = _charger(cx, idee_id)
+        entrantes = [dict(r) for r in cx.execute("SELECT source, type FROM relations WHERE cible=?", (idee_id,))]
+        for t, col in (("idees", "id"), ("idee_themes", "idee_id"), ("refs", "idee_id"), ("retours", "idee_id"),
+                       ("idees_fts", "id"), ("relations", "source"), ("relations", "cible")):
+            cx.execute(f"DELETE FROM {t} WHERE {col}=?", (idee_id,))
+        maintenant = datetime.now().isoformat(timespec="seconds")
+        for r in entrantes:
+            cx.execute("UPDATE idees SET maj_le=? WHERE id=?", (maintenant, r["source"]))
+        _exporter(cx)
+        journal.noter("idee_retiree", idee_id, {"idee": idee, "relations_entrantes_retirees": entrantes}, motif)
+        for r in entrantes:
+            journal.noter("relation_retiree", r["source"], {"cible": idee_id, "type": r["type"]}, motif)
+        return {"etat": "retire", "id": idee_id, "relations_entrantes_retirees": entrantes}
     finally:
         cx.close()
 

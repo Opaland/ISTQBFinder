@@ -23,9 +23,10 @@ jobs:
       - name: Tests
         run: python -m pytest tests/ -q -rs
       # L'index n'est pas versionné : on vérifie que les PDF du dépôt s'indexent
-      # sans échec et que la recherche tient son niveau sur le jeu de contrôle.
+      # sans échec et que la recherche tient son niveau sur le jeu de contrôle
+      # (rappel@5 ≥ 80 % : sinon rc=2 et la CI échoue).
       - name: Indexation de la bibliothèque + évaluation
         run: |
           python qa.py actualiser
           python qa.py inventaire
-          python qa.py evaluer --jeu controle
+          python qa.py evaluer --jeu controle --min-rappel 0.80

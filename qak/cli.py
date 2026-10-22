@@ -350,6 +350,11 @@ def cmd_idee(a):
                                    f"{'|'.join(connaissances.RELATIONS)} [--note …]")
         r = connaissances.lier(a.id, a.cible, a.type, a.note)
         _ecrire(f"{r['source']} —{r['type']}→ {r['cible']}")
+    elif act == "retirer":
+        r = connaissances.retirer(a.id, a.motif)
+        _ecrire(f"{a.id} retirée (instantané conservé dans le journal)")
+        for x in r["relations_entrantes_retirees"]:
+            _ecrire(f"  relation {x['type']} depuis {x['source']} retirée")
     elif act == "voir":
         i = connaissances.voir(a.id)
         if a.json:
@@ -416,9 +421,37 @@ def cmd_evaluer(a):
         _ecrire(f"{'OK ' if x['trouve'] else 'KO '} rang {x['rang'] or '-':>2}  {x['requete']}  → attendu {x['attendu']}")
     _ecrire(f"\nRappel@{a.k} : {r['rappel']:.0%} ({r['trouves']}/{r['total']}) · MRR : {r['mrr']:.2f}"
             + (f" · ignorées (document absent) : {r['ignorees']}" if r["ignorees"] else ""))
+    if a.min_rappel is not None:
+        # Seuil de non-régression (CI) : un jeu sans question évaluée n'atteint aucun seuil.
+        if not r["total"]:
+            raise ErreurValidation("aucune question évaluée (bibliothèque vide ou documents attendus absents) : "
+                                   "lancer `actualiser` avant `evaluer --min-rappel`.")
+        if r["rappel"] < a.min_rappel:
+            raise ErreurValidation(f"rappel@{a.k} {r['rappel']:.0%} sous le seuil exigé "
+                                   f"({a.min_rappel:.0%}) : la recherche a régressé.")
 
 
 # ---------------------------------------------------------------- analyseur
+
+def _entier_positif(v: str) -> int:
+    try:
+        n = int(v)
+    except ValueError:
+        n = 0
+    if n < 1:
+        raise argparse.ArgumentTypeError(f"entier ≥ 1 attendu (reçu : {v})")
+    return n
+
+
+def _proportion(v: str) -> float:
+    try:
+        r = float(v.replace(",", "."))
+    except ValueError:
+        r = -1.0
+    if not 0 <= r <= 1:
+        raise argparse.ArgumentTypeError(f"proportion entre 0 et 1 attendue, ex. 0.80 (reçu : {v})")
+    return r
+
 
 def analyseur() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="qa.py", description="QA Knowledge Agent — bibliothèque ISTQB et base QA.")
@@ -462,7 +495,7 @@ def analyseur() -> argparse.ArgumentParser:
 
     x = sp.add_parser("chercher", help="recherche plein texte dans la bibliothèque")
     x.add_argument("requete", nargs="+")
-    x.add_argument("-n", type=int, default=8)
+    x.add_argument("-n", type=_entier_positif, default=8)
     x.add_argument("--doc", action="append", help="code ou doc_id (répétable)")
     x.add_argument("--niveau", choices=["fondation", "avance", "expert", "specialiste"])
     x.add_argument("--langue", choices=["fr", "en"])
@@ -513,7 +546,7 @@ def analyseur() -> argparse.ArgumentParser:
 
     x = sp.add_parser("idee", help="base de connaissances : ajouter, modifier, chercher…")
     x.add_argument("action", choices=["modele", "ajouter", "doublons", "modifier", "statut", "retour", "lier",
-                                      "voir", "lister", "chercher", "verifier-refs"])
+                                      "retirer", "voir", "lister", "chercher", "verifier-refs"])
     x.add_argument("id", nargs="?", help="identifiant QA-xxxx")
     x.add_argument("requete", nargs="*", help="texte (pour chercher)")
     x.add_argument("--fichier", default="-", help="JSON de l'idée (défaut : entrée standard)")
@@ -536,9 +569,11 @@ def analyseur() -> argparse.ArgumentParser:
     x.add_argument("-n", type=int, default=30)
     x.set_defaults(f=cmd_journal)
     x = sp.add_parser("evaluer", help="mesure la qualité de la recherche sur eval/requetes.json")
-    x.add_argument("-k", type=int, default=5)
+    x.add_argument("-k", type=_entier_positif, default=5)
     x.add_argument("--jeu", choices=["tout", "reglage", "controle"], default="tout",
                    help="« controle » = questions jamais utilisées pour régler le moteur")
+    x.add_argument("--min-rappel", type=_proportion, metavar="R",
+                   help="code retour 2 si le rappel est sous R (0 à 1) ou si aucune question n'est évaluée")
     x.set_defaults(f=cmd_evaluer)
     return p
 
@@ -558,6 +593,11 @@ def main(argv=None) -> int:
         msg = exc.args[0] if exc.args else str(exc)
         sys.stderr.write(f"Erreur : {msg}\n")
         return 2
+    finally:
+        # Base reconstruite depuis un JSONL modifié hors de l'outil : prévenir l'utilisateur.
+        for w in connaissances.avertissements():
+            if not sys.stderr.closed:
+                sys.stderr.write(f"⚠ {w}\n")
     return 0
 
 
@@ -574,6 +614,6 @@ def _normaliser_idee(a) -> None:
     elif a.action == "lister" and (a.id or a.requete):
         raise SystemExit("Erreur : `idee lister` ne prend pas de texte : utiliser --theme <code> / --statut, "
                          "ou `idee chercher <texte>`.")
-    besoin_id = {"modifier", "statut", "retour", "lier", "voir"}
+    besoin_id = {"modifier", "statut", "retour", "lier", "retirer", "voir"}
     if a.action in besoin_id and not a.id:
         raise SystemExit(f"Erreur : `idee {a.action}` attend un identifiant (QA-xxxx).")

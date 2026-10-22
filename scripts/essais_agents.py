@@ -20,17 +20,23 @@ import os
 import re
 import subprocess
 import sys
+import uuid
 from datetime import date
 from pathlib import Path
 
 RACINE = Path(__file__).resolve().parent.parent
 OUTILS = ["Bash(python qa.py:*)", "Bash(python3 qa.py:*)", "Read", "Skill", "WebSearch", "WebFetch"]
-RE_CITATION = re.compile(r"\[[^\]]*?\b((?:CT|CTAL|CTFL|CTEL)[A-Za-z-]*)[^\]]*?\bp\.\s*(\d+)(?:\s*[-–]\s*(\d+))?[^\]]*\]")
+# Une citation = « §x.y … p. N » ; elle se rattache au dernier code de syllabus nommé avant
+# elle (« **CTFL v4.0.1** … (§4.2.1, p. 40) » comme « [CTAL-TM v3.0, §1.3, p. 29] »).
+RE_JETON = re.compile(r"(?P<code>\b(?:CTFL(?:-AT)?|CTAL-[A-Za-z]+|CTEL-[A-Za-z]+|CT-[A-Za-z]+)\b)"
+                      r"|(?P<ref>§\s?[\d.]+[^\n\]\)]{0,40}?\bp\.\s?(?P<p1>\d+)(?:\s?[-–]\s?(?P<p2>\d+))?)")
 RE_CONFIANCE = re.compile(r"[Cc]onfiance\s*:?\s*\**\s*(\d{1,3})\s*/\s*100")
 
 
 def transcript(session_id: str) -> list[dict]:
-    """Transcript JSONL de la session (dossier projet de Claude Code)."""
+    """Transcript JSONL de la session (dossier projet de Claude Code). L'identifiant est
+    imposé par le harnais (`--session-id`) : lancé depuis une session Claude Code, le
+    processus enfant hériterait sinon de l'identifiant (et du transcript) du parent."""
     for f in (Path.home() / ".claude" / "projects").glob(f"*/{session_id}.jsonl"):
         return [json.loads(l) for l in f.read_text(encoding="utf-8").splitlines() if l.strip()]
     return []
@@ -60,28 +66,39 @@ def pages_lues(sorties: str) -> set[tuple[str, int]]:
 
 
 def verifier_citations(reponse: str, lues: set) -> list[dict]:
+    """Chaque citation (code, pages) unique : une des pages a-t-elle été lue ?"""
     codes_lus = {c for c, _ in lues}
-    out = []
-    for m in RE_CITATION.finditer(reponse):
-        code = m.group(1).upper().rstrip("-")
-        debut, fin = int(m.group(2)), int(m.group(3) or m.group(2))
-        code_lu = next((c for c in codes_lus if c == code or c.startswith(code) or code.startswith(c)), None)
+    out, vues, code = [], set(), None
+    for m in RE_JETON.finditer(reponse):
+        if m.group("code"):
+            code = m.group("code").upper()
+            continue
+        if not code:
+            continue
+        debut, fin = int(m.group("p1")), int(m.group("p2") or m.group("p1"))
+        if (code, debut, fin) in vues:
+            continue
+        vues.add((code, debut, fin))
+        code_lu = next((c for c in codes_lus if c == code), None)
         ok = bool(code_lu) and any((code_lu, p) in lues for p in range(debut, fin + 1))
-        out.append({"citation": m.group(0)[:120], "lue": ok})
+        out.append({"citation": f"{code} {m.group('ref')[:60]}", "lue": ok})
     return out
 
 
 def lancer(essai: dict, dossier: Path) -> dict:
-    cmd = ["claude", "-p", essai["question"], "--output-format", "json", "--allowedTools", *OUTILS]
+    session = str(uuid.uuid4())
+    cmd = ["claude", "-p", essai["question"], "--output-format", "json", "--session-id", session,
+           "--allowedTools", *OUTILS]
     if essai.get("agent"):
         cmd[1:1] = ["--agent", essai["agent"]]
-    proc = subprocess.run(cmd, cwd=RACINE, capture_output=True, text=True, timeout=900,
-                          env={**os.environ, "PATH": f"{RACINE / '.venv' / 'bin'}:{os.environ['PATH']}"})
+    env = {k: v for k, v in os.environ.items() if k not in ("CLAUDE_CODE_SESSION_ID", "CLAUDE_CODE_CHILD_SESSION")}
+    env["PATH"] = f"{RACINE / '.venv' / 'bin'}{os.pathsep}{env['PATH']}"
+    proc = subprocess.run(cmd, cwd=RACINE, capture_output=True, text=True, timeout=900, env=env)
     try:
         res = json.loads(proc.stdout)
     except json.JSONDecodeError:
         return {"id": essai["id"], "erreur": (proc.stderr or proc.stdout)[-800:]}
-    commandes, sorties = outils_utilises(transcript(res.get("session_id", "")))
+    commandes, sorties = outils_utilises(transcript(session))
     reponse = res.get("result", "")
     citations = verifier_citations(reponse, pages_lues(sorties))
     conf = RE_CONFIANCE.search(reponse)

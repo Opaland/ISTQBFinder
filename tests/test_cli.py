@@ -67,3 +67,25 @@ def test_lecture_pendant_une_ecriture_et_base_occupee(capsys, monkeypatch, bibli
         ecrivain.rollback()
         ecrivain.close()
     assert chemins.index_db().exists()
+
+
+def test_section_et_page_bornees_indiquent_la_suite(capsys, racine_isolee):
+    # Issue #22 : sortie bornée par --max-caracteres, terminée par ce qui reste à lire.
+    assert main(["importer", str(FIXTURES / "syllabus_v9.pdf")]) == 0
+    capsys.readouterr()
+    assert main(["section", "CTFL", "1", "--max-caracteres", "100"]) == 0
+    sortie = capsys.readouterr().out
+    assert "Sortie tronquée" in sortie and "Ne citer que ce qui précède" in sortie
+    assert "`section CTFL-9.9-en 1.2`" in sortie
+    affiche = sortie.split("✂")[0]
+    assert "divides data into partitions" not in affiche  # §1.2 non affichée…
+    assert main(["section", "CTFL", "1", "--max-caracteres", "0"]) == 0
+    assert "divides data into partitions" in capsys.readouterr().out  # … mais présente sans borne
+    assert main(["page", "CTFL", "3-6", "--max-caracteres", "100"]) == 0
+    assert "pages restantes : `page CTFL-9.9-en" in capsys.readouterr().out
+    assert main(["section", "CTFL", "1", "--max-caracteres", "100", "--json"]) == 0
+    r = json.loads(capsys.readouterr().out)
+    assert r["tronque"] and any("section CTFL-9.9-en 1.2" in l for l in r["reste_a_lire"])
+    # Par défaut (15 000 caractères), une petite section n'est pas tronquée.
+    assert main(["section", "CTFL", "1"]) == 0
+    assert "Sortie tronquée" not in capsys.readouterr().out

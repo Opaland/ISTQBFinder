@@ -415,3 +415,97 @@ def test_retirer_une_idee_proprement():
     assert connaissances.avertissements() == []
     with pytest.raises(KeyError):
         connaissances.retirer(q2, "déjà retirée auparavant")
+
+
+def test_journal_auteur_et_fuseau_horaire():
+    """#38 : ni auteur ni décalage horaire dans les entrées."""
+    import re
+    q1 = connaissances.ajouter(dict(IDEE))["id"]
+    e = journal.lire(q1)[0]
+    assert e["auteur"] and e["auteur"] == journal.auteur()
+    assert re.search(r"T\d\d:\d\d:\d\d([+-]\d\d:\d\d|Z)$", e["horodatage"]), e["horodatage"]
+
+
+def test_journal_details_en_ligne_de_commande(capsys):
+    from qak.cli import main
+    q1 = connaissances.ajouter(dict(IDEE))["id"]
+    connaissances.modifier(q1, {"limites": "Suppose des estimations de probabilité fiables."})
+    assert main(["journal", "--cible", q1]) == 0
+    sans = capsys.readouterr().out
+    assert "idee_modifiee" in sans and "estimations" not in sans
+    assert main(["journal", "--cible", q1, "--details"]) == 0
+    assert '"apres": "Suppose des estimations de probabilité fiables."' in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("fichier", ["journal_jsonl", "connaissances_jsonl"])
+def test_marqueurs_de_conflit_git_message_lisible(fichier):
+    """#38 : un conflit Git non résolu donnait « Expecting value: line 1 column 1 »."""
+    connaissances.ajouter(dict(IDEE))
+    p = getattr(chemins, fichier)()
+    lignes = p.read_text(encoding="utf-8").splitlines()
+    p.write_text("\n".join(["<<<<<<< HEAD", lignes[0], "=======", lignes[0], ">>>>>>> autre-poste"]) + "\n",
+                 encoding="utf-8")
+    with pytest.raises(ValueError, match=rf"{p.name}, ligne 1 : marqueur de conflit Git « <<<<<<< ».*git add"):
+        connaissances.lister() if fichier == "connaissances_jsonl" else journal.lire()
+
+
+def test_journal_fusionne_sans_conflit_par_git(tmp_path):
+    """.gitattributes : journal.jsonl en merge=union — deux postes qui ajoutent chacun une
+    entrée fusionnent sans conflit (vraie fusion Git, pas de simulation)."""
+    import shutil
+    import subprocess
+    if not shutil.which("git"):
+        pytest.skip("git absent")
+    depot = tmp_path / "depot"
+    (depot / "connaissances").mkdir(parents=True)
+    shutil.copy(chemins.CODE / ".gitattributes", depot / ".gitattributes")
+    jnl = depot / "connaissances" / "journal.jsonl"
+    jnl.write_text('{"n": 0}\n', encoding="utf-8")
+
+    def git(*args):
+        return subprocess.run(["git", "-C", str(depot), "-c", "user.name=t", "-c", "user.email=t@t", *args],
+                              capture_output=True, text=True)
+    git("init", "-q", "-b", "main")
+    git("add", ".")
+    git("commit", "-qm", "init")
+    git("checkout", "-qb", "poste-b")
+    jnl.write_text('{"n": 0}\n{"n": "b"}\n', encoding="utf-8")
+    git("commit", "-qam", "b")
+    git("checkout", "-q", "main")
+    jnl.write_text('{"n": 0}\n{"n": "a"}\n', encoding="utf-8")
+    git("commit", "-qam", "a")
+    r = git("merge", "-q", "poste-b", "-m", "fusion")
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert jnl.read_text(encoding="utf-8").splitlines() == ['{"n": 0}', '{"n": "a"}', '{"n": "b"}']
+
+
+def test_donnees_sensibles_bloquees_sauf_forcer_avec_motif():
+    """#39 : dépôt public — « budget 120 k€, contact jean.dupont@client.fr » était enregistré."""
+    sensible = {**IDEE, "resume": "Client Airbus, projet A350, budget 120 k€, contact jean.dupont@client.fr."}
+    with pytest.raises(ErreurValidation, match=r"(?s)adresse e-mail « jean\.dupont@client\.fr ».*montant « 120 k€ ».*PUBLIC"):
+        connaissances.ajouter(sensible)
+    with pytest.raises(ErreurValidation, match="confidentielle"):
+        connaissances.ajouter(sensible, forcer=True)  # --forcer sans motif
+    assert not chemins.connaissances_jsonl().exists() or "dupont" not in chemins.connaissances_jsonl().read_text(
+        encoding="utf-8")
+    q1 = connaissances.ajouter(dict(IDEE))["id"]
+    with pytest.raises(ErreurValidation, match="téléphone"):
+        connaissances.modifier(q1, {"limites": "Appeler le référent au 06 12 34 56 78."})
+    with pytest.raises(ErreurValidation, match="téléphone"):
+        connaissances.ajouter_retour(q1, "Projet interne", "Voir avec le +33 6 12 34 56 78")
+    r = connaissances.modifier(q1, {"limites": "Coût indicatif 15 000 € par campagne."}, forcer=True,
+                               motif="ordre de grandeur public, issu d'un article")
+    assert any("--forcer" in w for w in r["avertissements"])
+    e = journal.lire(q1)[-1]
+    assert e["details"]["donnees_sensibles_forcees"] == ["montant"] and e["motif"]
+
+
+def test_pas_de_faux_positif_sur_les_nombres_courants():
+    texte = ("ISO/IEC/IEEE 29119-3 version 4.0.1, CTAL-TM p. 29-30, le 2026-10-22, sessions de 90 min, "
+             "80 % de couverture, 10 000 tests, release 3.2, niveau TMMi 2.")
+    connaissances.ajouter({**IDEE, "principe": texte})
+
+
+def test_reference_interne_avertit():
+    r = connaissances.ajouter({**IDEE, "references": [{"type": "interne", "titre": "Bilan de campagne"}]})
+    assert any("interne" in w and "public" in w for w in r["avertissements"])

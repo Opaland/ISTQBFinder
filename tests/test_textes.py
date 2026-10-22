@@ -68,6 +68,13 @@ def test_sigles_courts_seulement_en_majuscules():
     assert "ai" not in textes.reperer_concepts("j'ai des tests instables")[1]  # ni « mot trop court ignoré »
 
 
+def test_layering_equivaut_a_superposition_et_couches():
+    # Issue #47 : CTAL-TAE §3.1.3 « Apply Layering… » est traduit « superposition » en FR.
+    def ids(q):
+        return [cid for cid, _ in textes.reperer_concepts(q)[0]]
+    assert ids("layering") == ids("superposition") == ids("en couches") == ids("layers") == ["couches"]
+
+
 def test_motivation_n_est_plus_absorbee_par_competences():
     # Issue #26 : « motivation » était remplacé par l'expansion de « competences » (skills,
     # training…) ; CTAL-TM §3.1.6 « Motivating or Demotivating Factors » disparaissait.

@@ -14,7 +14,7 @@ import sqlite3
 from datetime import date, datetime
 
 from . import bibliotheque, chemins, journal, taxonomie
-from .textes import jaccard, normaliser, recouvrement, signature
+from .textes import MOTS_VIDES, jaccard, normaliser, recouvrement, signature, termes_thesaurus
 
 STATUTS = {
     "a_explorer": "à explorer — piste repérée, pas encore étudiée",
@@ -330,11 +330,50 @@ def _sig_contenu(i: dict) -> set:
     return signature(" ".join(str(i.get(c) or "") for c in ("titre", "resume", "probleme", "principe")))
 
 
+TERMES_BANALS = {"qa", "istqb", "test", "tests", "testeur", "testeurs", "tester"}
+
+
+def _termes_distinctifs(texte: str) -> set[str]:
+    """Noms propres et sigles d'un texte (Herzberg, TMMi, IDEAL) : un sigle (au moins deux
+    majuscules) partout ; un mot capitalisé seulement hors début de phrase et s'il n'apparaît
+    jamais en minuscules dans le texte (« Équipe … équipe » n'est pas un nom propre)."""
+    minuscules = set(re.findall(r"\b[^\W\d_]+\b", texte))
+    out = set()
+    for m in re.finditer(r"[^\W\d_]+", texte):
+        mot = m.group()
+        if len(mot) < 3:
+            continue
+        avant = texte[:m.start()].rstrip()
+        sigle = sum(c.isupper() for c in mot) >= 2
+        nom_propre = (mot[0].isupper() and mot[1:].islower() and avant and avant[-1] not in ".!?:;"
+                      and mot.lower() not in minuscules)
+        n = normaliser(mot)
+        if (sigle or nom_propre) and n not in MOTS_VIDES and n not in TERMES_BANALS:
+            out.add(n)
+    return out
+
+
+def _termes_idee(i: dict, champs=("titre", "resume", "probleme", "principe")) -> set[str]:
+    return set().union(*(_termes_distinctifs(str(i.get(c) or "")) for c in champs))
+
+
 def similarite(a: dict, b: dict) -> float:
+    """Signatures du thésaurus (titre, contenu), plus deux indices qui manquaient pour une
+    même idée reformulée ou traduite (#27) : le thème principal commun et les noms
+    propres / sigles partagés absents du thésaurus (Herzberg), surtout s'ils figurent dans les
+    deux titres."""
     st, sb = _sig_titre(a), _sig_titre(b)
     titre = max(jaccard(st, sb), 0.8 * recouvrement(st, sb))
     contenu = jaccard(_sig_contenu(a), _sig_contenu(b))
-    return round(0.55 * titre + 0.45 * min(1.0, contenu * 1.6), 2)
+    score = 0.55 * titre + 0.45 * min(1.0, contenu * 1.6)
+    if a.get("theme_principal") and a.get("theme_principal") == b.get("theme_principal"):
+        score += 0.1
+    # Les sigles du thésaurus (TMMi, IDEAL, API) pèsent déjà dans les signatures :
+    # seuls les termes qu'il ignore (Herzberg, Maslow…) reçoivent ce bonus.
+    communs = {t for t in _termes_idee(a) & _termes_idee(b) if t not in termes_thesaurus()}
+    titres = set(normaliser(a.get("titre", "")).split()) & set(normaliser(b.get("titre", "")).split())
+    score += 0.3 if communs & titres else 0.15 if communs else 0.0
+    return round(min(1.0, score), 2)
 
 
 def doublons(candidat: dict, exclure: str | None = None, cx: sqlite3.Connection | None = None) -> list[dict]:

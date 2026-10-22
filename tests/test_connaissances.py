@@ -152,3 +152,27 @@ def test_couverture_signale_les_themes_vides():
     rows = {r["code"]: r for r in connaissances.couverture()}
     assert rows["rbt"]["idees"] == 1 and rows["rbt"]["etat"] == "pauvre"
     assert rows["exploratoire"]["etat"] == "vide" and rows["exploratoire"]["passages"] is None
+
+
+@pytest.mark.parametrize("donnees, message", [
+    ([], "objet JSON"),
+    (None, "objet JSON"),
+    ({**IDEE, "theme_principal": 123}, "theme_principal : texte attendu"),
+    ({**IDEE, "titre": 42}, "titre : texte attendu"),
+    ({**IDEE, "themes_secondaires": "metriques"}, "themes_secondaires : liste"),
+    ({**IDEE, "references": {"type": "web"}}, "references : liste d'objets"),
+    ({**IDEE, "references": ["https://exemple.org"]}, "references : liste d'objets"),
+    ({**IDEE, "references": [{"type": "web", "url": ["https://exemple.org"]}]}, "references.url"),
+])
+def test_types_invalides_message_francais(donnees, message):
+    """#55 : un JSON de mauvais type provoquait une trace Python (AttributeError)."""
+    with pytest.raises(ErreurValidation, match=message):
+        connaissances.ajouter(donnees)
+
+
+def test_type_invalide_cli_code_retour_2(capsys, monkeypatch):
+    import io
+    from qak import cli
+    monkeypatch.setattr("sys.stdin", io.StringIO("[]"))
+    assert cli.main(["idee", "ajouter"]) == 2
+    assert "objet JSON" in capsys.readouterr().err

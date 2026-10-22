@@ -174,6 +174,29 @@ def test_modifier_refuse_les_champs_geres_par_l_outil_et_inconnus():
     assert chemins.connaissances_jsonl().read_text(encoding="utf-8") == avant
     assert connaissances.voir("QA-0002")["references"][0]["url"] == "https://exemple.org/c"
 
+@pytest.mark.parametrize("donnees, message", [
+    ([], "objet JSON"),
+    (None, "objet JSON"),
+    ({**IDEE, "theme_principal": 123}, "theme_principal : texte attendu"),
+    ({**IDEE, "titre": 42}, "titre : texte attendu"),
+    ({**IDEE, "themes_secondaires": "metriques"}, "themes_secondaires : liste"),
+    ({**IDEE, "references": {"type": "web"}}, "references : liste d'objets"),
+    ({**IDEE, "references": ["https://exemple.org"]}, "references : liste d'objets"),
+    ({**IDEE, "references": [{"type": "web", "url": ["https://exemple.org"]}]}, "references.url"),
+])
+def test_types_invalides_message_francais(donnees, message):
+    """#55 : un JSON de mauvais type provoquait une trace Python (AttributeError)."""
+    with pytest.raises(ErreurValidation, match=message):
+        connaissances.ajouter(donnees)
+
+
+def test_type_invalide_cli_code_retour_2(capsys, monkeypatch):
+    import io
+    from qak import cli
+    monkeypatch.setattr("sys.stdin", io.StringIO("[]"))
+    assert cli.main(["idee", "ajouter"]) == 2
+    assert "objet JSON" in capsys.readouterr().err
+
 def _ref_ctfl(**champs):
     return {**IDEE, "references": [{"type": "istqb", "doc_id": "CTFL", **champs}]}
 

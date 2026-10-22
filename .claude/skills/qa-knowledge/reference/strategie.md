@@ -23,6 +23,9 @@
   rarement la réponse : préférer le chapitre de fond.
 - Si rien ne sort : reformuler (synonymes, terme anglais), élargir (`--toutes-versions`),
   puis seulement envisager le Web.
+- Outil, technologie ou pratique nommés par la question et introuvables localement
+  (`chercher playwright` → aucun passage) : les principes ISTQB ne suffisent pas, la
+  recherche Web ciblée (documentation officielle) fait partie de la réponse.
 
 ## Lire et recouper
 
@@ -77,6 +80,9 @@ de la requête la plus pertinente), puis ajuster :
 | Une partie de la réponse repose sur le Web | − 10 (et préciser laquelle) |
 | Une partie repose sur ton raisonnement sans source | − 10 |
 | ≥ 3 syllabus courants concordants, passages lus | + 5 |
+
+Plafond : si une notion de la question (ex. l'outil nommé) n'est couverte ni par un
+passage lu ni par une source Web consultée, le score ne dépasse pas **60** — le dire.
 
 Borner entre 0 et 100. Libellés : ≥ 75 élevée · 50-74 moyenne · 25-49 faible ·
 < 25 très faible (le dire franchement et proposer Web ou reformulation).

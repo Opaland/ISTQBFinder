@@ -31,7 +31,7 @@ question porte sur le test logiciel ou la qualité (ou via `/qa-knowledge`).
 | Agent | Rôle | Lancer |
 |---|---|---|
 | **Thomas** | chercheur QA : explore la base d'idées et tous les syllabus, ouvre des pistes sourcées | `@agent-thomas <question>` dans une conversation, ou `claude --agent thomas` pour toute la session |
-| **Sylvie** | auditrice : vérifie qu'une démarche est alignée sur les pratiques ISTQB, liste les manques, donne un niveau de maturité (grille `referentiel/grille-maturite.md`) | `@agent-sylvie <ta démarche>` ou `claude --agent sylvie` |
+| **Sylvie** | auditrice : vérifie qu'une démarche est alignée sur les pratiques ISTQB, liste les manques, donne un niveau de capacité inspiré du TMMi (grille `referentiel/grille-maturite.md`) ; avis indicatif, pas une attestation | `@agent-sylvie <ta démarche>` ou `claude --agent sylvie` |
 
 Exemple : « @agent-sylvie Je veux mettre en place une stratégie basée sur les risques :
 atelier avec le PO pour lister les risques, priorisation des tests critiques, revue en
@@ -57,7 +57,7 @@ La CLI reste utilisable directement (`python qa.py --help`) :
 | Chercher dans les syllabus | `chercher <notions> [--doc CTAL-TM] [--theme rbt] [--section 1.3] [--langue fr]` |
 | Lire avant de citer | `lire <passage> [--contexte 1]` · `section <doc> <num>` · `page <doc> <p[-q]>` · `plan <doc>` |
 | Base d'idées | `idee chercher …` · `idee lister [--theme] [--statut]` · `idee voir QA-0001` |
-| Capitaliser | `idee modele` · `idee doublons --fichier f.json` · `idee ajouter --fichier f.json` |
+| Capitaliser | `idee modele` · `idee doublons <<'JSON'` · `idee ajouter <<'JSON'` (JSON sur l'entrée standard) |
 | Faire évoluer | `idee modifier` · `idee statut … --motif` · `idee retour` · `idee lier` · `journal` |
 | Taxonomie | `themes` · `theme proposer "<texte>"` · `theme ajouter …` · `theme obsolete …` · `couverture` |
 | Syllabus manquants | `manquants [--langue fr]` · skills `/bibliotheque` (maintenance) et `/ajouter-syllabus` |

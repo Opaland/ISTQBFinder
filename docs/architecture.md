@@ -56,10 +56,12 @@ Aucun serveur, aucune interface graphique, aucune clé d'API. Dépendance unique
 |---|---|---|
 | FTS5 + thésaurus, « ET strict puis OU » | 75 % | — |
 | + reclassement par couverture, concepts scindés, lexique FR→EN | 94 % | — |
-| + rétrogradation annexes / notes de version | 100 % (MRR 0,82) | **88 %** (MRR 0,76) |
+| + rétrogradation annexes / notes de version | 100 % (MRR 0,82) | 88 % (MRR 0,76) |
+| contrôle élargi à 18 q. (issue #4 : « shift-left », maintenance de l'automatisation) — avant correctif | 100 % (MRR 0,81) | 83 % (MRR 0,69) |
+| + priorité aux sections dont le titre nomme la notion, thésaurus « maintainability » | 100 % (MRR 0,91) | **89 %** (MRR 0,81) |
 
 Le 100 % du jeu de réglage est optimiste par construction ; le chiffre honnête est celui
-du jeu de contrôle. Les deux échecs du contrôle sont des requêtes très courtes faites de
+du jeu de contrôle. Les questions ajoutées au contrôle l'ont été AVANT la correction qu'elles motivent. Les deux échecs du contrôle sont des requêtes très courtes faites de
 mots omniprésents (« principes du test », « contenu d'un plan de test ») : la même
 question avec le terme ISTQB anglais (« testing principles », « purpose and content of a
 test plan ») trouve la bonne section en 1re ou 2e position. Le skill demande donc

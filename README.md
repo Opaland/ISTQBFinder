@@ -91,7 +91,7 @@ qu'avec l'accord de l'utilisateur.
 
 ## Limites
 
-- Recherche **lexicale** (FTS5 + thésaurus FR/EN) : rappel@5 = 88 % sur des questions de
+- Recherche **lexicale** (FTS5 + thésaurus FR/EN) : rappel@5 = 89 % sur des questions de
   contrôle jamais vues. Les requêtes très courtes et génériques réussissent mieux avec le
   terme ISTQB anglais. Pas de recherche sémantique : bénéfice non démontré
   ([docs/architecture.md](docs/architecture.md)).

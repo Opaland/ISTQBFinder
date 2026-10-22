@@ -122,6 +122,13 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
             for (rid,) in cx.execute(f"SELECT rowid FROM passages_fts WHERE passages_fts MATCH ? "
                                      f"AND rowid IN ({marque})", [g.fts(), *ids]) if ids else []:
                 trouves[rid].add(k)
+        # Notions nommées dans le TITRE de la section : une section dédiée à la notion passe
+        # devant une section qui ne fait que l'évoquer (issue #4 : « Shift Left » §2.1.5).
+        en_titre: dict[int, set[int]] = {i: set() for i in ids}
+        for k, g in enumerate(gs):
+            for (rid,) in cx.execute(f"SELECT rowid FROM passages_fts WHERE passages_fts MATCH ? "
+                                     f"AND rowid IN ({marque})", [f"section_titre : {g.fts()}", *ids]) if ids else []:
+                en_titre[rid].add(k)
         total = sum(g.poids for g in gs) or 1
 
         def couverture(r) -> float:
@@ -130,8 +137,12 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
         def peripherique(r) -> bool:
             return bool(RE_PERIPHERIQUE.search(normaliser(r["section_titre"] or "")))
 
-        # tri stable : couverture décroissante, sections de fond d'abord, puis l'ordre BM25
-        classes = sorted(candidats, key=lambda r: (-couverture(r), peripherique(r)))
+        def titre(r) -> float:
+            return sum(gs[k].poids for k in en_titre[r["id"]]) / total
+
+        # tri stable : couverture décroissante, sections de fond d'abord, puis sections dont le
+        # titre nomme les notions, puis l'ordre BM25
+        classes = sorted(candidats, key=lambda r: (-couverture(r), peripherique(r), -titre(r)))
         vus, resultats, par = set(), [], {}
         for r in classes:
             cle = (r["doc_id"], r["page"])

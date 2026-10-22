@@ -42,6 +42,9 @@ Français partout (réponses, messages, commits, commentaires).
 - **Un correctif = une PR** : une branche partie de `main` à jour, un seul sujet, et
   `Closes #n` dans la description. Jamais de commit direct sur `main`.
 - Une PR n'est fusionnée que si la CI est verte ; la fusion ferme l'issue.
+- Après toute modification de `.claude/skills/` ou `.claude/agents/` (ou des permissions
+  `allow` de `.claude/settings.json`) : `python scripts/generer_integrations.py`, et commiter
+  les fichiers régénérés dans la même PR (sinon `tests/test_integrations.py` échoue).
 - Juste avant de fusionner : fusionner `main` à jour dans la branche, relancer
   `python scripts/generer_integrations.py` si `.claude/` ou le générateur ont bougé, et
   attendre la CI verte sur **ce** commit (deux PR vertes séparément peuvent casser `main`).
@@ -62,5 +65,6 @@ Français partout (réponses, messages, commits, commentaires).
   `autouse` de `tests/conftest.py` isole chaque test dans un dossier temporaire.
 - Base d'idées : `connaissances/connaissances.jsonl` est la source versionnée ; ne
   capitaliser qu'avec l'accord de l'utilisateur ; proposer un commit après une session.
+- **Dépôt public** : n'enregistre rien qui nomme un client, une personne, un projet ou un montant (anonymiser) ; un document interne s'importe avec `importer --prive` (`bibliotheque/prive/`, jamais versionné).
 - Les PDF de `bibliotheque/sources/` sont © ISTQB (copie autorisée avec citation) : ne
   pas les modifier ; ils ne relèvent pas de la licence MIT.

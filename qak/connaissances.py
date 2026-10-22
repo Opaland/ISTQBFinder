@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS idee_themes (
 CREATE TABLE IF NOT EXISTS refs (
     idee_id TEXT NOT NULL, ordre INTEGER NOT NULL, type TEXT NOT NULL, titre TEXT, doc_id TEXT,
     version TEXT, pages TEXT, section TEXT, url TEXT, extrait TEXT, consulte_le TEXT, note TEXT,
-    PRIMARY KEY (idee_id, ordre)
+    empreinte TEXT, PRIMARY KEY (idee_id, ordre)
 );
 CREATE TABLE IF NOT EXISTS relations (
     source TEXT NOT NULL, cible TEXT NOT NULL, type TEXT NOT NULL, note TEXT, cree_le TEXT,
@@ -98,6 +98,7 @@ def ouvrir() -> sqlite3.Connection:
     """Ouvre la base ; la reconstruit depuis le JSONL versionné s'il a changé."""
     cx = bibliotheque.ouvrir_sqlite(chemins.base_db())
     cx.executescript(SCHEMA)
+    _migrer(cx)
     try:
         if _action_miroir(cx):
             # Verrou d'écriture puis second contrôle : un autre processus peut être en
@@ -115,6 +116,19 @@ def ouvrir() -> sqlite3.Connection:
         cx.close()
         raise
     return cx
+
+
+CHAMPS_REF = ("type", "titre", "doc_id", "version", "pages", "section", "url", "extrait", "consulte_le", "note",
+              "empreinte")
+
+
+def _migrer(cx) -> None:
+    """Base créée par une version antérieure : colonnes ajoutées depuis (#35 : empreinte
+    SHA-256 du document lu, dans chaque référence ISTQB)."""
+    colonnes = {r[1] for r in cx.execute("PRAGMA table_info(refs)")}
+    if "empreinte" not in colonnes:
+        cx.execute("ALTER TABLE refs ADD COLUMN empreinte TEXT")
+        cx.commit()
 
 
 def _action_miroir(cx) -> str | None:
@@ -274,10 +288,9 @@ def _inserer(cx, idee: dict, relations: bool = False, nouvelle: bool = False) ->
             cx.execute("INSERT OR IGNORE INTO idee_themes VALUES (?,?,0)", (idee["id"], t))
     cx.execute("DELETE FROM refs WHERE idee_id=?", (idee["id"],))
     for i, r in enumerate(idee.get("references", [])):
-        cx.execute("INSERT INTO refs VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
-                   (idee["id"], i, r.get("type"), r.get("titre"), r.get("doc_id"), r.get("version"),
-                    r.get("pages"), r.get("section"), r.get("url"), r.get("extrait"), r.get("consulte_le"),
-                    r.get("note")))
+        cx.execute(f"INSERT INTO refs(idee_id, ordre, {', '.join(CHAMPS_REF)}) "
+                   f"VALUES (?,?,{','.join('?' * len(CHAMPS_REF))})",
+                   (idee["id"], i, *(r.get(c) for c in CHAMPS_REF)))
     cx.execute("DELETE FROM retours WHERE idee_id=?", (idee["id"],))
     for i, r in enumerate(idee.get("retours", [])):
         cx.execute("INSERT INTO retours VALUES (?,?,?,?,?,?)",
@@ -400,10 +413,12 @@ def _document_reference(cx, doc: str, extrait: str | None):
     return candidats[0] if candidats else None
 
 
-def _verifier_reference_istqb(ref: dict) -> list[str]:
+def _verifier_reference_istqb(ref: dict, relecture: bool = False) -> list[str]:
     """Contrôle une référence ISTQB contre la bibliothèque indexée : document présent,
     pages existantes, section du plan présente sur les pages citées, extrait recopié
-    mot pour mot (suite contiguë) des pages ou de la section citées."""
+    mot pour mot (suite contiguë) des pages ou de la section citées.
+    À l'écriture, l'empreinte SHA-256 du document lu est enregistrée dans la référence ;
+    en `relecture` (`verifier-refs`), elle est comparée à celle du document actuel (#35)."""
     problemes = []
     if not chemins.index_db().exists():
         return ["bibliothèque non indexée : référence ISTQB non vérifiable"]
@@ -413,6 +428,22 @@ def _verifier_reference_istqb(ref: dict) -> list[str]:
         d = _document_reference(cx, doc, ref.get("extrait")) if doc else None
         if not d:
             return [f"document « {doc} » absent de la bibliothèque : référence non vérifiable"]
+        if d["statut_version"] == "a_confirmer":
+            raise ErreurValidation(
+                f"{d['doc_id']} : fichier modifié sur place, en attente de confirmation : ne pas le citer avant "
+                f"`importer <fichier> --remplacer --motif \"…\"` (voir `inventaire`).")
+        if d["doc_id"] in bibliotheque.controle_index(cx)["perimes"]:
+            raise ErreurValidation(f"{d['doc_id']} : index périmé (fichier source disparu ou modifié depuis "
+                                   "l'indexation) : lancer `python qa.py actualiser` avant de citer ce document.")
+        if relecture:
+            if ref.get("empreinte") and ref["empreinte"] != d["sha256"]:
+                problemes.append(f"{d['doc_id']} : référence lue dans un contenu différent du fichier actuel "
+                                 "(empreinte changée) : relire le passage et mettre la référence à jour")
+            elif not ref.get("empreinte"):
+                problemes.append(f"{d['doc_id']} : référence sans empreinte (enregistrée avant #35) : relire le "
+                                 "passage pour la ré-enregistrer")
+        else:
+            ref["empreinte"] = d["sha256"]
         ref["doc_id"] = d["doc_id"]
         ref.setdefault("version", d["version"])
         ref.setdefault("titre", d["titre"])
@@ -941,7 +972,7 @@ def verifier_references() -> list[dict]:
             if ref.get("type") != "istqb":
                 continue
             try:
-                problemes = _verifier_reference_istqb(dict(ref))
+                problemes = _verifier_reference_istqb(dict(ref), relecture=True)
             except ErreurValidation as exc:
                 problemes = [str(exc)]
             out.append({"idee": idee["id"], "doc_id": ref.get("doc_id"), "pages": ref.get("pages"),

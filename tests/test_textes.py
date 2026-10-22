@@ -34,6 +34,28 @@ def test_jaccard_et_recouvrement():
     assert textes.jaccard(set(), {"a"}) == 0.0
 
 
+def test_tpi_ctp_step_et_modele_de_maturite_distincts():
+    # Issue #45 : CTEL-ITP distingue TPI (§3.3.1) et les modèles de contenu STEP / CTP (§3.4).
+    def ids(q):
+        return [cid for cid, _ in textes.reperer_concepts(q)[0]]
+    assert ids("critical testing processes") == ["ctp"] and ids("TPI Next") == ["tpi"]
+    assert ids("systematic test and evaluation process") == ["step"]
+    assert ids("TMMi") == ["tmmi"] and ids("modèle de maturité") == ["modele-maturite"]
+    assert ids("Test Maturity Model integration") == ["tmmi"] and ids("TMM") == ["tmm"]
+
+
+def test_erreur_defaut_defaillance_anomalie_sont_des_concepts_distincts():
+    # Issue #43 : CTFL v4.0.1 §1.2.3 et le glossaire distinguent ces notions.
+    def ids(q):
+        return [cid for cid, _ in textes.reperer_concepts(q)[0]]
+    assert ids("différence entre erreur, défaut et défaillance") == ["erreur", "defaut", "defaillance"]
+    assert ids("mistake fault failure") == ["erreur", "defaut", "defaillance"]
+    assert ids("incident") == ["anomalie"] and ids("bug") == ["defaut"]
+    assert ids("gestion des défauts") == ["gestion-defauts"] and ids("gestion des anomalies") == ["gestion-defauts"]
+    assert ids("estimation d'erreur") == ["estimation-erreur"]
+    assert "difference" not in textes.mots("différence", garder_generiques=False)
+
+
 def test_sigles_courts_seulement_en_majuscules():
     # Issue #42 : « j'ai », « ia » ou « idéal » du français ordinaire ne déclenchent pas un concept.
     def ids(q):
@@ -51,3 +73,12 @@ def test_layering_equivaut_a_superposition_et_couches():
     def ids(q):
         return [cid for cid, _ in textes.reperer_concepts(q)[0]]
     assert ids("layering") == ids("superposition") == ids("en couches") == ids("layers") == ["couches"]
+
+
+def test_motivation_n_est_plus_absorbee_par_competences():
+    # Issue #26 : « motivation » était remplacé par l'expansion de « competences » (skills,
+    # training…) ; CTAL-TM §3.1.6 « Motivating or Demotivating Factors » disparaissait.
+    def ids(q):
+        return [cid for cid, _ in textes.reperer_concepts(q)[0]]
+    assert ids("motivation") == ["motivation"] and ids("facteurs de motivation") == ["motivation"]
+    assert ids("compétences et motivation des testeurs") == ["competences", "motivation"]

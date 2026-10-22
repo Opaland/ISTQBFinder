@@ -27,12 +27,14 @@ La licence MIT ci-dessus s'applique au code et à la documentation de ce dépôt
 NE s'applique PAS aux fichiers du dossier `bibliotheque/sources/` : syllabus
 © International Software Testing Qualifications Board (ISTQB®) et, pour les versions
 françaises, traductions propriété de leurs traducteurs (le plus souvent le Comité
-Français des Tests Logiciels, CFTL). Ils sont reproduits sans modification, comme leur
-notice de copyright l'autorise si la source est citée. Liste, ayants droit et sources :
-voir NOTICE.md.
+Français des Tests Logiciels, CFTL). Ils sont reproduits sans modification avec
+l'autorisation obtenue par le mainteneur auprès de l'ISTQB, du CFTL et de la TMMi
+Foundation ; cette autorisation ne se transmet pas aux copies ou forks. Liste, ayants
+droit, sources et conditions : voir NOTICE.md.
 
 The MIT License above applies to the code and documentation of this repository. It
 does NOT apply to the files in `bibliotheque/sources/`: ISTQB® syllabi (© International
 Software Testing Qualifications Board) and their French translations (© their
-translators, mostly the CFTL), reproduced unmodified as permitted by their copyright
-notice with the source acknowledged. See NOTICE.md.
+translators, mostly the CFTL), reproduced unmodified with the permission obtained by the
+maintainer from the ISTQB, the CFTL and the TMMi Foundation; this permission does not
+extend to copies or forks. See NOTICE.md.

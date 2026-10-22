@@ -82,10 +82,10 @@ La CLI reste utilisable directement (`python qa.py --help`) :
 |---|---|
 | Chercher dans les syllabus | `chercher <notions> [--doc CTAL-TM] [--theme rbt] [--section 1.3] [--langue fr]` |
 | Confiance d'une réponse | `confiance --base N --lus N --concordants N [--web 1] [--non-couvert 1] …` (calcul affiché) |
-| Lire avant de citer | `lire <passage> [--contexte 1]` · `section <doc> <num>` · `page <doc> <p[-q]>` (sorties bornées : `--max-caracteres`, défaut 15 000) · `plan <doc>` |
+| Lire avant de citer | `lire <passage> [--contexte 1]` · `section <doc> <num>` · `page <doc> <p[-q]>` (trois sorties bornées : `--max-caracteres N`, défaut 15 000, 0 = sans limite) · `plan <doc>` |
 | Base d'idées | `idee chercher …` · `idee lister [--theme] [--statut]` · `idee voir QA-20261022-7f3a` |
 | Capitaliser | `idee modele` · `idee doublons --titre … --resume … --theme …` (une ligne) · `idee ajouter <<'JSON'` (JSON sur l'entrée standard) |
-| Faire évoluer | `idee modifier` · `idee statut … --motif` · `idee retour` · `idee lier` · `journal` |
+| Faire évoluer | `idee modifier` · `idee statut … --motif` · `idee retour` · `idee lier` · `idee retirer … --motif` (suppression) · `journal` |
 | Taxonomie | `themes` · `theme proposer "<texte>"` · `theme ajouter …` · `theme obsolete …` · `couverture` |
 | Syllabus manquants | `manquants [--langue fr]` · skills `/bibliotheque` (maintenance) et `/ajouter-syllabus` |
 | Bibliothèque | `catalogue [--verifier]` · `telecharger` · `importer` · `actualiser` · `inventaire` · `corriger` · `retirer` |
@@ -264,9 +264,10 @@ qu'avec l'accord de l'utilisateur.
 
 ## Droits
 
-Les syllabus sont © ISTQB® ; leur notice autorise la copie, en tout ou partie, si la
-source est citée. Les PDF de `bibliotheque/sources/` sont versionnés à ce
-titre, source citée dans `bibliotheque/manifeste.json` (page officielle istqb.org ou
+Les syllabus sont © ISTQB® (traductions : CFTL). Leur notice publique n'autorise que des
+extraits non commerciaux, source citée ; les PDF de `bibliotheque/sources/` sont versionnés
+avec l'autorisation obtenue par le mainteneur auprès de l'ISTQB®, du CFTL et de la TMMi
+Foundation (non transmise aux forks : voir NOTICE.md), source citée dans `bibliotheque/manifeste.json` (page officielle istqb.org ou
 traduction fournie par l'utilisateur). La licence MIT du dépôt couvre le code et la
 documentation, **pas** les syllabus, qui restent la propriété de l'ISTQB® et de leurs
 traducteurs : exclusion explicite dans `LICENSE`, liste des documents avec ayant droit,

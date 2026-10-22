@@ -3,7 +3,8 @@
 Sylvie) via `claude -p`, puis contrôle automatiquement chaque réponse.
 
     python scripts/essais_agents.py                 # tous les essais
-    python scripts/essais_agents.py T1-couverture S1-rbt
+    python scripts/essais_agents.py T1-couverture S1-rbt   # seulement ces identifiants
+    python scripts/essais_agents.py M                       # préfixe : tous les essais M…
 
 Prérequis : CLI `claude` connectée, index construit (`python qa.py actualiser`).
 Coût indicatif : 0,10 à 0,50 $ par question. Résultats : eval/essais-resultats/<date>/.
@@ -13,7 +14,10 @@ Contrôles automatiques (le jugement de fond reste humain, voir docs/essais-repo
 - citations `[DOC …, §x.y, p. N]` : la page N du document a-t-elle été LUE pendant la
   conversation (présente dans la sortie d'un `lire`, `section` ou `page`) ? ;
 - présence d'un score de confiance « Confiance : NN/100 » ;
-- recours au Web.
+- recours au Web ;
+- critères propres à l'essai (`"criteres"` dans eval/essais.json, voir `controler()`) :
+  méthode en étapes, étapes sourcées, exemple fictif, domaines, questions de cadrage ou à
+  choix, hypothèses explicites, couverture absente signalée, mentions attendues.
 """
 import json
 import os
@@ -31,6 +35,62 @@ OUTILS = ["Bash(python qa.py:*)", "Bash(python3 qa.py:*)", "Read", "Skill", "Web
 RE_JETON = re.compile(r"(?P<code>\b(?:CTFL(?:-AT)?|CTAL-[A-Za-z]+|CTEL-[A-Za-z]+|CT-[A-Za-z]+)\b)"
                       r"|(?P<ref>§\s?[\d.]+[^\n\]\)]{0,40}?\bp\.\s?(?P<p1>\d+)(?:\s?[-–]\s?(?P<p2>\d+))?)")
 RE_CONFIANCE = re.compile(r"[Cc]onfiance\s*:?\s*\**\s*(\d{1,3})\s*/\s*100")
+RE_ETAPE = re.compile(r"^\s*(?:[-*]\s*)?(?:\*\*)?(?:[ÉE]tape\s*)?\d+\s*[.)—:-]", re.M)
+RE_NON_COUVERT = re.compile(r"pas de syllabus|aucun syllabus|ne couvre pas|non couvert|absente? de la biblioth|"
+                            r"n'est pas dans la biblioth|pas dans la biblioth|hors biblioth", re.I)
+
+
+def _apres(texte: str, motif: str) -> str:
+    """Texte qui suit la première occurrence de `motif` (vide si absent)."""
+    m = re.search(motif, texte, re.I)
+    return texte[m.end():] if m else ""
+
+
+def controler(reponse: str, criteres: dict) -> dict[str, bool]:
+    """Critères vérifiables d'un essai (fonction pure, testée sans réseau). Clés :
+    methode (≥ 4 étapes numérotées de premier niveau après « Méthode »), etapes_sourcees
+    (chaque étape, sous-puces comprises, porte « § » ou « interprétation »), exemple (exemple marqué fictif / interprétation),
+    domaines et mentions (listes de motifs, tous présents), cadrage, questions_choix
+    (« Questions à choix » suivi d'au moins 2 options numérotées), hypotheses,
+    non_couvert (absence de syllabus dédié dite franchement), confiance."""
+    out = {}
+    methode = _apres(reponse, r"m[ée]thode")
+    # La méthode s'arrête au titre de l'exemple (« ## Exemple… », « **Exemple… »), pas à un
+    # « par exemple » dans une étape.
+    methode = re.split(r"\n(?:#+\s*|\*\*)exemple", methode, maxsplit=1, flags=re.I)[0]
+    # Étape = ligne numérotée de premier niveau + ses sous-puces (source souvent en dessous).
+    etapes, courante = [], None
+    for ligne in methode.splitlines():
+        if RE_ETAPE.match(ligne) and not ligne.startswith((" ", "\t")):
+            courante = [ligne]
+            etapes.append(courante)
+        elif courante is not None and (ligne.startswith((" ", "\t", "|")) or not ligne.strip()):
+            courante.append(ligne)
+        else:
+            courante = None
+    etapes = ["\n".join(e) for e in etapes]
+    if criteres.get("methode"):
+        out["methode"] = len(etapes) >= 4
+    if criteres.get("etapes_sourcees"):
+        out["etapes_sourcees"] = bool(etapes) and all(
+            "§" in l or re.search(r"interpr[ée]tation|hypoth[èe]se", l, re.I) for l in etapes)
+    if criteres.get("exemple"):
+        out["exemple"] = bool(re.search(r"exemple[^\n]{0,80}(fictif|interpr[ée]tation)", reponse, re.I))
+    for cle in ("domaines", "mentions"):
+        for motif in criteres.get(cle, []):
+            out[f"{cle}:{motif}"] = bool(re.search(motif, reponse, re.I))
+    if criteres.get("cadrage"):
+        out["cadrage"] = bool(re.search(r"questions? (de cadrage|à choix)", reponse, re.I))
+    if criteres.get("questions_choix"):
+        suite = _apres(reponse, r"questions? à choix")
+        out["questions_choix"] = len(RE_ETAPE.findall(suite)) + len(re.findall(r"^\s*[-*]\s*[a-c][.)]", suite, re.M)) >= 2
+    if criteres.get("hypotheses"):
+        out["hypotheses"] = bool(re.search(r"hypoth[èe]se[^\n:]{0,25}:", reponse, re.I))
+    if criteres.get("non_couvert"):
+        out["non_couvert"] = bool(RE_NON_COUVERT.search(reponse))
+    if criteres.get("confiance"):
+        out["confiance"] = bool(RE_CONFIANCE.search(reponse))
+    return out
 
 
 def transcript(session_id: str) -> list[dict]:
@@ -111,11 +171,18 @@ def lancer(essai: dict, dossier: Path) -> dict:
         "citations_non_lues": [c["citation"] for c in citations if not c["lue"]],
         "confiance": int(conf.group(1)) if conf else None,
     }
+    if essai.get("criteres"):
+        bilan["criteres"] = controler(reponse, essai["criteres"])
+        bilan["criteres_ko"] = [c for c, ok in bilan["criteres"].items() if not ok]
+    criteres_md = ""
+    if bilan.get("criteres"):
+        criteres_md = (f" · **critères** : {sum(bilan['criteres'].values())}/{len(bilan['criteres'])}"
+                       + (f" (manquent : {', '.join(bilan['criteres_ko'])})" if bilan["criteres_ko"] else ""))
     (dossier / f"{essai['id']}.md").write_text(
         f"# {essai['id']} — {essai.get('agent') or 'skill'}\n\n**Question** : {essai['question']}\n\n"
         f"**Tours** : {bilan['tours']} · **coût** : {bilan['cout_usd']} $ · **confiance annoncée** : "
         f"{bilan['confiance']} · **citations** : {len(citations) - len(bilan['citations_non_lues'])}/"
-        f"{len(citations)} lues · **Web** : {len(bilan['web'])}\n\n## Réponse\n\n{reponse}\n\n"
+        f"{len(citations)} lues · **Web** : {len(bilan['web'])}{criteres_md}\n\n## Réponse\n\n{reponse}\n\n"
         "## Commandes exécutées\n\n" + "\n".join(f"- `{c[:200]}`" for c in commandes) + "\n",
         encoding="utf-8")
     return bilan
@@ -124,7 +191,8 @@ def lancer(essai: dict, dossier: Path) -> dict:
 def main() -> int:
     essais = json.loads((RACINE / "eval" / "essais.json").read_text(encoding="utf-8"))["essais"]
     if sys.argv[1:]:
-        essais = [e for e in essais if e["id"] in sys.argv[1:]]
+        demandes = sys.argv[1:]
+        essais = [e for e in essais if any(e["id"] == d or e["id"].startswith(d) for d in demandes)]
     dossier = RACINE / "eval" / "essais-resultats" / date.today().isoformat()
     dossier.mkdir(parents=True, exist_ok=True)
     bilans = []
@@ -136,8 +204,14 @@ def main() -> int:
             print(f"  ERREUR : {b['erreur']}")
             continue
         print(f"  {b['tours']} tours · {b['cout_usd']} $ · confiance {b['confiance']} · citations "
-              f"{len(b['citations']) - len(b['citations_non_lues'])}/{len(b['citations'])} lues · web {len(b['web'])}")
-    (dossier / "bilan.json").write_text(json.dumps(bilans, ensure_ascii=False, indent=1), encoding="utf-8")
+              f"{len(b['citations']) - len(b['citations_non_lues'])}/{len(b['citations'])} lues · web {len(b['web'])}"
+              + (f" · critères {sum(b['criteres'].values())}/{len(b['criteres'])} {b['criteres_ko'] or ''}" if b.get("criteres") else ""))
+    # Un lancement partiel complète le bilan du jour au lieu de l'écraser.
+    fichier = dossier / "bilan.json"
+    anciens = json.loads(fichier.read_text(encoding="utf-8")) if fichier.exists() else []
+    nouveaux = {b["id"] for b in bilans}
+    bilans = [b for b in anciens if b.get("id") not in nouveaux] + bilans
+    fichier.write_text(json.dumps(bilans, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"Résultats : {dossier}")
     return 0
 

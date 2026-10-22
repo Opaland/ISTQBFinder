@@ -8,11 +8,15 @@ Deux fichiers :
   passages + table FTS5. `actualiser()` le remet à jour de façon incrémentale.
 """
 import hashlib
+from contextlib import contextmanager
 from functools import cmp_to_key
 import json
+import os
 import re
 import shutil
 import sqlite3
+import sys
+import tempfile
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
@@ -52,11 +56,22 @@ CREATE VIRTUAL TABLE IF NOT EXISTS passages_fts USING fts5(
 """
 
 
-def connecter(chemin: Path | None = None) -> sqlite3.Connection:
-    chemin = chemin or chemins.index_db()
+ATTENTE_VERROU = 30  # secondes d'attente d'un verrou SQLite avant d'abandonner
+
+
+def ouvrir_sqlite(chemin: Path) -> sqlite3.Connection:
+    """Connexion partagée par les deux bases (index, idées). Le journal WAL laisse lire
+    pendant qu'un autre processus écrit (`chercher` pendant `actualiser`) ; deux écritures
+    simultanées s'attendent jusqu'à ATTENTE_VERROU secondes au lieu d'échouer aussitôt."""
     chemin.parent.mkdir(parents=True, exist_ok=True)
-    cx = sqlite3.connect(chemin)
+    cx = sqlite3.connect(chemin, timeout=ATTENTE_VERROU)
     cx.row_factory = sqlite3.Row
+    cx.execute("PRAGMA journal_mode=WAL")
+    return cx
+
+
+def connecter(chemin: Path | None = None) -> sqlite3.Connection:
+    cx = ouvrir_sqlite(chemin or chemins.index_db())
     cx.executescript(SCHEMA)
     return cx
 
@@ -75,18 +90,91 @@ def lire_manifeste() -> dict:
     p = chemins.manifeste()
     if not p.exists():
         return {"documents": {}}
-    return json.loads(p.read_text(encoding="utf-8"))
+    return json.loads(p.read_text(encoding="utf-8-sig"))
 
 
 def ecrire_manifeste(m: dict) -> None:
+    """Écriture atomique (fichier temporaire puis `os.replace`) : un lecteur voit l'ancien
+    ou le nouveau manifeste, jamais un fichier à moitié écrit. Appeler sous `verrou_manifeste()`."""
     p = chemins.manifeste()
     p.parent.mkdir(parents=True, exist_ok=True)
     m["documents"] = dict(sorted(m["documents"].items(), key=lambda kv: kv[1].get("doc_id", "")))
-    p.write_text(json.dumps(m, ensure_ascii=False, indent=1, sort_keys=False) + "\n", encoding="utf-8")
+    contenu = json.dumps(m, ensure_ascii=False, indent=1, sort_keys=False) + "\n"
+    fd, tmp = tempfile.mkstemp(prefix=".manifeste-", suffix=".tmp", dir=p.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as f:
+            f.write(contenu)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, p)
+    except BaseException:
+        Path(tmp).unlink(missing_ok=True)
+        raise
+
+
+_verrous_tenus = 0  # profondeur : actualiser() appelle importer(), qui reprend le verrou
+
+
+def _verrouiller(f, bloquant: bool) -> bool:
+    try:
+        if sys.platform == "win32":
+            import msvcrt
+            f.seek(0)
+            while True:
+                try:
+                    msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+                    return True
+                except OSError:
+                    if not bloquant:
+                        return False
+                    import time
+                    time.sleep(0.2)
+        import fcntl
+        fcntl.flock(f.fileno(), fcntl.LOCK_EX | (0 if bloquant else fcntl.LOCK_NB))
+        return True
+    except BlockingIOError:
+        return False
+
+
+def _deverrouiller(f) -> None:
+    if sys.platform == "win32":
+        import msvcrt
+        f.seek(0)
+        msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+    else:
+        import fcntl
+        fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+
+
+@contextmanager
+def verrou_manifeste():
+    """Verrou de fichier (`manifeste.json.verrou`) autour de lecture + modification +
+    écriture du manifeste : deux imports simultanés ne s'écrasent plus. Réentrant dans
+    un même processus ; un autre processus attend son tour."""
+    global _verrous_tenus
+    if _verrous_tenus:
+        _verrous_tenus += 1
+        try:
+            yield
+        finally:
+            _verrous_tenus -= 1
+        return
+    p = chemins.manifeste()
+    p.parent.mkdir(parents=True, exist_ok=True)
+    with open(p.with_name(p.name + ".verrou"), "a+b") as f:
+        if not _verrouiller(f, bloquant=False):
+            sys.stderr.write("Manifeste utilisé par une autre commande (import, actualiser…) : attente…\n")
+            _verrouiller(f, bloquant=True)
+        _verrous_tenus = 1
+        try:
+            yield
+        finally:
+            _verrous_tenus = 0
+            _deverrouiller(f)
 
 
 def catalogue() -> dict:
-    return json.loads(chemins.catalogue().read_text(encoding="utf-8"))
+    return json.loads(chemins.catalogue().read_text(encoding="utf-8-sig"))
 
 
 # ---------------------------------------------------------------- détection des métadonnées
@@ -310,6 +398,11 @@ def importer(fichier: Path, meta_forcee: dict | None = None, copier: bool = True
     if fichier.suffix.lower() not in EXTENSIONS:
         return {"etat": "echec", "fichier": fichier.name, "message": f"format non pris en charge ({fichier.suffix})"}
     sha = empreinte(fichier)
+    with verrou_manifeste():
+        return _importer(fichier, sha, meta_forcee, copier, cx)
+
+
+def _importer(fichier: Path, sha: str, meta_forcee: dict, copier: bool, cx: sqlite3.Connection | None) -> dict:
     manif = lire_manifeste()
     propre = cx is None
     cx = cx or connecter()
@@ -371,6 +464,11 @@ def actualiser(forcer: bool = False) -> dict:
     """Synchronise l'index avec bibliotheque/sources/ : nouveaux fichiers importés,
     fichiers modifiés ou extraits par un ancien extracteur réindexés, fichiers
     disparus signalés. Ne supprime jamais un fichier source."""
+    with verrou_manifeste():
+        return _actualiser(forcer)
+
+
+def _actualiser(forcer: bool) -> dict:
     rapport = {"importes": [], "reindexes": [], "modifies": [], "inchanges": 0, "doublons": [], "absents": [],
                "echecs": [], "versions": []}
     manif = lire_manifeste()
@@ -418,6 +516,10 @@ def actualiser(forcer: bool = False) -> dict:
                     if k not in entree.get("champs_forces", []) and v:
                         entree[k] = v
                 _enregistrer(cx, entree, ext)
+                # Validation document par document : une recherche lancée pendant la
+                # réindexation voit l'index d'avant ou d'après, jamais un verrou de 2 minutes.
+                cx.commit()
+                ecrire_manifeste(manif)
                 rapport["reindexes"].append(entree["doc_id"])
             else:
                 # importer() relit et réécrit le manifeste : on y enregistre d'abord les
@@ -446,13 +548,14 @@ def actualiser(forcer: bool = False) -> dict:
 def retirer(doc_id: str) -> dict:
     """Retire un document de la bibliothèque (manifeste + index). Le fichier source n'est
     pas supprimé : le déplacer hors de sources/ pour qu'`actualiser` ne le réimporte pas."""
-    manif = lire_manifeste()
-    sha = next((s for s, e in manif["documents"].items() if e["doc_id"].lower() == doc_id.lower()), None)
-    if not sha:
-        raise KeyError(f"Document inconnu : {doc_id}. Voir `inventaire`.")
-    entree = manif["documents"].pop(sha)
-    doc_id = entree["doc_id"]  # casse exacte (saisie insensible à la casse)
-    ecrire_manifeste(manif)
+    with verrou_manifeste():
+        manif = lire_manifeste()
+        sha = next((s for s, e in manif["documents"].items() if e["doc_id"].lower() == doc_id.lower()), None)
+        if not sha:
+            raise KeyError(f"Document inconnu : {doc_id}. Voir `inventaire`.")
+        entree = manif["documents"].pop(sha)
+        doc_id = entree["doc_id"]  # casse exacte (saisie insensible à la casse)
+        ecrire_manifeste(manif)
     cx = connecter()
     try:
         cx.execute("DELETE FROM passages_fts WHERE rowid IN (SELECT id FROM passages WHERE doc_id=?)", (doc_id,))
@@ -468,15 +571,16 @@ def retirer(doc_id: str) -> dict:
 def modifier_metadonnees(doc_id: str, **champs) -> dict:
     """Corrige les métadonnées d'un document (détection fautive). Les champs saisis sont
     marqués « forcés » dans le manifeste et prévalent sur la détection."""
-    manif = lire_manifeste()
-    cible = next((s for s, e in manif["documents"].items() if e["doc_id"].lower() == doc_id.lower()), None)
-    if not cible:
-        raise KeyError(f"Document inconnu : {doc_id}. Voir `inventaire`.")
-    champs = {k: v for k, v in champs.items() if v is not None}
-    entree = manif["documents"][cible]
-    entree.update(champs)
-    entree["champs_forces"] = sorted(set(entree.get("champs_forces", [])) | set(champs))
-    ecrire_manifeste(manif)
+    with verrou_manifeste():
+        manif = lire_manifeste()
+        cible = next((s for s, e in manif["documents"].items() if e["doc_id"].lower() == doc_id.lower()), None)
+        if not cible:
+            raise KeyError(f"Document inconnu : {doc_id}. Voir `inventaire`.")
+        champs = {k: v for k, v in champs.items() if v is not None}
+        entree = manif["documents"][cible]
+        entree.update(champs)
+        entree["champs_forces"] = sorted(set(entree.get("champs_forces", [])) | set(champs))
+        ecrire_manifeste(manif)
     cx = connecter()
     try:
         for k, v in champs.items():

@@ -98,3 +98,19 @@ def test_web_obligatoire_pour_un_outil_absent_des_syllabus():
         assert "60/100" in texte, chemin.name
     strategie = (SKILL.parent / "reference" / "strategie.md").read_text(encoding="utf-8")
     assert "ne dépasse pas **60**" in strategie
+
+
+def test_contexte_projet_et_par_quoi_je_commencerais():
+    """#31 : contexte utilisé ou signalé comme hypothèse ; pistes classées impact / effort."""
+    strategie = (SKILL.parent / "reference" / "strategie.md").read_text(encoding="utf-8")
+    for texte in (corps(SKILL), strategie, corps(AGENTS / "thomas.md")):
+        assert "Par quoi je commencerais" in texte and "impact / effort" in texte
+        assert "questions de cadrage" in texte
+    assert "Hypothèse de contexte" in strategie
+
+
+def test_exemples_contiennent_un_extrait_reel_de_thomas_et_de_sylvie():
+    exemples = (RACINE / "docs" / "exemples-conversations.md").read_text(encoding="utf-8")
+    assert "> **Thomas** :" in exemples and "> **Sylvie** :" in exemples
+    assert "eval/essais-resultats/2026-10-22/" in exemples
+    assert (RACINE / "eval" / "essais-resultats" / "2026-10-22" / "S1-rbt.md").exists()

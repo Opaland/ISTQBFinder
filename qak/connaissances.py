@@ -9,6 +9,7 @@ Stockage :
 """
 import hashlib
 import json
+import os
 import re
 import sqlite3
 from datetime import date, datetime
@@ -98,13 +99,33 @@ def ouvrir() -> sqlite3.Connection:
     cx = sqlite3.connect(db)
     cx.row_factory = sqlite3.Row
     cx.executescript(SCHEMA)
-    h = _empreinte_fichier()
-    connu = cx.execute("SELECT valeur FROM meta WHERE cle='hash_jsonl'").fetchone()
-    if h and (not connu or connu[0] != h):
-        _reconstruire(cx)
-    elif not h and cx.execute("SELECT 1 FROM idees LIMIT 1").fetchone():
-        _exporter(cx)  # base sans miroir (première version) : on crée le miroir
+    try:
+        if _action_miroir(cx):
+            # Verrou d'écriture puis second contrôle : un autre processus peut être en
+            # train d'exporter ; reconstruire sans verrou depuis un état intermédiaire
+            # effaçait les idées qu'il venait d'ajouter.
+            cx.execute("BEGIN IMMEDIATE")
+            action = _action_miroir(cx)
+            if action == "reconstruire":
+                _reconstruire(cx)
+            elif action == "exporter":
+                _exporter(cx)  # base sans miroir (première version) : on crée le miroir
+            else:
+                cx.rollback()
+    except BaseException:
+        cx.close()
+        raise
     return cx
+
+
+def _action_miroir(cx) -> str | None:
+    """« reconstruire » si le JSONL a changé, « exporter » si la base n'a pas encore de
+    miroir, None si tout est à jour."""
+    h = _empreinte_fichier()
+    if h:
+        connu = cx.execute("SELECT valeur FROM meta WHERE cle='hash_jsonl'").fetchone()
+        return None if connu and connu[0] == h else "reconstruire"
+    return "exporter" if cx.execute("SELECT 1 FROM idees LIMIT 1").fetchone() else None
 
 
 def _reconstruire(cx: sqlite3.Connection) -> None:
@@ -162,7 +183,11 @@ def _exporter(cx: sqlite3.Connection) -> None:
     p.parent.mkdir(parents=True, exist_ok=True)
     lignes = [json.dumps(_charger(cx, r["id"]), ensure_ascii=False, sort_keys=False)
               for r in cx.execute("SELECT id FROM idees ORDER BY id")]
-    p.write_text("".join(l + "\n" for l in lignes), encoding="utf-8")
+    # Écriture atomique : un lecteur concurrent voit l'ancien fichier ou le nouveau,
+    # jamais un fichier tronqué (qui déclenchait une reconstruction à vide).
+    tmp = p.with_name(f".{p.name}.{os.getpid()}.tmp")
+    tmp.write_text("".join(l + "\n" for l in lignes), encoding="utf-8")
+    os.replace(tmp, p)
     cx.execute("INSERT OR REPLACE INTO meta VALUES ('hash_jsonl', ?)", (_empreinte_fichier(),))
     cx.commit()
 

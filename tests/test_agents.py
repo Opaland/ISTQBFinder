@@ -51,3 +51,40 @@ def test_agents_ont_les_champs_obligatoires():
             assert champs.get(cle), f"{nom} : champ {cle} manquant"
         assert champs["name"] == nom
         assert champs["skills"] == ["qa-knowledge"]
+
+
+def outils(valeur: str) -> set:
+    return {o.strip() for o in valeur.split(",") if o.strip()}
+
+
+def test_agents_sans_skill_et_sans_ecriture():
+    """#23 : le skill est préchargé (pas d'outil Skill) ; aucun agent n'écrit de fichier."""
+    thomas = frontmatter(AGENTS / "thomas.md")
+    sylvie = frontmatter(AGENTS / "sylvie.md")
+    assert outils(thomas["tools"]) == {"Bash", "Read", "WebSearch", "WebFetch"}
+    assert outils(sylvie["tools"]) == {"Bash", "Read"}
+    assert {"Write", "Edit"} <= outils(thomas["disallowedTools"])
+    assert {"Write", "Edit", "WebSearch", "WebFetch"} <= outils(sylvie["disallowedTools"])
+
+
+@pytest.mark.parametrize("nom", ["thomas", "sylvie"])
+def test_agents_savent_qu_ils_sont_sous_agents(nom):
+    texte = corps(AGENTS / f"{nom}.md")
+    assert "déjà chargé" in texte and "ne l'invoque pas" in texte
+    assert "sous-agent" in texte and "ni poser de question" in texte
+    assert "JSON" in texte and "prêt à l'emploi" in texte
+
+
+def test_sylvie_n_ajoute_aucune_pratique_et_rend_seulement_ses_questions():
+    texte = corps(AGENTS / "sylvie.md")
+    assert "aucune pratique déduite ou ajoutée" in texte
+    assert "**seulement** 2-3 questions" in texte
+
+
+def test_capitalisation_par_entree_standard():
+    """#23 : pas de fichier temporaire idee.json dans les procédures."""
+    for chemin in (SKILL, SKILL.parent / "reference" / "capitalisation.md",
+                   RACINE / "docs" / "exemples-conversations.md", AGENTS / "thomas.md"):
+        texte = chemin.read_text(encoding="utf-8")
+        assert "--fichier idee.json" not in texte and "--fichier <json>" not in texte, chemin.name
+    assert "idee doublons <<'JSON'" in (SKILL.parent / "reference" / "capitalisation.md").read_text(encoding="utf-8")

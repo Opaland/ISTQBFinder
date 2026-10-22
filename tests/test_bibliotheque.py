@@ -120,3 +120,36 @@ def test_manquants_par_langue(bibliotheque_test):
     assert (ctfl["en"], ctfl["fr"]) == ("CTFL-9.9-en", None)
     assert "CTFL" not in r["absents_en"] and "CTFL" in r["absents_fr"]
     assert "CTAL-TM" in r["absents_en"] and len(r["absents_en"]) == len(r["catalogue"]) - 1
+
+
+def test_pdf_modifie_sur_place_a_confirmer_puis_remplacement_journalise(capsys, bibliotheque_test):
+    """#35 : un PDF altéré dans sources/ n'est plus accepté silencieusement comme nouvelle version."""
+    from qak import journal
+    from qak.cli import main
+    entree = next(iter(bibliotheque.lire_manifeste()["documents"].values()))
+    ancien, f = entree["sha256"], chemins.sources() / entree["fichier"]
+    with open(f, "ab") as fh:
+        fh.write(b"\n% altere\n")
+    r = bibliotheque.actualiser()
+    assert r["a_confirmer"] and not r["absents"] and not r["reindexes"]
+    manif = bibliotheque.lire_manifeste()["documents"]
+    assert list(manif) == [ancien] and manif[ancien]["a_confirmer"] == bibliotheque.empreinte(f)
+    doc = bibliotheque.inventaire()[0]
+    assert (doc["statut_version"], doc["statut_extraction"]) == ("a_confirmer", "a_confirmer")
+    assert not recherche.chercher("valeurs limites")["resultats"]          # exclu des recherches
+    assert bibliotheque.actualiser()["a_confirmer"]                         # stable d'une fois sur l'autre
+    assert main(["inventaire"]) == 0 and "à confirmer" in capsys.readouterr().out
+    # Réimport sans confirmation : refusé ; --remplacer sans motif : refusé.
+    assert bibliotheque.importer(f)["etat"] == "refuse"
+    assert main(["importer", str(f), "--remplacer"]) == 2
+    assert "--motif" in capsys.readouterr().err
+    assert main(["importer", str(f), "--remplacer", "--motif", "PDF ré-exporté, contenu vérifié"]) == 0
+    manif = bibliotheque.lire_manifeste()["documents"]
+    nouvelle = bibliotheque.empreinte(f)
+    assert list(manif) == [nouvelle] and manif[nouvelle]["doc_id"] == bibliotheque_test
+    assert manif[nouvelle]["historique_empreintes"][0]["sha256"] == ancien
+    assert "a_confirmer" not in manif[nouvelle]
+    assert bibliotheque.inventaire()[0]["statut_version"] == "courant"
+    assert recherche.chercher("valeurs limites")["resultats"]
+    note = [e for e in journal.lire() if e["action"] == "document_remplace"][-1]
+    assert note["cible"] == bibliotheque_test and note["motif"] == "PDF ré-exporté, contenu vérifié"

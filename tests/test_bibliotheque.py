@@ -120,3 +120,50 @@ def test_manquants_par_langue(bibliotheque_test):
     assert (ctfl["en"], ctfl["fr"]) == ("CTFL-9.9-en", None)
     assert "CTFL" not in r["absents_en"] and "CTFL" in r["absents_fr"]
     assert "CTAL-TM" in r["absents_en"] and len(r["absents_en"]) == len(r["catalogue"]) - 1
+
+
+def test_index_perime_detecte_avant_actualiser(capsys, monkeypatch, bibliotheque_test):
+    """#36 : après suppression d'un PDF (git pull), `chercher` avertit, `verifier-refs` et
+    `idee ajouter` refusent la référence, sans attendre `actualiser`."""
+    import io
+    from qak import connaissances
+    from qak.cli import main
+    assert bibliotheque.controle_index()["messages"] == []
+    idee = {"titre": "Matrice des risques produit", "resume": "Probabilité × impact.",
+            "probleme": "Effort uniforme.", "principe": "Calculer le niveau de risque.", "theme_principal": "rbt",
+            "references": [{"type": "istqb", "doc_id": bibliotheque_test, "pages": "6"}]}
+    assert connaissances.ajouter(dict(idee), forcer=True, motif="t")["etat"] != "refuse"
+    entree = next(iter(bibliotheque.lire_manifeste()["documents"].values()))
+    (chemins.sources() / entree["fichier"]).unlink()
+    assert main(["chercher", "valeurs", "limites"]) == 0
+    assert "Index périmé" in capsys.readouterr().out
+    assert any(r["problemes"] for r in connaissances.verifier_references())
+    monkeypatch.setattr("sys.stdin", io.StringIO(json.dumps({**idee, "titre": "Autre matrice des risques"})))
+    assert main(["idee", "ajouter"]) == 2
+    assert "index périmé" in capsys.readouterr().err
+    bibliotheque.actualiser()
+    assert bibliotheque.controle_index()["messages"] == []
+
+
+def test_contenu_modifie_ou_nouveau_fichier_signales(bibliotheque_test, tmp_path):
+    import os
+    import time
+    entree = next(iter(bibliotheque.lire_manifeste()["documents"].values()))
+    f = chemins.sources() / entree["fichier"]
+    with open(f, "ab") as fh:
+        fh.write(b"\n% altere\n")
+    futur = time.time() + 5
+    os.utime(f, (futur, futur))
+    (chemins.sources() / "nouveau.md").write_text("# 1 Note\nTexte.", encoding="utf-8")
+    c = bibliotheque.controle_index()
+    assert c["perimes"] == {bibliotheque_test}
+    assert any("modifié" in m for m in c["messages"]) and any("nouveau.md" in m for m in c["messages"])
+
+
+def test_copie_d_un_source_nommee_sans_masquer_l_original(bibliotheque_test):
+    entree = next(iter(bibliotheque.lire_manifeste()["documents"].values()))
+    shutil = __import__("shutil")
+    shutil.copy2(chemins.sources() / entree["fichier"], chemins.sources() / "a_copie.pdf")
+    r = bibliotheque.actualiser()
+    assert r["doublons"] == [f"a_copie.pdf : contenu identique à {entree['fichier']}"]
+    assert r["inchanges"] == 1 and not r["absents"]

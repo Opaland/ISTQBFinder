@@ -152,6 +152,9 @@ def cmd_inventaire(a):
                  if not any(d["code"] in v for v in langues.values())]
     if manquants:
         _ecrire(f"Absents du catalogue officiel : {', '.join(manquants)}")
+    perime = bibliotheque.avertissement_index()
+    if perime:
+        alertes.insert(0, perime)
     if alertes:
         _ecrire("\nÀ surveiller :")
         for x in alertes:
@@ -198,6 +201,9 @@ def cmd_chercher(a):
     r = recherche.chercher(" ".join(a.requete), n=a.n, docs=a.doc, niveau=a.niveau, langue=a.langue,
                            section=a.section, theme=a.theme, toutes_versions=a.toutes_versions,
                            inclure_sommaires=a.sommaires, par_doc=a.par_doc)
+    perime = bibliotheque.avertissement_index()
+    if perime:
+        r["avertissements"] = [perime, *r.get("avertissements", [])]
     if a.json:
         return _json(r)
     _ecrire(f"Notions : {', '.join(r['groupes']) or '—'}" + (f" · thème : {a.theme}" if a.theme else ""))

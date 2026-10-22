@@ -8,16 +8,21 @@ Deux fichiers :
   passages + table FTS5. `actualiser()` le remet à jour de façon incrémentale.
 """
 import hashlib
+from contextlib import contextmanager
 from functools import cmp_to_key
 import json
+import os
 import re
 import shutil
 import sqlite3
+import sys
+import tempfile
+import time
 from collections import Counter
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from . import chemins, extraction
+from . import chemins, extraction, journal
 from .textes import normaliser, sans_accents
 
 EXTENSIONS = {".pdf", ".txt", ".md", ".markdown"}
@@ -52,11 +57,37 @@ CREATE VIRTUAL TABLE IF NOT EXISTS passages_fts USING fts5(
 """
 
 
-def connecter(chemin: Path | None = None) -> sqlite3.Connection:
-    chemin = chemin or chemins.index_db()
+ATTENTE_VERROU = 30  # secondes d'attente d'un verrou SQLite avant d'abandonner
+
+
+def ouvrir_sqlite(chemin: Path) -> sqlite3.Connection:
+    """Connexion partagée par les deux bases (index, idées). Le journal WAL laisse lire
+    pendant qu'un autre processus écrit (`chercher` pendant `actualiser`) ; deux écritures
+    simultanées s'attendent jusqu'à ATTENTE_VERROU secondes au lieu d'échouer aussitôt."""
     chemin.parent.mkdir(parents=True, exist_ok=True)
-    cx = sqlite3.connect(chemin)
+    cx = sqlite3.connect(chemin, timeout=ATTENTE_VERROU)
     cx.row_factory = sqlite3.Row
+    _passer_en_wal(cx)
+    return cx
+
+
+def _passer_en_wal(cx: sqlite3.Connection) -> None:
+    """Le changement de mode de journal n'attend pas le verrou (SQLite n'appelle pas le
+    gestionnaire d'attente pour ce PRAGMA) : on réessaie jusqu'à ATTENTE_VERROU secondes."""
+    limite = time.monotonic() + ATTENTE_VERROU
+    while True:
+        try:
+            if cx.execute("PRAGMA journal_mode").fetchone()[0].lower() != "wal":
+                cx.execute("PRAGMA journal_mode=WAL")
+            return
+        except sqlite3.OperationalError as exc:
+            if "locked" not in str(exc) or time.monotonic() >= limite:
+                raise
+            time.sleep(0.05)
+
+
+def connecter(chemin: Path | None = None) -> sqlite3.Connection:
+    cx = ouvrir_sqlite(chemin or chemins.index_db())
     cx.executescript(SCHEMA)
     if "controle_le" not in {r[1] for r in cx.execute("PRAGMA table_info(documents)")}:
         cx.execute("ALTER TABLE documents ADD COLUMN controle_le TEXT")  # index d'avant #36
@@ -78,18 +109,91 @@ def lire_manifeste() -> dict:
     p = chemins.manifeste()
     if not p.exists():
         return {"documents": {}}
-    return json.loads(p.read_text(encoding="utf-8"))
+    return json.loads(p.read_text(encoding="utf-8-sig"))
 
 
 def ecrire_manifeste(m: dict) -> None:
+    """Écriture atomique (fichier temporaire puis `os.replace`) : un lecteur voit l'ancien
+    ou le nouveau manifeste, jamais un fichier à moitié écrit. Appeler sous `verrou_manifeste()`."""
     p = chemins.manifeste()
     p.parent.mkdir(parents=True, exist_ok=True)
     m["documents"] = dict(sorted(m["documents"].items(), key=lambda kv: kv[1].get("doc_id", "")))
-    p.write_text(json.dumps(m, ensure_ascii=False, indent=1, sort_keys=False) + "\n", encoding="utf-8")
+    contenu = json.dumps(m, ensure_ascii=False, indent=1, sort_keys=False) + "\n"
+    fd, tmp = tempfile.mkstemp(prefix=".manifeste-", suffix=".tmp", dir=p.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as f:
+            f.write(contenu)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, p)
+    except BaseException:
+        Path(tmp).unlink(missing_ok=True)
+        raise
+
+
+_verrous_tenus = 0  # profondeur : actualiser() appelle importer(), qui reprend le verrou
+
+
+def _verrouiller(f, bloquant: bool) -> bool:
+    try:
+        if sys.platform == "win32":
+            import msvcrt
+            f.seek(0)
+            while True:
+                try:
+                    msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+                    return True
+                except OSError:
+                    if not bloquant:
+                        return False
+                    import time
+                    time.sleep(0.2)
+        import fcntl
+        fcntl.flock(f.fileno(), fcntl.LOCK_EX | (0 if bloquant else fcntl.LOCK_NB))
+        return True
+    except BlockingIOError:
+        return False
+
+
+def _deverrouiller(f) -> None:
+    if sys.platform == "win32":
+        import msvcrt
+        f.seek(0)
+        msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)
+    else:
+        import fcntl
+        fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+
+
+@contextmanager
+def verrou_manifeste():
+    """Verrou de fichier (`manifeste.json.verrou`) autour de lecture + modification +
+    écriture du manifeste : deux imports simultanés ne s'écrasent plus. Réentrant dans
+    un même processus ; un autre processus attend son tour."""
+    global _verrous_tenus
+    if _verrous_tenus:
+        _verrous_tenus += 1
+        try:
+            yield
+        finally:
+            _verrous_tenus -= 1
+        return
+    p = chemins.manifeste()
+    p.parent.mkdir(parents=True, exist_ok=True)
+    with open(p.with_name(p.name + ".verrou"), "a+b") as f:
+        if not _verrouiller(f, bloquant=False):
+            sys.stderr.write("Manifeste utilisé par une autre commande (import, actualiser…) : attente…\n")
+            _verrouiller(f, bloquant=True)
+        _verrous_tenus = 1
+        try:
+            yield
+        finally:
+            _verrous_tenus = 0
+            _deverrouiller(f)
 
 
 def catalogue() -> dict:
-    return json.loads(chemins.catalogue().read_text(encoding="utf-8"))
+    return json.loads(chemins.catalogue().read_text(encoding="utf-8-sig"))
 
 
 # ---------------------------------------------------------------- détection des métadonnées
@@ -248,7 +352,7 @@ def calculer_versions(cx: sqlite3.Connection) -> list[str]:
     notes = []
     groupes: dict[tuple, list] = {}
     for r in cx.execute("SELECT doc_id, code, type, langue, version, date_publication, statut_version "
-                        "FROM documents WHERE code IS NOT NULL AND statut_extraction != 'absent'"):
+                        "FROM documents WHERE code IS NOT NULL AND statut_extraction NOT IN ('absent', 'a_confirmer')"):
         groupes.setdefault((r["code"], r["type"], r["langue"]), []).append(r)
     cx.execute("UPDATE documents SET statut_version='courant', remplace_par=NULL")
     for (code, typ, langue), docs in groupes.items():
@@ -266,6 +370,7 @@ def calculer_versions(cx: sqlite3.Connection) -> list[str]:
             notes.append(f"{r['doc_id']} {'(même version déclarée, fichier différent) ' if meme else ''}"
                          f"remplacé par {tete['doc_id']} pour {code} {typ} [{langue}]")
     cx.execute("UPDATE documents SET statut_version='absent' WHERE statut_extraction='absent'")
+    cx.execute("UPDATE documents SET statut_version='a_confirmer' WHERE statut_extraction='a_confirmer'")
     return notes
 
 
@@ -304,19 +409,65 @@ def _enregistrer(cx, entree: dict, ext: extraction.Extraction) -> int:
     return _indexer(cx, entree["doc_id"], ext) if statut in ("ok", "partiel") else 0
 
 
+def _confirmer_remplacement(cx, manif: dict, fichier: Path, sha: str, motif: str | None, copier: bool) -> str:
+    """`importer <fichier> --remplacer --motif` : le nouveau contenu prend la place du
+    document de même nom de fichier (doc_id et corrections conservés). L'ancienne empreinte
+    rejoint l'historique du manifeste et le remplacement est journalisé. Renvoie l'ancienne."""
+    if not (motif or "").strip():
+        raise ValueError("--remplacer exige --motif \"…\" (ex. « PDF ré-exporté par le CFTL, contenu vérifié ») : "
+                         "le remplacement est journalisé.")
+    ancien = next((k for k, e in manif["documents"].items() if e["fichier"] == fichier.name and k != sha), None)
+    if not ancien:
+        raise KeyError(f"Aucun document de la bibliothèque n'a pour fichier {fichier.name} : --remplacer est "
+                       "inutile (import normal).")
+    entree = manif["documents"].pop(ancien)
+    entree.setdefault("historique_empreintes", []).append(
+        {"sha256": ancien, "remplace_le": datetime.now().date().isoformat(), "motif": motif.strip()})
+    entree.pop("a_confirmer", None)
+    entree["sha256"] = sha
+    manif["documents"][sha] = entree
+    cx.execute("DELETE FROM documents WHERE sha256=?", (ancien,))
+    cible = chemins.sources() / entree["fichier"]
+    if copier and cible.resolve() != fichier.resolve():
+        chemins.sources().mkdir(parents=True, exist_ok=True)
+        shutil.copy2(fichier, cible)
+    journal.noter("document_remplace", entree["doc_id"],
+                  {"fichier": entree["fichier"], "ancienne_empreinte": ancien, "nouvelle_empreinte": sha},
+                  motif=motif.strip())
+    return ancien
+
+
 def importer(fichier: Path, meta_forcee: dict | None = None, copier: bool = True,
-             cx: sqlite3.Connection | None = None) -> dict:
+             cx: sqlite3.Connection | None = None, remplacer: bool = False, motif: str | None = None) -> dict:
     """Importe un fichier dans la bibliothèque. Renvoie un rapport :
-    {etat: 'importe'|'doublon'|'echec'|'reindexe', doc_id, message, ...}."""
+    {etat: 'importe'|'doublon'|'echec'|'refuse'|'remplace', doc_id, message, ...}.
+    Un fichier de sources/ dont le contenu a changé sur place n'est accepté qu'avec
+    `remplacer=True` et un motif (sinon : refus, document laissé « à confirmer »)."""
     fichier = Path(fichier)
     meta_forcee = {k: v for k, v in (meta_forcee or {}).items() if v}
     if fichier.suffix.lower() not in EXTENSIONS:
         return {"etat": "echec", "fichier": fichier.name, "message": f"format non pris en charge ({fichier.suffix})"}
     sha = empreinte(fichier)
+    with verrou_manifeste():
+        return _importer(fichier, sha, meta_forcee, copier, cx, remplacer, motif)
+
+
+def _importer(fichier: Path, sha: str, meta_forcee: dict, copier: bool, cx: sqlite3.Connection | None,
+              remplacer: bool = False, motif: str | None = None) -> dict:
     manif = lire_manifeste()
     propre = cx is None
     cx = cx or connecter()
     try:
+        ancien = None
+        if remplacer and sha not in manif["documents"]:
+            ancien = _confirmer_remplacement(cx, manif, fichier, sha, motif, copier)
+        elif sha not in manif["documents"] and (chemins.sources() / fichier.name).resolve() == fichier.resolve():
+            homonyme = next((e for e in manif["documents"].values() if e["fichier"] == fichier.name), None)
+            if homonyme:
+                return {"etat": "refuse", "fichier": fichier.name, "doc_id": homonyme["doc_id"],
+                        "message": f"contenu modifié sur place (empreinte différente de celle du manifeste) : "
+                                   f"{homonyme['doc_id']} reste à confirmer. Si la modification est voulue : "
+                                   f"`importer {fichier} --remplacer --motif \"…\"`"}
         if sha in manif["documents"]:
             existant = manif["documents"][sha]
             cible = chemins.sources() / existant["fichier"]
@@ -329,6 +480,12 @@ def importer(fichier: Path, meta_forcee: dict | None = None, copier: bool = True
                 existant.update(meta_forcee)
                 existant["champs_forces"] = sorted(set(existant.get("champs_forces", [])) | set(meta_forcee))
         ext = extraction.extraire(fichier)
+        statut, message = ext.statut()
+        if sha not in manif["documents"] and copier and statut not in ("ok", "partiel"):
+            # Import manuel d'un fichier inexploitable (faux PDF, scan sans texte) : rien
+            # n'est copié ni inscrit, la bibliothèque reste telle qu'elle était.
+            return {"etat": "echec", "fichier": fichier.name, "statut_extraction": statut,
+                    "message": f"{statut} : {message} — fichier ni copié ni inscrit au manifeste"}
         if sha in manif["documents"]:
             entree = manif["documents"][sha]
         else:
@@ -355,8 +512,10 @@ def importer(fichier: Path, meta_forcee: dict | None = None, copier: bool = True
         notes = [n for n in calculer_versions(cx) if entree["doc_id"] in n]
         cx.commit()
         ecrire_manifeste(manif)
-        statut, message = ext.statut()
-        return {"etat": "importe" if statut in ("ok", "partiel") else "echec", "fichier": fichier.name,
+        if ancien and statut in ("ok", "partiel"):
+            message = f"remplace le contenu d'empreinte {ancien[:12]}… (historique au manifeste, journalisé) ; {message}"
+        return {"etat": ("remplace" if ancien else "importe") if statut in ("ok", "partiel") else "echec",
+                "fichier": fichier.name,
                 "doc_id": entree["doc_id"], "passages": n, "statut_extraction": statut, "message": message,
                 "versions": notes, "meta": {k: entree.get(k) for k in
                                             ("titre", "code", "type", "version", "langue", "date_publication")}}
@@ -369,8 +528,14 @@ def actualiser(forcer: bool = False) -> dict:
     """Synchronise l'index avec bibliotheque/sources/ : nouveaux fichiers importés,
     fichiers modifiés ou extraits par un ancien extracteur réindexés, fichiers
     disparus signalés. Ne supprime jamais un fichier source."""
-    rapport = {"importes": [], "reindexes": [], "modifies": [], "inchanges": 0, "doublons": [], "absents": [],
+    with verrou_manifeste():
+        return _actualiser(forcer)
+
+
+def _actualiser(forcer: bool) -> dict:
+    rapport = {"importes": [], "reindexes": [], "a_confirmer": [], "inchanges": 0, "doublons": [], "absents": [],
                "echecs": [], "versions": []}
+    en_attente = set()  # empreintes du manifeste dont le fichier a changé sur place
     manif = lire_manifeste()
     cx = connecter()
     try:
@@ -394,15 +559,22 @@ def actualiser(forcer: bool = False) -> dict:
             presents[sha] = f.name
             entree = manif["documents"].get(sha)
             if entree is None:
-                # Même nom, contenu modifié sur place (fichier corrigé, PDF ré-exporté) : on
-                # reprend l'entrée existante (doc_id et corrections manuelles conservés).
+                # Même nom, contenu modifié sur place : rien ne distingue un PDF corrigé d'un
+                # PDF altéré. Le document passe « à confirmer » (exclu des recherches) jusqu'à
+                # une confirmation explicite et journalisée : `importer … --remplacer --motif`.
                 ancien = next((k for k, e in manif["documents"].items() if e["fichier"] == f.name), None)
                 if ancien:
-                    entree = manif["documents"].pop(ancien)
-                    entree["sha256"] = sha
-                    manif["documents"][sha] = entree
-                    cx.execute("DELETE FROM documents WHERE sha256=?", (ancien,))
-                    rapport["modifies"].append(f"{entree['doc_id']} ({f.name}) : contenu modifié, réindexé")
+                    attente = manif["documents"][ancien]
+                    attente["a_confirmer"] = sha
+                    en_attente.add(ancien)
+                    cx.execute("UPDATE documents SET statut_extraction='a_confirmer', message_extraction=? "
+                               "WHERE sha256=?", (f"contenu de {f.name} modifié sur place (empreinte {sha[:12]}… "
+                                                  f"au lieu de {ancien[:12]}…) : exclu des recherches jusqu'à "
+                                                  "confirmation", ancien))
+                    rapport["a_confirmer"].append(
+                        f"{attente['doc_id']} ({f.name}) : contenu modifié sur place, exclu des recherches. "
+                        f"Si c'est voulu : `importer bibliotheque/sources/{f.name} --remplacer --motif \"…\"`")
+                    continue
             if entree and entree["fichier"] != f.name:
                 if (dossier / entree["fichier"]).exists():
                     rapport["doublons"].append(f"{f.name} = {entree['fichier']}")
@@ -422,6 +594,10 @@ def actualiser(forcer: bool = False) -> dict:
                     if k not in entree.get("champs_forces", []) and v:
                         entree[k] = v
                 _enregistrer(cx, entree, ext)
+                # Validation document par document : une recherche lancée pendant la
+                # réindexation voit l'index d'avant ou d'après, jamais un verrou de 2 minutes.
+                cx.commit()
+                ecrire_manifeste(manif)
                 rapport["reindexes"].append(entree["doc_id"])
             else:
                 # importer() relit et réécrit le manifeste : on y enregistre d'abord les
@@ -432,7 +608,7 @@ def actualiser(forcer: bool = False) -> dict:
                 (rapport["importes"] if r["etat"] == "importe" else rapport["echecs"]).append(
                     f"{r.get('doc_id', f.name)} : {r['message']}")
         for sha, entree in manif["documents"].items():
-            if sha not in presents:
+            if sha not in presents and sha not in en_attente:
                 rapport["absents"].append(f"{entree['doc_id']} ({entree['fichier']})")
                 cx.execute("DELETE FROM passages_fts WHERE rowid IN (SELECT id FROM passages WHERE doc_id=?)",
                            (entree["doc_id"],))
@@ -480,6 +656,9 @@ def controle_index(cx: sqlite3.Connection | None = None) -> dict:
             continue
         if d["statut_extraction"] == "absent":
             continue  # déjà signalé par `actualiser` et `inventaire`
+        if d["statut_extraction"] == "a_confirmer":
+            perimes.add(d["doc_id"])  # modifié sur place : signalé, en attente de `--remplacer`
+            continue
         f = dossier / e["fichier"]
         if not f.is_file():
             perimes.add(d["doc_id"])
@@ -517,12 +696,14 @@ def avertissement_index(cx: sqlite3.Connection | None = None) -> str | None:
 def retirer(doc_id: str) -> dict:
     """Retire un document de la bibliothèque (manifeste + index). Le fichier source n'est
     pas supprimé : le déplacer hors de sources/ pour qu'`actualiser` ne le réimporte pas."""
-    manif = lire_manifeste()
-    sha = next((s for s, e in manif["documents"].items() if e["doc_id"] == doc_id), None)
-    if not sha:
-        raise KeyError(f"Document inconnu : {doc_id}. Voir `inventaire`.")
-    entree = manif["documents"].pop(sha)
-    ecrire_manifeste(manif)
+    with verrou_manifeste():
+        manif = lire_manifeste()
+        sha = next((s for s, e in manif["documents"].items() if e["doc_id"].lower() == doc_id.lower()), None)
+        if not sha:
+            raise KeyError(f"Document inconnu : {doc_id}. Voir `inventaire`.")
+        entree = manif["documents"].pop(sha)
+        doc_id = entree["doc_id"]  # casse exacte (saisie insensible à la casse)
+        ecrire_manifeste(manif)
     cx = connecter()
     try:
         cx.execute("DELETE FROM passages_fts WHERE rowid IN (SELECT id FROM passages WHERE doc_id=?)", (doc_id,))
@@ -538,15 +719,16 @@ def retirer(doc_id: str) -> dict:
 def modifier_metadonnees(doc_id: str, **champs) -> dict:
     """Corrige les métadonnées d'un document (détection fautive). Les champs saisis sont
     marqués « forcés » dans le manifeste et prévalent sur la détection."""
-    manif = lire_manifeste()
-    cible = next((s for s, e in manif["documents"].items() if e["doc_id"] == doc_id), None)
-    if not cible:
-        raise KeyError(f"Document inconnu : {doc_id}. Voir `inventaire`.")
-    champs = {k: v for k, v in champs.items() if v is not None}
-    entree = manif["documents"][cible]
-    entree.update(champs)
-    entree["champs_forces"] = sorted(set(entree.get("champs_forces", [])) | set(champs))
-    ecrire_manifeste(manif)
+    with verrou_manifeste():
+        manif = lire_manifeste()
+        cible = next((s for s, e in manif["documents"].items() if e["doc_id"].lower() == doc_id.lower()), None)
+        if not cible:
+            raise KeyError(f"Document inconnu : {doc_id}. Voir `inventaire`.")
+        champs = {k: v for k, v in champs.items() if v is not None}
+        entree = manif["documents"][cible]
+        entree.update(champs)
+        entree["champs_forces"] = sorted(set(entree.get("champs_forces", [])) | set(champs))
+        ecrire_manifeste(manif)
     cx = connecter()
     try:
         for k, v in champs.items():

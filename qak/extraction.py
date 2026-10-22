@@ -14,7 +14,7 @@ from .textes import normaliser
 # Toute modification de l'extraction, du découpage ou de la détection des métadonnées doit
 # incrémenter ce numéro :
 # l'actualisation réindexe alors les documents extraits par une version antérieure.
-VERSION_EXTRACTEUR = 9
+VERSION_EXTRACTEUR = 10
 
 TAILLE_PASSAGE = 1400   # caractères visés par passage
 PAGE_VIDE = 40          # moins de caractères utiles = page vide (scan, image)
@@ -22,6 +22,10 @@ PAGE_VIDE = 40          # moins de caractères utiles = page vide (scan, image)
 RE_PAGE_IMPRIMEE = re.compile(r"\bpage\s+(\d{1,4})\s*(?:de|of|sur|/|von|z)\s*\d{1,4}\b", re.I)
 RE_POINTILLES = re.compile(r"(?:\.\s?){5,}\s*\d*\s*$")
 RE_TITRE = re.compile(r"^(\d{1,2}(?:\.\d{1,2}){0,3})\.?\s+([A-ZÀ-ÖØ-Þ«“\"(][^\n]{2,140})$")
+# Ligne de tableau : au moins deux nombres en fin de ligne (« 10 S'Adapter… 60 0 60 »), ou
+# ligne faite uniquement de nombres (cellules d'un intitulé coupé sur plusieurs lignes).
+RE_FIN_CHIFFREE = re.compile(r"\s\d+(?:[.,]\d+)?\s+\d+(?:[.,]\d+)?\s*$")
+RE_LIGNE_CHIFFREE = re.compile(r"^\d+(?:[.,]\d+)?(?:\s+\d+(?:[.,]\d+)?)+$")
 
 
 @dataclass
@@ -206,6 +210,15 @@ def _successeur(courant: list[int], nouveau: list[int]) -> bool:
     return False
 
 
+def _ligne_de_tableau(lignes: list[str], i: int) -> bool:
+    """Le candidat titre de la ligne i est une rangée de tableau (ex. tableau des temps de
+    formation qui reprend les titres des chapitres) : nombres en fin de ligne, ou ligne de
+    nombres seuls dans les deux lignes suivantes (intitulé de cellule coupé)."""
+    if RE_FIN_CHIFFREE.search(lignes[i]):
+        return True
+    return any(RE_LIGNE_CHIFFREE.match(l.strip()) for l in lignes[i + 1:i + 3])
+
+
 def _plan_depuis_texte(pages: list[Page]) -> list[Titre]:
     """Repère les titres numérotés et garde la plus longue suite à numérotation cohérente.
     Cela écarte les listes numérotées (« 1. Aux bureaux nationaux… ») qui ressemblent
@@ -214,10 +227,12 @@ def _plan_depuis_texte(pages: list[Page]) -> list[Titre]:
     for p in pages:
         if p.sommaire:
             continue
-        for i, ligne in enumerate(p.texte.split("\n")):
+        lignes = p.texte.split("\n")
+        for i, ligne in enumerate(lignes):
             l = ligne.strip()
             m = RE_TITRE.match(l)
-            if m and not RE_POINTILLES.search(l) and not l.endswith((",", ";", ":")):
+            if m and not RE_POINTILLES.search(l) and not l.endswith((",", ";", ":")) \
+                    and not _ligne_de_tableau(lignes, i):
                 num = [int(x) for x in m.group(1).split(".")]
                 candidats.append((num, Titre(p.numero, i, m.group(1), m.group(2).strip())))
     # Les objectifs d'apprentissage en tête de chapitre répètent les titres (« 1.1 Principes… »)

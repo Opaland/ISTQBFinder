@@ -139,7 +139,7 @@ def test_references_istqb_verifiees_contre_la_bibliotheque(bibliotheque_test):
         connaissances.valider({**IDEE, "references": [{"type": "istqb", "doc_id": "CTFL", "pages": "40"}]})
     with pytest.raises(ErreurValidation, match="n'apparaît pas"):
         connaissances.valider({**IDEE, "references": [{"type": "istqb", "doc_id": "CTFL", "pages": "6",
-                                                       "extrait": "mutation testing guarantees complete coverage"}]})
+                                                       "extrait": "mutation testing guarantees complete coverage of every product risk"}]})
     with pytest.raises(ErreurValidation, match="ni section"):
         connaissances.valider({**IDEE, "references": [{"type": "istqb", "doc_id": "CTFL"}]})
     _, avert = connaissances.valider({**IDEE, "references": [{"type": "istqb", "doc_id": "CTAL-TM", "pages": "3"}]})
@@ -196,3 +196,46 @@ def test_type_invalide_cli_code_retour_2(capsys, monkeypatch):
     monkeypatch.setattr("sys.stdin", io.StringIO("[]"))
     assert cli.main(["idee", "ajouter"]) == 2
     assert "objet JSON" in capsys.readouterr().err
+
+def _ref_ctfl(**champs):
+    return {**IDEE, "references": [{"type": "istqb", "doc_id": "CTFL", **champs}]}
+
+
+EXTRAIT_P6 = "Risk level is determined by risk likelihood and risk impact"
+
+
+@pytest.mark.parametrize("champs, message", [
+    # mots en vrac, sens inversé, citation inventée : plus de « sac de mots » à 70 %
+    ({"pages": "6", "extrait": "risk impact and risk likelihood determined by risk level"}, "mot pour mot"),
+    ({"pages": "6", "extrait": "Risk level is never determined by risk likelihood and risk impact"}, "mot pour mot"),
+    ({"pages": "6", "extrait": "Risk level is determined by risk likelihood and team velocity"}, "mot pour mot"),
+    ({"pages": "6", "extrait": "!!! ..."}, "trop court"),
+    ({"pages": "6", "extrait": "risk level is determined"}, "trop court"),
+    # section incohérente avec la page citée, joker LIKE, formats de page douteux
+    ({"pages": "6", "section": "1.2", "extrait": EXTRAIT_P6}, "ne figure pas aux pages 6"),
+    ({"section": "%"}, "numéro attendu"),
+    ({"section": "1_2"}, "numéro attendu"),
+    ({"pages": "-5"}, "format attendu"),
+    ({"pages": "0"}, "à partir de 1"),
+    ({"pages": "6-4"}, "plages croissantes"),
+    ({"pages": "p. 6"}, "format attendu"),
+])
+def test_reference_istqb_stricte(bibliotheque_test, champs, message):
+    """#28 : section/page incohérentes, extraits en vrac ou inventés, joker « % », page « -5 »."""
+    with pytest.raises(ErreurValidation, match=message):
+        connaissances.valider(_ref_ctfl(**champs))
+
+
+def test_reference_istqb_tolere_les_espaces_parasites_des_pdf(bibliotheque_test):
+    """Les PDF FR coupent des mots (« êtr e », « perme ttant ») : recollés avant comparaison,
+    sans tolérer de changement d'ordre ; la citation peut enjamber un retour à la ligne."""
+    connaissances.valider(_ref_ctfl(pages="6", section="2.1", extrait="Risk lev el is determ ined by risk "
+                                                                      "likeli hood and risk impact."))
+    connaissances.valider(_ref_ctfl(pages=5, extrait="divides data into partitions such that all "
+                                                     "elements of a given partition"))
+
+
+def test_section_joker_ne_designe_plus_tout_le_document(bibliotheque_test):
+    from qak import recherche
+    assert recherche.lire_section("CTFL", "%")["passages"] == []
+    assert recherche.lire_section("CTFL", "1.2")["passages"]

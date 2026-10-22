@@ -1,0 +1,13 @@
+# Bases SQLite reconstructibles (index des PDF, copie de travail des idées)
+bibliotheque/index.db*
+connaissances/base.db*
+*.db-journal
+*.db-wal
+*.db-shm
+
+__pycache__/
+*.pyc
+.pytest_cache/
+venv/
+.venv/
+.DS_Store

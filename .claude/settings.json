@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python qa.py:*)",
+      "Bash(python3 qa.py:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(python3 -m pytest:*)"
+    ]
+  }
+}

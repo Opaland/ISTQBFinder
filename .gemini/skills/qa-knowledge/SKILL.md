@@ -118,8 +118,9 @@ N'enregistre qu'avec l'accord de l'utilisateur. Procédure :
 [reference/capitalisation.md](reference/capitalisation.md) — en bref :
 
 1. `idee modele` donne le gabarit JSON ; `theme proposer "<texte>"` suggère les thèmes.
-2. `idee doublons <<'JSON'` … `JSON` **avant** tout ajout (JSON sur l'entrée standard,
-   pas de fichier temporaire). Doublon probable → proposer de compléter l'existante
+2. `idee doublons --titre "…" --resume "…" --principe "…" --theme <code>` **avant** tout
+   ajout : **une ligne, sans JSON** (un heredoc JSON est bloqué en `claude -p`), pas de
+   fichier temporaire. Doublon probable → proposer de compléter l'existante
    (`idee modifier QA-xxxx`) ou de lier (`idee lier`).
 3. `idee ajouter <<'JSON'` … `JSON`. Les références ISTQB sont vérifiées
    automatiquement (document, pages, extrait).

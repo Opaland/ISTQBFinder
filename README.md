@@ -254,4 +254,5 @@ source est citée. Les PDF de `bibliotheque/sources/` sont versionnés à ce
 titre, source citée dans `bibliotheque/manifeste.json` (page officielle istqb.org ou
 traduction fournie par l'utilisateur). La licence MIT du dépôt couvre le code et la
 documentation, **pas** les syllabus, qui restent la propriété de l'ISTQB® et de leurs
-traducteurs.
+traducteurs : exclusion explicite dans `LICENSE`, liste des documents avec ayant droit,
+traducteur (CFTL pour les traductions françaises) et source dans [`NOTICE.md`](NOTICE.md).

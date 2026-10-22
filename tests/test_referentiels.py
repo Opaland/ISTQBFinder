@@ -32,3 +32,23 @@ def test_jeu_d_evaluation_bien_forme():
     codes = {d["code"] for d in bibliotheque.catalogue()["documents"]}
     assert len(cas) >= 40 and sum(bool(c.get("controle")) for c in cas) >= 10
     assert all(a["code"] in codes for c in cas for a in c["attendus"])
+
+
+def test_notice_liste_chaque_document_source():
+    """#40 : les PDF versionnés sont exclus de la licence MIT et chacun figure dans NOTICE.md
+    avec son ayant droit ; les traductions françaises avec leur traducteur."""
+    notice = (chemins.CODE / "NOTICE.md").read_text(encoding="utf-8")
+    licence = (chemins.CODE / "LICENSE").read_text(encoding="utf-8")
+    assert "bibliotheque/sources/" in licence and "NOTICE.md" in licence and "EXCLUSION" in licence
+    manifeste = json.loads((chemins.CODE / "bibliotheque" / "manifeste.json").read_text(encoding="utf-8"))
+    for e in manifeste["documents"].values():
+        ligne = next((l for l in notice.splitlines() if f"`{e['fichier']}`" in l), None)
+        assert ligne and "ISTQB®" in ligne, e["fichier"]
+        if e.get("langue") == "fr":
+            assert ligne.count("|") >= 6, e["fichier"]  # colonne traducteur renseignée
+    sources = chemins.CODE / "bibliotheque" / "sources"
+    for f in sources.iterdir():
+        if f.suffix.lower() == ".pdf":
+            assert f"`{f.name}`" in notice, f.name
+    conditions = bibliotheque.catalogue()["conditions"]
+    assert "métadonnées" not in conditions and "NOTICE.md" in conditions

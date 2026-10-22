@@ -31,6 +31,11 @@ question porte sur le test logiciel ou la qualité (ou via `/qa-knowledge`).
 | Agent | Rôle | Lancer |
 |---|---|---|
 | **Thomas** | chercheur QA : explore la base d'idées et tous les syllabus, ouvre des pistes sourcées | `@agent-thomas <question>` dans une conversation, ou `claude --agent thomas` pour toute la session |
+| **Sylvie** | auditrice : vérifie qu'une démarche est alignée sur les pratiques ISTQB, liste les manques, donne un niveau de maturité (grille `referentiel/grille-maturite.md`) | `@agent-sylvie <ta démarche>` ou `claude --agent sylvie` |
+
+Exemple : « @agent-sylvie Je veux mettre en place une stratégie basée sur les risques :
+atelier avec le PO pour lister les risques, priorisation des tests critiques, revue en
+fin de sprint. Suis-je aligné ISTQB ? Quel niveau de maturité ? »
 
 Sans agent nommé, le skill `qa-knowledge` se déclenche aussi tout seul sur une question QA.
 

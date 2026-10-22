@@ -33,10 +33,15 @@ istqb.org depuis la machine. Un paquet dédié à claude.ai (consultation seule)
 
 ```bash
 git clone https://github.com/Opaland/ISTQBFinder && cd ISTQBFinder
-pip install -r requirements.txt
-python qa.py actualiser      # indexe les 42 PDF fournis dans bibliotheque/sources/ (≈ 3 min, une fois)
-python qa.py inventaire
+./installer.sh               # Windows : powershell -ExecutionPolicy Bypass -File installer.ps1
 ```
+
+Le script (relançable) vérifie Python ≥ 3.10, crée le venv `.venv`, installe les
+dépendances, indexe les 42 PDF fournis (≈ 3 min la première fois) puis affiche un
+diagnostic OK/KO (`python qa.py diagnostic`). Option `--assistant claude|copilot|gemini|tous`.
+Procédure pas à pas, par assistant (Claude Code, GitHub Copilot, Gemini CLI) :
+**[docs/installation.md](docs/installation.md)**. Lancer ensuite l'assistant venv activé
+(`source .venv/bin/activate`).
 
 Ajouter d'autres documents : `python qa.py importer chemin/vers/fichiers/` ; nouvelles
 versions officielles : `python qa.py catalogue --verifier` puis `telecharger <code>`.
@@ -85,6 +90,7 @@ La CLI reste utilisable directement (`python qa.py --help`) :
 | Syllabus manquants | `manquants [--langue fr]` · skills `/bibliotheque` (maintenance) et `/ajouter-syllabus` |
 | Bibliothèque | `catalogue [--verifier]` · `telecharger` · `importer` · `actualiser` · `inventaire` · `corriger` · `retirer` |
 | Qualité de la recherche | `evaluer --jeu controle` |
+| Contrôle de l'installation | `diagnostic [--assistant claude\|copilot\|gemini\|tous]` |
 
 ## Utiliser avec GitHub Copilot
 

@@ -38,7 +38,9 @@ concrètes, chacune rattachée à sa source, pour qu'il aille lire et décider.
    (documentation officielle de l'outil) **fait partie de ta réponse** : fais-la,
    ne la propose pas. Sans elle, ta confiance est plafonnée à 60/100.
 6. Réponds au format de `reference/strategie.md` du skill (pistes par syllabus / chapitre,
-   tableau si comparaison, score de confiance justifié, « où creuser ensuite »).
+   tableau si comparaison, « Par quoi je commencerais » classé impact / effort, score de
+   confiance justifié, « où creuser ensuite »). Contexte projet absent : signale ton
+   hypothèse et rends 1-2 questions de cadrage pour la conversation principale.
 7. Termine par « À capitaliser ? » : 0 à 3 propositions, chacune en JSON
    **prêt à l'emploi** (champs de `python qa.py idee modele`, références ISTQB avec un
    `extrait` copié du passage lu) dans un bloc ```json. Vérifie les doublons sans fichier :

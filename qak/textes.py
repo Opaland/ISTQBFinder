@@ -20,7 +20,8 @@ which what how why when where who into than then there their them they not no do
 
 # Mots trop généraux dans un corpus de syllabus pour peser dans une requête.
 MOTS_GENERIQUES = {"istqb", "syllabus", "idee", "idees", "pratique", "pratiques",
-                   "recherche", "cherche", "trouve", "retrouve", "quelles", "ameliorer", "amelioration"}
+                   "recherche", "cherche", "trouve", "retrouve", "quelles", "ameliorer", "amelioration",
+                   "difference", "differences"}
 
 
 def sans_accents(s: str) -> str:
@@ -56,7 +57,7 @@ def mots(s: str, garder_generiques: bool = True) -> list[str]:
 
 @lru_cache(maxsize=4)
 def _thesaurus(chemin: str) -> tuple:
-    data = json.loads(open(chemin, encoding="utf-8").read())
+    data = json.loads(open(chemin, encoding="utf-8-sig").read())
     concepts, motifs = [], []
     for c in data["concepts"]:
         termes = tuple(t for t in c["termes"] if normaliser(t))

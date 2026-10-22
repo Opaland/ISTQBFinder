@@ -115,3 +115,23 @@ def test_notions_des_candidats_identiques_au_match_sur_l_index(bibliotheque_test
             assert any(trouves.values())
     finally:
         cx.close()
+
+
+def test_chapitre_0_d_introduction_retrograde(bibliotheque_test):
+    # Issue #25 : les §0.x (objet du syllabus, examen, parcours de carrière) citent les notions
+    # sans les traiter ; à couverture égale ils passent après les sections de fond.
+    from qak import bibliotheque
+    cx = bibliotheque.connecter()
+    try:
+        doc = cx.execute("SELECT doc_id FROM passages LIMIT 1").fetchone()[0]
+        cx.execute("INSERT INTO passages(doc_id, ordre, page, section_num, section_titre, texte, sommaire) "
+                   "VALUES (?, 999, 1, '0.2', 'About this syllabus', 'equivalence partitioning equivalence "
+                   "partitioning equivalence partitioning', 0)", (doc,))
+        rid = cx.execute("SELECT max(id) FROM passages").fetchone()[0]
+        cx.execute("INSERT INTO passages_fts(rowid, texte, section_titre) SELECT id, texte, section_titre "
+                   "FROM passages WHERE id=?", (rid,))
+        cx.commit()
+        res = recherche.chercher("equivalence partitioning", cx=cx)["resultats"]
+        assert res[-1]["section_num"] == "0.2" and res[0]["section_num"] != "0.2"
+    finally:
+        cx.close()

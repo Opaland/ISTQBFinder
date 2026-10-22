@@ -9,7 +9,7 @@ from . import chemins
 MOTS_VIDES = set("""
 a au aux avec ce ces cet cette dans de des du elle en est et etre il ils je la le les leur leurs lui ma mais me meme
 mes moi mon ne nos notre nous on ou par pas pour qu que qui sa se ses son sur ta te tes toi ton tu un une vos votre
-vous y d l j m n s t c qu quel quelle quels quelles comment pourquoi quoi dont ou est-ce peut peuvent permet
+vous y d l j m n s t c qu quel quelle quels quelles comment pourquoi quoi dont ou est-ce peut peuvent permet ai
 permettent pourrait pourraient faire fait sont ont avoir plus moins tres tout tous toute toutes autre autres
 entre sans sous chez ainsi aussi donc alors comme si non oui afin cela ceci celui celle ceux nos via
 pendant lors durant selon notre nos leurs avant apres depuis vers deja encore ici bien tres trop peu
@@ -53,8 +53,10 @@ def _thesaurus(chemin: str) -> tuple:
     for c in data["concepts"]:
         termes = tuple(t for t in c["termes"] if normaliser(t))
         concepts.append((c["id"], termes))
+        majuscules = {normaliser(t) for t in c.get("majuscules", [])}
         for t in termes:
-            motifs.append((tuple(racine(m) for m in normaliser(t).split()), c["id"], termes))
+            cible = tuple(racine(m) for m in normaliser(t).split())
+            motifs.append((cible, c["id"], termes, sigle_court(cible) or normaliser(t) in majuscules))
     motifs.sort(key=lambda m: -len(m[0]))  # expressions les plus longues d'abord
     return tuple(concepts), tuple(motifs)
 
@@ -64,16 +66,33 @@ def thesaurus() -> tuple:
     return _thesaurus(str(chemins.thesaurus()))[0]
 
 
+def _en_majuscules(texte: str, origine: list[str]) -> list[bool]:
+    """Pour chaque mot normalisé de `texte`, vrai s'il était écrit en MAJUSCULES."""
+    bruts = re.sub(r"[^A-Za-z0-9]+", " ", sans_accents((texte or "").replace("’", " "))).split()
+    if [b.lower() for b in bruts] != origine:  # découpage différent (caractère exotique) : prudence
+        return [False] * len(origine)
+    return [b.isupper() for b in bruts]
+
+
+def sigle_court(cible: tuple) -> bool:
+    """Terme d'un seul mot de 2 lettres (ai, ia, ml, ux) : ce sont aussi des mots ordinaires
+    (« j'ai »), reconnus seulement écrits en MAJUSCULES dans la question (issue #42). Un
+    concept peut soumettre d'autres termes à la même règle (clé « majuscules » : IDEAL)."""
+    return len(cible) == 1 and len(cible[0]) <= 2 and cible[0].isalpha()
+
+
 def reperer_concepts(texte: str) -> tuple[list[tuple[str, tuple]], list[str]]:
     """Repère les concepts du thésaurus dans `texte` (pluriels tolérés, expressions
-    longues prioritaires). Renvoie [(id_concept, termes)] et les mots non couverts."""
+    longues prioritaires ; sigles de 2 lettres seulement en MAJUSCULES). Renvoie
+    [(id_concept, termes)] et les mots non couverts."""
     origine = normaliser(texte).split()
+    majuscules = _en_majuscules(texte, origine)
     toks: list = [racine(m) for m in origine]
     trouves, vus = [], set()
-    for cible, cid, termes in _thesaurus(str(chemins.thesaurus()))[1]:
+    for cible, cid, termes, en_majuscules in _thesaurus(str(chemins.thesaurus()))[1]:
         k = len(cible)
         for i in range(len(toks) - k + 1):
-            if tuple(toks[i:i + k]) == cible:
+            if tuple(toks[i:i + k]) == cible and (not en_majuscules or all(majuscules[i:i + k])):
                 toks[i:i + k] = [None] * k  # consommé : ne sert plus à un concept plus court
                 if cid not in vus:
                     trouves.append((cid, termes))

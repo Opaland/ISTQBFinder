@@ -239,8 +239,8 @@ qu'avec l'accord de l'utilisateur.
   contrôle jamais vues (dont des questions volontairement difficiles), 100 % sur le jeu
   de réglage. Les requêtes très courtes et génériques réussissent mieux avec le terme
   ISTQB anglais. Recherche sémantique (embeddings Hugging Face) évaluée et non retenue :
-  elle ne résout pas les questions éloignées du vocabulaire ISTQB ; prototype optionnel `--semantique`
-  ([docs/architecture.md](docs/architecture.md)).
+  elle ne résout pas les questions éloignées du vocabulaire ISTQB ; prototype optionnel
+  `--semantique` ([docs/architecture.md](docs/architecture.md)).
 - Pas d'OCR (PDF scanné = « illisible »). Certains PDF produisent des espaces parasites
   dans les mots (« sélecti on ») : l'extraction recolle les fragments quand le mot réuni
   existe dans le document (≈ 80 % des coupures) ; une expression exacte peut encore être

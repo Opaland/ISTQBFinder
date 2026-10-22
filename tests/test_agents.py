@@ -61,8 +61,8 @@ def test_agents_sans_skill_et_sans_ecriture():
     """#23 : le skill est préchargé (pas d'outil Skill) ; aucun agent n'écrit de fichier."""
     thomas = frontmatter(AGENTS / "thomas.md")
     sylvie = frontmatter(AGENTS / "sylvie.md")
-    assert outils(thomas["tools"]) == {"Bash", "Read", "WebSearch", "WebFetch"}
-    assert outils(sylvie["tools"]) == {"Bash", "Read"}
+    assert outils(thomas["tools"]) == {"Bash", "Read", "WebSearch", "WebFetch", "AskUserQuestion"}
+    assert outils(sylvie["tools"]) == {"Bash", "Read", "AskUserQuestion"}
     assert {"Write", "Edit"} <= outils(thomas["disallowedTools"])
     assert {"Write", "Edit", "WebSearch", "WebFetch"} <= outils(sylvie["disallowedTools"])
 
@@ -147,3 +147,20 @@ def test_gabarit_mise_en_place_renvoie_a_des_syllabus_presents():
     cites = set(re.findall(r"\b(CT(?:FL|AL|EL)?-[A-Za-z]+(?:-[A-Za-z]+)?)\b", gabarit))
     assert cites, "aucun syllabus cité"
     assert cites <= connus, cites - connus
+
+
+def test_mode_conversationnel():
+    """#92 : questions à choix, plan de recherche montré, suites dont /ajouter-syllabus,
+    jamais bloquant hors session interactive ; AskUserQuestion déclaré partout."""
+    conversation = (SKILL.parent / "reference" / "conversation.md").read_text(encoding="utf-8")
+    for attendu in ("AskUserQuestion", "liste numérotée", "Ne jamais bloquer", "Hypothèse :",
+                    "Plan de recherche", "langue", "version", "/ajouter-syllabus",
+                    "manquants --langue fr", "3 options au plus", "Ne pas questionner une question claire"):
+        assert attendu in conversation, attendu
+    assert "reference/conversation.md" in corps(SKILL)
+    assert "AskUserQuestion" in frontmatter(SKILL)["allowed-tools"]
+    for nom in ("thomas", "sylvie"):
+        texte = corps(AGENTS / f"{nom}.md")
+        assert "Questions à choix" in texte and "AskUserQuestion" in texte, nom
+        assert "/ajouter-syllabus" in texte, nom
+    assert "Hypothèse : " in corps(AGENTS / "thomas.md")

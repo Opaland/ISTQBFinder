@@ -330,3 +330,88 @@ def test_identifiant_non_reattribue_apres_git_revert():
                                       "probleme": "Qualité des tests inconnue.", "principe": "Mutants tués.",
                                       "theme_principal": "boite-blanche"})["id"]
     assert nouvelle != retiree and re.fullmatch(r"QA-\d{8}-[0-9a-f]{4}", nouvelle)
+
+CHARTE = {**IDEE, "titre": "Charte de session exploratoire", "resume": "Cadrer une session de 90 min.",
+          "probleme": "Exploratoire non tracé.", "principe": "Charte, timebox, debriefing.",
+          "theme_principal": "exploratoire"}
+
+
+def _reecrire_jsonl(transformer):
+    p = chemins.connaissances_jsonl()
+    idees = [json.loads(l) for l in p.read_text(encoding="utf-8").splitlines() if l.strip()]
+    idees = [x for x in (transformer(i) for i in idees) if x]
+    p.write_text("".join(json.dumps(i, ensure_ascii=False) + "\n" for i in idees), encoding="utf-8")
+
+
+def test_jsonl_modifie_a_la_main_trace_et_signale():
+    """#33 : principe modifié, statut forcé à « expérimentée » sans retour et idée supprimée
+    à la main étaient acceptés sans trace ; la relation devenait orpheline (« ? »)."""
+    q1 = connaissances.ajouter(dict(IDEE))["id"]
+    q2 = connaissances.ajouter(dict(CHARTE))["id"]
+    connaissances.lier(q1, q2, "complementaire")
+    connaissances.avertissements()
+
+    def editer(i):
+        if i["id"] == q2:
+            return None
+        return {**i, "principe": "Principe réécrit à la main.", "statut": "experimentee"}
+    _reecrire_jsonl(editer)
+    connaissances.lister()
+    avert = connaissances.avertissements()
+    assert any("modifié hors de l'outil" in w for w in avert)
+    assert any("expérimentée » sans retour" in w for w in avert)
+    assert any("orpheline" in w and q2 in w for w in avert)
+    e = journal.lire()[-1]
+    assert e["action"] == "modification_externe"
+    assert e["details"]["supprimees"] == [q2]
+    assert set(e["details"]["modifiees"][q1]) == {"principe", "statut"}
+    assert e["details"]["modifiees"][q1]["statut"] == {"avant": "a_explorer", "apres": "experimentee"}
+    assert connaissances.avertissements() == []  # signalé une fois, à la reconstruction
+
+
+def test_git_pull_d_ajouts_faits_avec_l_outil_non_signale():
+    """Une idée ajoutée avec l'outil sur un autre poste arrive avec sa ligne de journal :
+    pas de « modification externe »."""
+    connaissances.ajouter(dict(IDEE))
+    p, jnl = chemins.connaissances_jsonl(), chemins.journal_jsonl()
+    jsonl_avant, journal_avant = p.read_text(encoding="utf-8"), jnl.read_text(encoding="utf-8")
+    q2 = connaissances.ajouter(dict(CHARTE))["id"]
+    jsonl_apres, journal_apres = p.read_text(encoding="utf-8"), jnl.read_text(encoding="utf-8")
+    p.write_text(jsonl_avant, encoding="utf-8")   # retour à l'état d'avant…
+    connaissances.lister()
+    jnl.write_text(journal_apres, encoding="utf-8")  # …puis `git pull` du JSONL et du journal
+    p.write_text(jsonl_apres, encoding="utf-8")
+    connaissances.avertissements()
+    assert q2 in [i["id"] for i in connaissances.lister()]
+    assert connaissances.avertissements() == []
+    assert all(e["action"] != "modification_externe" for e in journal.lire())
+
+
+def test_ligne_jsonl_invalide_message_clair():
+    connaissances.ajouter(dict(IDEE))
+    p = chemins.connaissances_jsonl()
+    p.write_text(p.read_text(encoding="utf-8") + "{pas du json\n", encoding="utf-8")
+    with pytest.raises(ErreurValidation, match=r"ligne 2 : JSON invalide"):
+        connaissances.lister()
+    p.write_text('{"id": "QA-0009", "titre": "sans le reste"}\n', encoding="utf-8")
+    with pytest.raises(ErreurValidation, match=r"ligne 1 : champ\(s\) obligatoire\(s\) absent\(s\) : resume"):
+        connaissances.lister()
+
+
+def test_retirer_une_idee_proprement():
+    q1 = connaissances.ajouter(dict(IDEE))["id"]
+    q2 = connaissances.ajouter(dict(CHARTE))["id"]
+    connaissances.lier(q1, q2, "complementaire")
+    with pytest.raises(ErreurValidation, match="10 caractères"):
+        connaissances.retirer(q2, "doublon")
+    r = connaissances.retirer(q2, "fusionnée dans une idée plus complète")
+    assert r["relations_entrantes_retirees"] == [{"source": q1, "type": "complementaire"}]
+    assert [i["id"] for i in connaissances.lister()] == [q1]
+    assert connaissances.voir(q1)["relations"] == []
+    e = [x for x in journal.lire(q2) if x["action"] == "idee_retiree"][0]
+    assert e["details"]["idee"]["titre"] == CHARTE["titre"] and e["motif"].startswith("fusionnée")
+    chemins.base_db().unlink()  # reconstruction : rien d'inexpliqué
+    connaissances.lister()
+    assert connaissances.avertissements() == []
+    with pytest.raises(KeyError):
+        connaissances.retirer(q2, "déjà retirée auparavant")

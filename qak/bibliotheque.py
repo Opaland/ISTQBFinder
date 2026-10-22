@@ -734,17 +734,34 @@ def avertissement_index(cx: sqlite3.Connection | None = None) -> str | None:
     return "Index périmé : " + " ; ".join(c["messages"]) + " — lancer `python qa.py actualiser`."
 
 
-def retirer(doc_id: str) -> dict:
-    """Retire un document de la bibliothèque (manifeste + index). Le fichier source n'est
-    pas supprimé : le déplacer hors de sources/ pour qu'`actualiser` ne le réimporte pas."""
-    with verrou_manifeste():
-        manif = lire_manifeste()
+def _trouver(doc_id: str) -> tuple[bool, dict, str]:
+    """(privé ?, manifeste qui le contient, empreinte) d'un document, cherché dans le
+    manifeste versionné puis dans le manifeste privé (bibliotheque/prive/). À appeler
+    sous `verrou_manifeste()`."""
+    for prive in (False, True):
+        manif = lire_manifeste(prive)
         sha = next((s for s, e in manif["documents"].items() if e["doc_id"].lower() == doc_id.lower()), None)
-        if not sha:
-            raise KeyError(f"Document inconnu : {doc_id}. Voir `inventaire`.")
+        if sha:
+            return prive, manif, sha
+    raise KeyError(f"Document inconnu : {doc_id}. Voir `inventaire`.")
+
+
+def retirer(doc_id: str, supprimer_fichier: bool = False) -> dict:
+    """Retire un document de la bibliothèque (manifeste + index). Un fichier de sources/
+    n'est jamais supprimé : le déplacer hors du dossier pour qu'`actualiser` ne le
+    réimporte pas. Un document privé peut l'être (`supprimer_fichier`), dans
+    bibliotheque/prive/ seulement."""
+    with verrou_manifeste():
+        prive, manif, sha = _trouver(doc_id)
+        if supprimer_fichier and not prive:
+            raise ValueError("--supprimer-fichier ne concerne que les documents privés : un PDF de sources/ "
+                             "est versionné, le retirer avec Git.")
         entree = manif["documents"].pop(sha)
         doc_id = entree["doc_id"]  # casse exacte (saisie insensible à la casse)
-        ecrire_manifeste(manif)
+        ecrire_manifeste(manif, prive)
+        if prive and supprimer_fichier:
+            (chemins.prive() / entree["fichier"]).unlink(missing_ok=True)
+        entree = {**entree, "prive": prive, "fichier_supprime": bool(prive and supprimer_fichier)}
     cx = connecter()
     try:
         cx.execute("DELETE FROM passages_fts WHERE rowid IN (SELECT id FROM passages WHERE doc_id=?)", (doc_id,))
@@ -761,15 +778,12 @@ def modifier_metadonnees(doc_id: str, **champs) -> dict:
     """Corrige les métadonnées d'un document (détection fautive). Les champs saisis sont
     marqués « forcés » dans le manifeste et prévalent sur la détection."""
     with verrou_manifeste():
-        manif = lire_manifeste()
-        cible = next((s for s, e in manif["documents"].items() if e["doc_id"].lower() == doc_id.lower()), None)
-        if not cible:
-            raise KeyError(f"Document inconnu : {doc_id}. Voir `inventaire`.")
+        prive, manif, cible = _trouver(doc_id)
         champs = {k: v for k, v in champs.items() if v is not None}
         entree = manif["documents"][cible]
         entree.update(champs)
         entree["champs_forces"] = sorted(set(entree.get("champs_forces", [])) | set(champs))
-        ecrire_manifeste(manif)
+        ecrire_manifeste(manif, prive)
     cx = connecter()
     try:
         for k, v in champs.items():

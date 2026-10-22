@@ -5,7 +5,7 @@
 | Demande | Cas | Ce qu'on fait |
 |---|---|---|
 | « Qu'est-ce que… », « Que dit l'ISTQB sur… » | A — simple | base + syllabus, lecture, réponse courte citée |
-| « Comment intégrer / mettre en place / déployer X », « par où commencer pour… » | M — mise en place | gabarit « mise en place » ci-dessous : méthode, exemple, domaines |
+| « Comment intégrer / mettre en place / déployer / organiser X », « comment l'ISTQB propose-t-il d'intégrer… », « par où commencer pour… » | M — mise en place | gabarit « mise en place » ci-dessous : méthode, exemple, domaines |
 | « Recherche des idées pour… », « Compare… » | B — approfondie | A + lacunes/contradictions + Web ciblé + comparaison + recommandations |
 | « Classe / enregistre cette idée » | C — capitalisation | doublons → thème → ajout tracé |
 | « Idées sur le thème X », « Où notre base est-elle pauvre ? » | D — exploration | `idee lister --theme`, `chercher --theme`, `couverture`, regroupement par sous-thème |
@@ -70,7 +70,8 @@ Gabarit (adapter, rester proportionné ; 150-400 mots pour une question courante
 faible ; effort faible / moyen / fort) ; d'abord fort impact pour faible effort.
 **Où creuser ensuite** : 2-4 sections à lire en entier (`section <doc> <num>`).
 **Confiance : NN/100** (libellé) — 1-2 raisons.
-**Questions de cadrage** (si le contexte manque) : 1-2 questions.
+**Questions à choix** (questions de cadrage si le contexte manque, puis suites) : 1-2
+questions, 3 options numérotées au plus chacune (voir conversation.md).
 **À capitaliser ?** 0-3 propositions (rien n'est enregistré sans accord).
 ```
 
@@ -84,7 +85,9 @@ faible ; effort faible / moyen / fort) ; d'abord fort impact pour faible effort.
 ## Format « mise en place » (comment intégrer / déployer X)
 
 Une question de **connaissance** (« que dit l'ISTQB… », « quelles techniques… ») garde le
-format de pistes ci-dessus. Une question de **mise en place** attend une démarche
+format de pistes ci-dessus. Une question qui demande **comment faire** est une question de
+mise en place, même formulée « comment l'ISTQB propose-t-il d'intégrer… » : la réponse
+est alors la démarche ISTQB, en étapes. Une question de **mise en place** attend une démarche
 exploitable : des pistes seules ne répondent pas. Cible 400-700 mots ; le reste ne change
 pas (lire avant de citer, confiance, « où creuser », « à capitaliser ? »).
 
@@ -113,8 +116,9 @@ je ferais : … » — chaque pratique utilisée renvoie à l'étape (et donc à
 **Par quoi je commencerais** : 2-3 pistes classées impact / effort.
 **Où creuser ensuite** : 2-4 sections à lire en entier.
 **Confiance : NN/100** (libellé) — 1-2 raisons.
-**Questions de cadrage** : 2-3 questions si le contexte manque (domaine, réglementation,
-taille et rythme de l'équipe, outillage) — elles ne bloquent pas la réponse.
+**Questions de cadrage** (à choix) : 2-3 questions si le contexte manque (domaine,
+réglementation, taille et rythme de l'équipe, outillage), options numérotées ; elles ne
+bloquent pas la réponse.
 **À capitaliser ?** 0-3 propositions.
 ```
 

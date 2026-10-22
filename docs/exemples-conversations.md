@@ -6,41 +6,70 @@ réindexation : ils servent à lire, jamais à citer. On cite document, version,
 
 ---
 
-## 1. Recherche simple (cas A) — pas de Web
+## 1. Question de mise en place (cas M) — sortie réelle de Thomas
 
 > **Utilisateur** : Comment l'ISTQB propose-t-il d'intégrer le risk-based testing dans une équipe agile ?
 
-L'assistant (skill `qa-knowledge`) :
+Sortie réelle de l'agent Thomas (`claude -p --agent thomas`, essai `M1-rbt-agile` du
+2026-10-22, 7 tours, 0,17 $), résumée fidèlement ; réponse complète et commandes
+exécutées : `eval/essais-resultats/2026-10-22/M1-rbt-agile.md`. Le harnais a vérifié que
+les 11 citations renvoient à des pages lues pendant la conversation.
 
 ```text
-$ python qa.py idee chercher risk-based agile
-Aucune idée capitalisée ne correspond.
-
-$ python qa.py chercher '"risk-based testing" agile équipe' -n 4
-Notions : risque, agile, lex-equipe
-[1] CTAL-TA-4.0-en · … v4.0 (2025-05-02)  p. 25 · §2.1 Risk Analysis · passage #8488
-[2] CTAL-TA-4.0-fr · … v4.0 (2025-05-01)  p. 28 · §2.2 Contrôle des risques · passage #8680
-[3] CTFL-AT-2014-fr · … v2014 (2014-05-31) p. 34 · §3.2.1 Evaluer les risques de qualité sur les Projets Agile · passage #13411
-…
-$ python qa.py lire 13411 --contexte 1
-$ python qa.py lire 8488
+$ python qa.py idee chercher risk-based agile          # rien de capitalisé
+$ python qa.py chercher '"risk-based testing" agile'
+$ python qa.py lire … --contexte 1                      # CTFL-AT §3.2.1, CTAL-AT §3.1.1, CTFL §5.1.2…
+$ python qa.py section CTAL-TM-3.0-fr 1.3.6
 ```
 
-> **Assistant** : Rien n'est encore capitalisé sur ce sujet ; deux syllabus le traitent.
+> **Thomas** : **Sources retenues** : CTFL-AT 2014 EN §3.2.1 (ancien), CTFL v4.0.1 EN
+> §5.1.2, CTAL-AT v2.0 EN §3.1.1, CTAL-TA v4.0 FR §2.1.1 et §2.2, CTAL-TM v3.0 FR §1.3.6 ;
+> pas de Web. L'ISTQB ne décrit pas une méthode unique : il greffe le RBT sur la
+> planification de release et d'itération, avec une réévaluation continue.
+> **Hypothèse de contexte** : équipe Scrum, application web, pas de contrainte
+> réglementaire forte.
 >
-> - **Évaluer les risques qualité à chaque itération** : dans les projets agiles, l'analyse
->   des risques qualité intervient lors de la planification de release puis de chaque
->   itération ; le niveau de risque combine probabilité et impact
->   [ISTQB CTFL-AT 2014 FR, §3.2.1, p. 34].
-> - **Suivi continu** : les risques et leurs niveaux évoluent ; en cycle itératif, le suivi
->   des risques se fait à une fréquence fixée par l'équipe, vraisemblablement à chaque
->   itération [ISTQB CTAL-TA v4.0 FR, §2.2, p. 28 ; EN §2 (introduction du chapitre), p. 25].
+> **Méthode pas à pas**
+> 1. Cadrer le niveau de risque : risques produit vs projet, probabilité × impact
+>    [CTFL-AT 2014 EN, §3.2.1, p. 31].
+> 2. Planification de release : le métier donne la vue d'ensemble, toute l'équipe
+>    identifie et évalue [CTFL-AT 2014 EN, §3.2.1, p. 32 ; CTFL v4.0.1 EN, §5.1.2, p. 48].
+> 3. Planification d'itération : analyse détaillée par user story, sessions de
+>    *risk-storming* animées par le testeur [CTAL-AT v2.0 EN, §3.1.1, p. 24-25] ; les six
+>    étapes du CTFL-AT (réunir l'équipe, lister le backlog, identifier, évaluer,
+>    proportionner l'effort, choisir les techniques) [CTFL-AT 2014 EN, §3.2.1, p. 32].
+> 4. Prioriser : risque élevé = démarrage plus tôt et plus d'effort de test [idem].
+> 5. Atténuer avant l'exécution : revue des stories à risque, *shift-left*
+>    [CTAL-TA v4.0 FR, §2.1.1, p. 27].
+> 6. Réévaluer à chaque itération [CTAL-TA v4.0 FR, §2.2, p. 28].
+> 7. Mesurer en rétrospective (parties prenantes impliquées ? défauts graves trouvés
+>    tôt ? tests ignorés moins risqués ?) [CTAL-TM v3.0 FR, §1.3.6, p. 34].
 >
-> Interprétation : intégrer un court atelier risques au refinement plutôt qu'un
-> document de stratégie séparé. Limite : le syllabus CTFL-AT date de 2014.
-> Pas de recherche Web : les syllabus couvrent la question.
+> **Exemple de mise en œuvre (fictif — interprétation)** : équipe Scrum de 6 personnes,
+> appli web livrée toutes les 2 semaines : 20 min de risk-storming au planning, chaque
+> story notée faible / moyen / élevé ; le paiement (élevé) testé en premier avec revue de
+> la story ; à la rétro, on vérifie si les bugs sont apparus là où on les attendait.
 >
-> À capitaliser ? « Atelier risques par itération » (thème `rbt`, secondaire `agile`).
+> **Adaptation par domaine** — santé / réglementé : traçabilité renforcée, couverture par
+> niveau d'intégrité, *aucun syllabus santé ni IEC 62304* (Web nécessaire pour la norme) ;
+> web : pas de syllabus dédié, CT-PT §3.2 ; embarqué : CT-AuT et CTEL-TM §8.3.3, en
+> anglais ; mobile : CT-MAT (2019) ; API : pas de syllabus dédié, tests de contrat dans
+> CT-QDO §3.2.2. « Je n'ai lu aucune des sections de ce tableau : ce sont des repères à
+> vérifier, pas des citations. »
+>
+> **Par quoi je commencerais** : risk-storming de 15-20 min au planning (impact fort,
+> effort faible) ; lier niveau de risque, ordre des tâches et effort (fort / faible) ;
+> questions du CTAL-TM §1.3.6 en rétro (moyen / faible).
+> **Confiance : 80/100 (élevée)** — source la plus détaillée ancienne (2014), exemple et
+> ordre des étapes en partie interprétés.
+> **Questions à choix** : 1. contexte (Scrum/Kanban web · agile à l'échelle · secteur
+> réglementé) ; 2. suite (approfondir CTAL-AT §3.1 · comparer avec le cycle séquentiel ·
+> `/ajouter-syllabus` pour un domaine non couvert). Suit une proposition à capitaliser en
+> JSON (« Risk-storming à la planification d'itération »), non enregistrée.
+
+Avant le correctif de #91, la même question classée « connaissance » donnait des pistes
+par syllabus sans méthode ni exemple
+(`eval/essais-resultats/2026-10-22/M1-rbt-agile-avant-correctif.md`).
 
 ---
 

@@ -88,3 +88,13 @@ def test_capitalisation_par_entree_standard():
         texte = chemin.read_text(encoding="utf-8")
         assert "--fichier idee.json" not in texte and "--fichier <json>" not in texte, chemin.name
     assert "idee doublons <<'JSON'" in (SKILL.parent / "reference" / "capitalisation.md").read_text(encoding="utf-8")
+
+
+def test_web_obligatoire_pour_un_outil_absent_des_syllabus():
+    """#49 : la recherche Web est faite (pas proposée) quand l'outil nommé est introuvable."""
+    for chemin in (SKILL, AGENTS / "thomas.md"):
+        texte = corps(chemin)
+        assert "fait partie de" in texte and "ne la propose pas" in texte, chemin.name
+        assert "60/100" in texte, chemin.name
+    strategie = (SKILL.parent / "reference" / "strategie.md").read_text(encoding="utf-8")
+    assert "ne dépasse pas **60**" in strategie

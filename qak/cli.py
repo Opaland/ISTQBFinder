@@ -209,6 +209,8 @@ def cmd_chercher(a):
         _ecrire(f"    {' '.join(x['extrait'].split())}")
     for w in r["avertissements"]:
         _ecrire(f"\n⚠ {w}")
+    c = r["confiance"]
+    _ecrire(f"\nConfiance documentaire : {c['score']}/100 ({c['libelle']}) — {' ; '.join(c['raisons'])}")
     if r["resultats"]:
         _ecrire("\nLire avant de citer : `lire <passage>` (--contexte 1) ou `section <doc> <num>`.")
 

@@ -31,8 +31,13 @@ Linux/macOS si `python` est absent). `--help` sur chaque commande.
 
 Pour une question simple : étapes 1-3, réponse courte. Pour une recherche approfondie ou
 une comparaison : ajoute l'identification des lacunes/contradictions, le Web ciblé,
-la comparaison et des recommandations contextualisées. Détails et formats de réponse :
-[reference/strategie.md](reference/strategie.md).
+la comparaison et des recommandations contextualisées.
+
+**Forme de la réponse** : conversationnelle, des **pistes par syllabus / chapitre** en
+puces, un tableau si l'on compare, « où creuser ensuite » — pour faire émerger des idées,
+pas pour livrer un texte à recopier. **Toujours** un « Confiance : NN/100 » calculé à
+partir de la confiance documentaire de `chercher` (grille d'ajustement). Gabarit, grille
+et détails : [reference/strategie.md](reference/strategie.md).
 
 ## Règles de citation (impératives)
 

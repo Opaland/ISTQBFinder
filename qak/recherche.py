@@ -154,7 +154,8 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
             resultats.append({**{k: r[k] for k in r.keys() if k not in ("texte", "score")},
                               "score": round(-r["score"], 2), "couverture": round(c, 2),
                               "partiel": c < 1 and bool(gs),
-                              "groupes_trouves": [gs[k].libelle for k in sorted(trouves[r["id"]])]})
+                              "groupes_trouves": [gs[k].libelle for k in sorted(trouves[r["id"]])],
+                              "notion_en_titre": bool(en_titre[r["id"]])})
             if len(resultats) >= n:
                 break
         ignores = mots_ignores(requete)
@@ -167,10 +168,34 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
             avert.append("Aucun passage ne couvre toutes les notions : résultats partiels.")
         avert += _diagnostic_filtres(cx, docs, langue, niveau, toutes_versions)
         return {"requete_fts": ou, "groupes": [g.libelle for g in gs], "resultats": resultats,
+                "confiance": confiance_documentaire(resultats),
                 "avertissements": avert}
     finally:
         if propre:
             cx.close()
+
+
+def confiance_documentaire(resultats: list[dict]) -> dict:
+    """Indice 0-100 de la solidité du socle documentaire trouvé (pas de la réponse finale :
+    l'agent l'ajuste selon ce qu'il a réellement lu, voir le skill). Composantes :
+    couverture du meilleur passage (40), nombre de syllabus couvrant TOUTES les notions
+    (25), part de résultats complets dans les 5 premiers (20), section dont le titre
+    nomme la notion (15)."""
+    if not resultats:
+        return {"score": 0, "libelle": "nulle", "raisons": ["aucun passage trouvé"]}
+    top = resultats[:5]
+    complets = {r["doc_id"].rsplit("-", 2)[0] for r in resultats if not r["partiel"]}  # par code
+    a = 40 * top[0]["couverture"]
+    b = {0: 0, 1: 10, 2: 20}.get(len(complets), 25)
+    c = 20 * sum(not r["partiel"] for r in top) / len(top)
+    d = 15 if any(r.get("notion_en_titre") for r in top) else 0
+    score = round(a + b + c + d)
+    libelle = "élevée" if score >= 75 else "moyenne" if score >= 50 else "faible" if score >= 25 else "très faible"
+    raisons = [f"meilleur passage : {round(100 * top[0]['couverture'])} % des notions",
+               f"{len(complets)} syllabus couvrent toutes les notions",
+               f"{sum(not r['partiel'] for r in top)}/{len(top)} premiers résultats complets"]
+    raisons.append("une section est consacrée à la notion" if d else "aucune section consacrée à la notion")
+    return {"score": score, "libelle": libelle, "raisons": raisons}
 
 
 def _diagnostic_filtres(cx, docs, langue, niveau, toutes_versions) -> list[str]:

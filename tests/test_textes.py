@@ -44,3 +44,10 @@ def test_sigles_courts_seulement_en_majuscules():
     assert "ideal" not in ids("quel est le processus idéal de revue")
     assert "ideal" in ids("modèle IDEAL") and "ideal" in ids("le cadre IDEAL") and "ideal" in ids("IDEAL")
     assert "ai" not in textes.reperer_concepts("j'ai des tests instables")[1]  # ni « mot trop court ignoré »
+
+
+def test_layering_equivaut_a_superposition_et_couches():
+    # Issue #47 : CTAL-TAE §3.1.3 « Apply Layering… » est traduit « superposition » en FR.
+    def ids(q):
+        return [cid for cid, _ in textes.reperer_concepts(q)[0]]
+    assert ids("layering") == ids("superposition") == ids("en couches") == ids("layers") == ["couches"]

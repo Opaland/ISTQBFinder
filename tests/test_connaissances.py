@@ -152,3 +152,47 @@ def test_couverture_signale_les_themes_vides():
     rows = {r["code"]: r for r in connaissances.couverture()}
     assert rows["rbt"]["idees"] == 1 and rows["rbt"]["etat"] == "pauvre"
     assert rows["exploratoire"]["etat"] == "vide" and rows["exploratoire"]["passages"] is None
+
+
+def test_modifier_refuse_les_champs_geres_par_l_outil_et_inconnus():
+    """#51 : un champ « id » dans `idee modifier` écrasait silencieusement une autre idée."""
+    connaissances.ajouter(dict(IDEE))
+    connaissances.ajouter({**IDEE, "titre": "Charte de session exploratoire", "resume": "Cadrer une session.",
+                           "probleme": "Exploratoire non tracé.", "principe": "Charte et debriefing.",
+                           "theme_principal": "exploratoire",
+                           "references": [{"type": "web", "url": "https://exemple.org/c", "titre": "C"}]})
+    avant = chemins.connaissances_jsonl().read_text(encoding="utf-8")
+    for champ, valeur in (("id", "QA-0002"), ("cree_le", "1999-01-01"), ("maj_le", "1999-01-01"),
+                          ("relations", [{"cible": "QA-0002", "type": "variante"}]),
+                          ("retours", [{"contexte": "x", "resultat": "y"}])):
+        with pytest.raises(ErreurValidation, match=champ):
+            connaissances.modifier("QA-0001", {champ: valeur, "titre": "Titre modifié"})
+    with pytest.raises(ErreurValidation, match="inconnu.*couleur"):
+        connaissances.modifier("QA-0001", {"couleur": "bleu"})
+    with pytest.raises(ErreurValidation, match="id"):
+        connaissances.ajouter({**IDEE, "id": "QA-0002"})
+    assert chemins.connaissances_jsonl().read_text(encoding="utf-8") == avant
+    assert connaissances.voir("QA-0002")["references"][0]["url"] == "https://exemple.org/c"
+
+@pytest.mark.parametrize("donnees, message", [
+    ([], "objet JSON"),
+    (None, "objet JSON"),
+    ({**IDEE, "theme_principal": 123}, "theme_principal : texte attendu"),
+    ({**IDEE, "titre": 42}, "titre : texte attendu"),
+    ({**IDEE, "themes_secondaires": "metriques"}, "themes_secondaires : liste"),
+    ({**IDEE, "references": {"type": "web"}}, "references : liste d'objets"),
+    ({**IDEE, "references": ["https://exemple.org"]}, "references : liste d'objets"),
+    ({**IDEE, "references": [{"type": "web", "url": ["https://exemple.org"]}]}, "references.url"),
+])
+def test_types_invalides_message_francais(donnees, message):
+    """#55 : un JSON de mauvais type provoquait une trace Python (AttributeError)."""
+    with pytest.raises(ErreurValidation, match=message):
+        connaissances.ajouter(donnees)
+
+
+def test_type_invalide_cli_code_retour_2(capsys, monkeypatch):
+    import io
+    from qak import cli
+    monkeypatch.setattr("sys.stdin", io.StringIO("[]"))
+    assert cli.main(["idee", "ajouter"]) == 2
+    assert "objet JSON" in capsys.readouterr().err

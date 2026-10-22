@@ -60,7 +60,12 @@ et détails : [reference/strategie.md](reference/strategie.md).
 ## Recherche Web
 
 Justifiée si : rien de pertinent localement, besoin d'actualité (outil, version, pratique
-récente), retour d'expérience terrain, ou vérification d'un point douteux. Privilégie
+récente), retour d'expérience terrain, ou vérification d'un point douteux.
+**Obligatoire** si la question nomme un outil, une technologie ou une pratique que
+`chercher` ne trouve pas dans la bibliothèque (ex. Playwright) : la recherche Web ciblée
+(documentation officielle de l'outil d'abord) **fait partie de la réponse** — fais-la,
+ne la propose pas ; justifie-la en une phrase. Une notion de la question couverte ni
+par un passage lu ni par une source Web plafonne la confiance à 60/100. Privilégie
 sources officielles, documentation d'outils, publications spécialisées, retours
 d'expérience argumentés. Note URL et date de consultation pour la capitalisation.
 
@@ -73,10 +78,11 @@ N'enregistre qu'avec l'accord de l'utilisateur. Procédure :
 [reference/capitalisation.md](reference/capitalisation.md) — en bref :
 
 1. `idee modele` donne le gabarit JSON ; `theme proposer "<texte>"` suggère les thèmes.
-2. `idee doublons --fichier <json>` **avant** tout ajout. Doublon probable → proposer de
-   compléter l'existante (`idee modifier QA-xxxx`) ou de lier (`idee lier`).
-3. `idee ajouter --fichier <json>` (le JSON peut être passé sur l'entrée standard).
-   Les références ISTQB sont vérifiées automatiquement (document, pages, extrait).
+2. `idee doublons <<'JSON'` … `JSON` **avant** tout ajout (JSON sur l'entrée standard,
+   pas de fichier temporaire). Doublon probable → proposer de compléter l'existante
+   (`idee modifier QA-xxxx`) ou de lier (`idee lier`).
+3. `idee ajouter <<'JSON'` … `JSON`. Les références ISTQB sont vérifiées
+   automatiquement (document, pages, extrait).
 4. Statut `validee`/`abandonnee`/`experimentee` : uniquement via `idee statut … --motif`,
    sur décision explicite de l'utilisateur.
 

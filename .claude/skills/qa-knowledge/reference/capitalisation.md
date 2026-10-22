@@ -78,7 +78,10 @@ jamais dans `bibliotheque/sources/`.
 ## Traçabilité
 
 Chaque création / modification / changement de statut / relation / thème est journalisé
-(`journal`, `journal --cible QA-xxxx`). La base se versionne avec Git via
+avec son auteur et un horodatage avec fuseau (`journal`, `journal --cible QA-xxxx`,
+`--details` pour l'avant/après). Le journal se fusionne sans conflit entre postes
+(`merge=union`) ; si un JSONL contient encore des marqueurs `<<<<<<<`, l'outil indique
+le fichier et la ligne : résoudre le conflit avant toute autre commande. La base se versionne avec Git via
 `connaissances/connaissances.jsonl` et `journal.jsonl` : proposer un commit
 après une session de capitalisation.
 

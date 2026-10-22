@@ -45,7 +45,7 @@ Aucun serveur, aucune interface graphique, aucune clé d'API. Dépendance unique
 | Sections | Signets PDF si numérotés, sinon **plus longue chaîne de titres à numérotation cohérente** | Les syllabus FR n'ont souvent pas de signets. La programmation dynamique écarte les listes numérotées du préambule ; les titres répétés par les objectifs d'apprentissage sont écartés au profit du vrai titre. |
 | Taxonomie | Fichier JSON, codes stables, statut `obsolete` + `remplace_par` | Un thème n'est jamais supprimé ; les idées gardent leur classement historique et les requêtes suivent le remplaçant. |
 | Déduplication | Signature = concepts du thésaurus + racines | « Partitions d'équivalence » et « Equivalence partitioning » ont la même signature ; seuil 0,6 = doublon probable (bloquant), 0,35 = proche (signalé). |
-| Références ISTQB | **Vérifiées à l'écriture** | Document présent, page existante, extrait réellement présent (≥ 70 % des mots) : une citation inventée est refusée par l'outil, pas seulement déconseillée par le skill. |
+| Références ISTQB | **Vérifiées à l'écriture** | Document présent, page existante, section présente sur les pages citées, extrait recopié mot pour mot (suite contiguë du texte normalisé, ≥ 6 mots significatifs, espaces parasites des PDF recollés) : une citation inventée, inversée ou en vrac est refusée par l'outil, pas seulement déconseillée par le skill. Limite : une citation exacte mais sortie de son contexte n'est pas détectable. |
 
 ## Mesures de la recherche (bibliothèque réelle : 42 fichiers, 26 codes EN + 14 FR)
 

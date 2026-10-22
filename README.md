@@ -1,6 +1,7 @@
 # ISTQBFinder — QA Knowledge Agent
 
-Assistant de connaissances QA **utilisé uniquement en conversation dans Claude Code**.
+Assistant de connaissances QA **utilisé en conversation** dans Claude Code (référence) ou
+GitHub Copilot (voir « Où l'utiliser »).
 Il cherche dans une bibliothèque locale de syllabus ISTQB (FR et EN, pages et sections
 citées), dans une base d'idées QA capitalisées au fil du temps, et sur le Web seulement
 quand c'est justifié. Il ne « s'entraîne » pas : il enrichit une mémoire documentaire
@@ -14,6 +15,8 @@ Pas de serveur, pas d'interface graphique, pas de clé d'API. Python ≥ 3.10 + 
 |---|---|---|
 | **Claude Code en ligne de commande** (`claude`, lancé à la racine du dépôt) | oui | skills, agents Thomas et Sylvie, permissions de `.claude/settings.json` |
 | **Appli de bureau Claude, onglet Code** (dossier du dépôt ouvert) | oui | même fonctionnement que la ligne de commande |
+| **VS Code + GitHub Copilot Chat** (mode agent) | oui, non essayé en réel | skills lus dans `.claude/skills/`, agents `.github/agents/` générés, consignes `AGENTS.md` — voir [Utiliser avec GitHub Copilot](#utiliser-avec-github-copilot) |
+| **GitHub Copilot CLI** (`copilot`) | oui, chargement vérifié | idem ; réponses non essayées faute de compte Copilot |
 | **claude.ai** (conversation Web ou appli, onglet Chat) | **non** | voir ci-dessous |
 
 Pourquoi pas claude.ai : le skill n'est pas autonome. Il pilote la CLI `python qa.py`
@@ -73,13 +76,64 @@ La CLI reste utilisable directement (`python qa.py --help`) :
 |---|---|
 | Chercher dans les syllabus | `chercher <notions> [--doc CTAL-TM] [--theme rbt] [--section 1.3] [--langue fr]` |
 | Lire avant de citer | `lire <passage> [--contexte 1]` · `section <doc> <num>` · `page <doc> <p[-q]>` · `plan <doc>` |
-| Base d'idées | `idee chercher …` · `idee lister [--theme] [--statut]` · `idee voir QA-0001` |
+| Base d'idées | `idee chercher …` · `idee lister [--theme] [--statut]` · `idee voir QA-20261022-7f3a` |
 | Capitaliser | `idee modele` · `idee doublons <<'JSON'` · `idee ajouter <<'JSON'` (JSON sur l'entrée standard) |
 | Faire évoluer | `idee modifier` · `idee statut … --motif` · `idee retour` · `idee lier` · `journal` |
 | Taxonomie | `themes` · `theme proposer "<texte>"` · `theme ajouter …` · `theme obsolete …` · `couverture` |
 | Syllabus manquants | `manquants [--langue fr]` · skills `/bibliotheque` (maintenance) et `/ajouter-syllabus` |
 | Bibliothèque | `catalogue [--verifier]` · `telecharger` · `importer` · `actualiser` · `inventaire` · `corriger` · `retirer` |
 | Qualité de la recherche | `evaluer --jeu controle` |
+
+## Utiliser avec GitHub Copilot
+
+Prérequis : l'installation ci-dessus (Python, `python qa.py actualiser`), puis VS Code avec
+l'extension GitHub Copilot Chat en **mode agent**, ou [Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli)
+(`npm install -g @github/copilot`, puis `copilot` à la racine du dépôt). Rien à copier :
+tout est versionné dans le dépôt.
+
+| Élément | Fichier lu par Copilot | Source unique |
+|---|---|---|
+| Skills `qa-knowledge`, `bibliotheque`, `ajouter-syllabus` | `.claude/skills/` lu **directement** (VS Code et Copilot CLI) | `.claude/skills/` |
+| Agents Thomas et Sylvie | `.github/agents/thomas.agent.md`, `sylvie.agent.md` — **générés** | `.claude/agents/*.md` |
+| Consignes (citation, lire avant de citer, score de confiance, règles de dev) | `AGENTS.md` (Copilot lit aussi `CLAUDE.md`) | `AGENTS.md`, importé par `CLAUDE.md` |
+
+- **Lancer les agents** : VS Code, sélecteur d'agents du chat → `thomas` ou `sylvie` ;
+  Copilot CLI, `/agent` puis le choisir, ou `copilot --agent thomas -p "<question>"`.
+  Skills : `/skills list` dans une session, `copilot skill list` dans le terminal.
+- **Après modification** d'un agent ou d'un skill : `python scripts/generer_integrations.py`
+  (le test `tests/test_integrations.py`, lancé par la CI, échoue si on l'oublie).
+- **Permissions** : l'équivalent de l'allowlist en lecture seule de `.claude/settings.json`
+  n'est pas versionnable. VS Code : réglage `chat.tools.terminal.autoApprove` (clés =
+  préfixes de commande, valeur `true`), par exemple
+  `{"python qa.py chercher": true, "python qa.py lire": true, "python qa.py section": true}` ;
+  une valeur `false` redemande confirmation. Copilot CLI : approuver à la demande, ou
+  `--allow-tool 'shell(python qa.py chercher)'` pour la session. Ne pré-approuvez jamais les
+  commandes qui écrivent (`idee ajouter`, `importer`, `actualiser`…, liste dans `AGENTS.md`).
+
+Limites connues :
+
+- **Non essayé en réel** côté réponses : faute de compte Copilot dans l'environnement de
+  développement, aucune question n'a été posée à Thomas ni à Sylvie dans Copilot. Vérifié avec
+  Copilot CLI 1.0.102 : `copilot skill list` voit les trois skills de `.claude/skills/`,
+  `copilot instruction list` charge `AGENTS.md` et `CLAUDE.md`. Le chargement des agents
+  `.github/agents/` exige une session authentifiée et n'a pas pu être vérifié.
+- Copilot ne précharge pas un skill dans un agent (champ `skills:` propre à Claude Code) :
+  l'agent généré commence par lire `.claude/skills/qa-knowledge/SKILL.md`.
+- VS Code lit aussi `.claude/agents/` (format Claude) : Thomas et Sylvie peuvent y apparaître
+  deux fois ; les deux versions ont le même prompt.
+- Les en-têtes `allowed-tools` et `argument-hint` des skills sont propres à Claude Code et
+  ignorés par Copilot : ils ne donnent aucune permission.
+
+Documentation consultée (2026-10-22) :
+[VS Code — Agent Skills](https://code.visualstudio.com/docs/copilot/customization/agent-skills) ·
+[VS Code — Custom agents](https://code.visualstudio.com/docs/copilot/customization/custom-agents) ·
+[VS Code — Instructions](https://code.visualstudio.com/docs/copilot/customization/custom-instructions) ·
+[VS Code — Approvals](https://code.visualstudio.com/docs/agents/approvals) ·
+[Copilot — custom agents configuration](https://docs.github.com/en/copilot/reference/custom-agents-configuration) ·
+[Copilot CLI — skills](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills) ·
+[Copilot CLI — custom agents](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/create-custom-agents-for-cli) ·
+[Copilot CLI — instructions](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions) ·
+[Copilot CLI — outils autorisés](https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/allowing-tools).
 
 ## Ce qui est versionné
 

@@ -1,4 +1,6 @@
 import json
+import re
+from datetime import date
 
 import pytest
 
@@ -16,12 +18,13 @@ IDEE = {
 
 def test_ajout_minimal_valeurs_par_defaut_et_miroir_jsonl():
     r = connaissances.ajouter(dict(IDEE))
-    assert r["etat"] == "cree" and r["id"] == "QA-0001"
-    i = connaissances.voir("QA-0001")
+    assert r["etat"] == "cree" and re.fullmatch(rf"QA-{date.today():%Y%m%d}-[0-9a-f]{{4}}", r["id"])
+    q1 = r["id"]
+    i = connaissances.voir(q1)
     assert (i["statut"], i["maturite"]) == ("a_explorer", "hypothese")
     lignes = chemins.connaissances_jsonl().read_text(encoding="utf-8").splitlines()
     assert json.loads(lignes[0])["titre"] == IDEE["titre"]
-    assert journal.lire("QA-0001")[0]["action"] == "idee_creee"
+    assert journal.lire(q1)[0]["action"] == "idee_creee"
 
 
 def test_champs_obligatoires_et_valeurs_controlees():
@@ -38,22 +41,22 @@ def test_champs_obligatoires_et_valeurs_controlees():
 
 
 def test_doublon_reformule_bloque_puis_force_avec_motif():
-    connaissances.ajouter(dict(IDEE))
+    q1 = connaissances.ajouter(dict(IDEE))["id"]
     reformule = {**IDEE, "titre": "Prioriser les tests avec une matrice impact / probabilité",
                  "resume": "Ordonner les tests selon probabilité et impact des risques produit."}
     r = connaissances.ajouter(reformule)
-    assert r["etat"] == "refuse" and r["doublons"][0]["id"] == "QA-0001"
+    assert r["etat"] == "refuse" and r["doublons"][0]["id"] == q1
     with pytest.raises(ErreurValidation, match="motif"):
         connaissances.ajouter(reformule, forcer=True)
     assert connaissances.ajouter(reformule, forcer=True, motif="variante orientée agile")["etat"] == "cree"
 
 
 def test_doublon_detecte_entre_francais_et_anglais():
-    connaissances.ajouter({**IDEE, "titre": "Partitions d'équivalence pour réduire le nombre de cas de test",
-                           "theme_principal": "boite-noire"})
+    q1 = connaissances.ajouter({**IDEE, "titre": "Partitions d'équivalence pour réduire le nombre de cas de test",
+                           "theme_principal": "boite-noire"})["id"]
     sim = connaissances.doublons({"titre": "Equivalence partitioning", "resume": "reduce the number of test cases",
                                   "principe": "", "probleme": ""})
-    assert sim and sim[0]["id"] == "QA-0001"
+    assert sim and sim[0]["id"] == q1
 
 
 def test_idee_differente_non_signalee():
@@ -65,60 +68,60 @@ def test_idee_differente_non_signalee():
 
 
 def test_modifier_ajoute_les_references_sans_perdre_les_anciennes():
-    connaissances.ajouter({**IDEE, "references": [{"type": "web", "url": "https://exemple.org/a", "titre": "A"}]})
-    connaissances.modifier("QA-0001", {"references": [{"type": "web", "url": "https://exemple.org/b", "titre": "B"}],
+    q1 = connaissances.ajouter({**IDEE, "references": [{"type": "web", "url": "https://exemple.org/a", "titre": "A"}]})["id"]
+    connaissances.modifier(q1, {"references": [{"type": "web", "url": "https://exemple.org/b", "titre": "B"}],
                                        "themes_secondaires": ["priorisation"]})
-    i = connaissances.voir("QA-0001")
+    i = connaissances.voir(q1)
     assert [r["url"] for r in i["references"]] == ["https://exemple.org/a", "https://exemple.org/b"]
     assert all(r.get("consulte_le") for r in i["references"])
     assert i["themes_secondaires"] == ["priorisation"]
-    assert connaissances.modifier("QA-0001", {"titre": IDEE["titre"]})["etat"] == "inchange"
+    assert connaissances.modifier(q1, {"titre": IDEE["titre"]})["etat"] == "inchange"
     with pytest.raises(ErreurValidation, match="idee statut"):
-        connaissances.modifier("QA-0001", {"statut": "validee"})
+        connaissances.modifier(q1, {"statut": "validee"})
 
 
 def test_regles_de_statut():
-    connaissances.ajouter(dict(IDEE))
+    q1 = connaissances.ajouter(dict(IDEE))["id"]
     with pytest.raises(ErreurValidation, match="motif"):
-        connaissances.changer_statut("QA-0001", "validee", None)
+        connaissances.changer_statut(q1, "validee", None)
     with pytest.raises(ErreurValidation, match="retour"):
-        connaissances.changer_statut("QA-0001", "experimentee", "essai sur la release 3.1")
-    connaissances.ajouter_retour("QA-0001", "Release 3.2", "2 défauts critiques trouvés plus tôt")
-    assert connaissances.changer_statut("QA-0001", "experimentee", "appliqué en 3.2")["apres"] == "experimentee"
-    assert [e["action"] for e in journal.lire("QA-0001")] == ["idee_creee", "retour_ajoute", "statut_change"]
+        connaissances.changer_statut(q1, "experimentee", "essai sur la release 3.1")
+    connaissances.ajouter_retour(q1, "Release 3.2", "2 défauts critiques trouvés plus tôt")
+    assert connaissances.changer_statut(q1, "experimentee", "appliqué en 3.2")["apres"] == "experimentee"
+    assert [e["action"] for e in journal.lire(q1)] == ["idee_creee", "retour_ajoute", "statut_change"]
 
 
 def test_relations_dans_les_deux_sens():
-    connaissances.ajouter(dict(IDEE))
-    connaissances.ajouter({**IDEE, "titre": "Charte exploratoire", "resume": "Session de 90 min cadrée.",
+    q1 = connaissances.ajouter(dict(IDEE))["id"]
+    q2 = connaissances.ajouter({**IDEE, "titre": "Charte exploratoire", "resume": "Session de 90 min cadrée.",
                            "probleme": "Exploratoire non tracé.", "principe": "Charte et debriefing.",
-                           "theme_principal": "exploratoire"})
-    connaissances.lier("QA-0002", "QA-0001", "complementaire", "les risques orientent les chartes")
-    assert connaissances.voir("QA-0002")["relations"][0]["cible"] == "QA-0001"
-    assert connaissances.voir("QA-0001")["relations_entrantes"][0]["source"] == "QA-0002"
+                           "theme_principal": "exploratoire"})["id"]
+    connaissances.lier(q2, q1, "complementaire", "les risques orientent les chartes")
+    assert connaissances.voir(q2)["relations"][0]["cible"] == q1
+    assert connaissances.voir(q1)["relations_entrantes"][0]["source"] == q2
     with pytest.raises(ErreurValidation):
-        connaissances.lier("QA-0001", "QA-0001", "variante")
+        connaissances.lier(q1, q1, "variante")
     with pytest.raises(KeyError):
-        connaissances.lier("QA-0001", "QA-9999", "variante")
+        connaissances.lier(q1, "QA-9999", "variante")
 
 
 def test_base_reconstruite_depuis_le_jsonl_apres_git_pull():
-    connaissances.ajouter(dict(IDEE))
+    q1 = connaissances.ajouter(dict(IDEE))["id"]
     # Simule un `git pull` qui apporte une idée saisie sur un autre poste.
     p = chemins.connaissances_jsonl()
     autre = json.loads(p.read_text(encoding="utf-8").splitlines()[0])
     autre.update(id="QA-0002", titre="Idée venue d'un autre poste")
     p.write_text(p.read_text(encoding="utf-8") + json.dumps(autre, ensure_ascii=False) + "\n", encoding="utf-8")
-    assert [i["id"] for i in connaissances.lister()] == ["QA-0001", "QA-0002"]
+    assert sorted(i["id"] for i in connaissances.lister()) == ["QA-0002", q1]  # anciens identifiants valides
     # Base supprimée : reconstruite à l'identique depuis le miroir versionné.
     chemins.base_db().unlink()
     assert connaissances.voir("QA-0002")["titre"] == "Idée venue d'un autre poste"
 
 
 def test_recherche_et_liste_par_theme_avec_sous_themes():
-    connaissances.ajouter(dict(IDEE))
-    assert connaissances.chercher("risk prioritization")[0]["id"] == "QA-0001"  # requête anglaise, idée française
-    assert [i["id"] for i in connaissances.lister(theme="test-management")] == ["QA-0001"]  # rbt ⊂ test-management
+    q1 = connaissances.ajouter(dict(IDEE))["id"]
+    assert connaissances.chercher("risk prioritization")[0]["id"] == q1  # requête anglaise, idée française
+    assert [i["id"] for i in connaissances.lister(theme="test-management")] == [q1]  # rbt ⊂ test-management
     assert connaissances.lister(theme="exploratoire") == []
 
 
@@ -156,23 +159,23 @@ def test_couverture_signale_les_themes_vides():
 
 def test_modifier_refuse_les_champs_geres_par_l_outil_et_inconnus():
     """#51 : un champ « id » dans `idee modifier` écrasait silencieusement une autre idée."""
-    connaissances.ajouter(dict(IDEE))
-    connaissances.ajouter({**IDEE, "titre": "Charte de session exploratoire", "resume": "Cadrer une session.",
+    q1 = connaissances.ajouter(dict(IDEE))["id"]
+    q2 = connaissances.ajouter({**IDEE, "titre": "Charte de session exploratoire", "resume": "Cadrer une session.",
                            "probleme": "Exploratoire non tracé.", "principe": "Charte et debriefing.",
                            "theme_principal": "exploratoire",
-                           "references": [{"type": "web", "url": "https://exemple.org/c", "titre": "C"}]})
+                           "references": [{"type": "web", "url": "https://exemple.org/c", "titre": "C"}]})["id"]
     avant = chemins.connaissances_jsonl().read_text(encoding="utf-8")
-    for champ, valeur in (("id", "QA-0002"), ("cree_le", "1999-01-01"), ("maj_le", "1999-01-01"),
-                          ("relations", [{"cible": "QA-0002", "type": "variante"}]),
+    for champ, valeur in (("id", q2), ("cree_le", "1999-01-01"), ("maj_le", "1999-01-01"),
+                          ("relations", [{"cible": q2, "type": "variante"}]),
                           ("retours", [{"contexte": "x", "resultat": "y"}])):
         with pytest.raises(ErreurValidation, match=champ):
-            connaissances.modifier("QA-0001", {champ: valeur, "titre": "Titre modifié"})
+            connaissances.modifier(q1, {champ: valeur, "titre": "Titre modifié"})
     with pytest.raises(ErreurValidation, match="inconnu.*couleur"):
-        connaissances.modifier("QA-0001", {"couleur": "bleu"})
+        connaissances.modifier(q1, {"couleur": "bleu"})
     with pytest.raises(ErreurValidation, match="id"):
-        connaissances.ajouter({**IDEE, "id": "QA-0002"})
+        connaissances.ajouter({**IDEE, "id": q2})
     assert chemins.connaissances_jsonl().read_text(encoding="utf-8") == avant
-    assert connaissances.voir("QA-0002")["references"][0]["url"] == "https://exemple.org/c"
+    assert connaissances.voir(q2)["references"][0]["url"] == "https://exemple.org/c"
 
 @pytest.mark.parametrize("donnees, message", [
     ([], "objet JSON"),
@@ -246,17 +249,173 @@ def test_source_exigee_pour_documentee_pratiquee_et_validee():
     for maturite in ("documentee", "pratiquee"):
         with pytest.raises(ErreurValidation, match="sans aucune référence"):
             connaissances.ajouter({**IDEE, "maturite": maturite})
-    connaissances.ajouter(dict(IDEE))
+    q1 = connaissances.ajouter(dict(IDEE))["id"]
     with pytest.raises(ErreurValidation, match="sans aucune référence"):
-        connaissances.modifier("QA-0001", {"maturite": "documentee"})
+        connaissances.modifier(q1, {"maturite": "documentee"})
     with pytest.raises(ErreurValidation, match="10 caractères"):
-        connaissances.changer_statut("QA-0001", "validee", "ok")
+        connaissances.changer_statut(q1, "validee", "ok")
     with pytest.raises(ErreurValidation, match="au moins une référence"):
-        connaissances.changer_statut("QA-0001", "validee", "adopté par l'équipe QA")
-    connaissances.modifier("QA-0001", {"maturite": "documentee",
+        connaissances.changer_statut(q1, "validee", "adopté par l'équipe QA")
+    connaissances.modifier(q1, {"maturite": "documentee",
                                        "references": [{"type": "norme", "titre": "ISO/IEC/IEEE 29119-3"}]})
-    assert connaissances.changer_statut("QA-0001", "validee", "adopté par l'équipe QA")["apres"] == "validee"
+    assert connaissances.changer_statut(q1, "validee", "adopté par l'équipe QA")["apres"] == "validee"
     with pytest.raises(ErreurValidation, match="10 caractères"):
+        connaissances.changer_statut(q1, "abandonnee", "   bof    ")
+
+def test_code_istqb_ambigu_departage_par_la_langue_de_l_extrait(bibliotheque_test, tmp_path):
+    """#37 : avec EN et FR « courants », une vraie citation FR était vérifiée contre l'EN."""
+    from qak import bibliotheque
+    fr = tmp_path / "ctfl-fr.md"
+    fr.write_text("# 2.1 Analyse des risques produit\n\nLe niveau de risque est déterminé par la probabilité "
+                  "du risque et par l'impact du risque pour chaque élément.\n", encoding="utf-8")
+    r = bibliotheque.importer(fr, {"code": "CTFL", "version": "9.9", "langue": "fr"})
+    assert r["etat"] == "importe", r
+    extrait_fr = "Le niveau de risque est déterminé par la probabilité du risque et par l'impact du risque"
+    d, _ = connaissances.valider(_ref_ctfl(pages="1", extrait=extrait_fr))
+    assert d["references"][0]["doc_id"] == r["doc_id"]
+    d, _ = connaissances.valider(_ref_ctfl(pages="6", extrait=EXTRAIT_P6))
+    assert d["references"][0]["doc_id"] == bibliotheque_test
+    with pytest.raises(ErreurValidation, match=r"ambigu.*CTFL-9\.9-en.*doc_id exact"):
+        connaissances.valider(_ref_ctfl(pages="1"))
+    connaissances.valider(_ref_ctfl(pages="1", doc_id=r["doc_id"]))  # identifiant exact : pas d'ambiguïté
+
+HERZBERG = {"titre": "Herzberg, motivation et hygiène",
+            "resume": "Distinguer facteurs de motivation et facteurs d'hygiène (Herzberg) pour animer une équipe de test.",
+            "probleme": "Équipe de test démotivée malgré de bonnes conditions matérielles.",
+            "principe": "Les facteurs d'hygiène évitent l'insatisfaction ; seuls les facteurs de motivation "
+                        "(reconnaissance, responsabilité, progression) motivent.",
+            "theme_principal": "competences"}
+
+
+@pytest.mark.parametrize("reformulee", [
+    {"titre": "Motiver l'équipe QA avec le modèle de Herzberg",
+     "resume": "Utiliser la théorie bifactorielle de Herzberg : hygiène vs motivation.",
+     "probleme": "Testeurs peu engagés.",
+     "principe": "Agir sur la reconnaissance et la responsabilité plutôt que sur le seul confort.",
+     "theme_principal": "competences"},
+    {"titre": "Using Herzberg's two-factor theory to motivate testers",
+     "resume": "Hygiene factors vs motivators for a QA team.", "probleme": "Low tester engagement.",
+     "principe": "Act on recognition and responsibility.", "theme_principal": "competences"},
+])
+def test_doublon_reformule_avec_nom_propre_partage(reformulee):
+    """#27 : « Motiver l'équipe QA avec le modèle de Herzberg » (FR ou EN) n'était pas détecté."""
+    q1 = connaissances.ajouter(dict(HERZBERG))["id"]
+    r = connaissances.ajouter(reformulee)
+    assert r["etat"] == "refuse" and r["doublons"][0]["id"] == q1
+
+
+def test_meme_theme_sans_contenu_commun_non_signale():
+    connaissances.ajouter(dict(HERZBERG))
+    autre = {"titre": "Entretiens annuels des testeurs", "resume": "Préparer les entretiens individuels.",
+             "probleme": "Entretiens bâclés.", "principe": "Grille d'objectifs et de compétences.",
+             "theme_principal": "competences"}
+    assert connaissances.doublons(autre) == []
+    # Mots capitalisés en début de phrase : pas des noms propres.
+    assert connaissances._termes_distinctifs("Équipe motivée. Les testeurs de l'équipe (Herzberg) et TMMi.") \
+        == {"herzberg", "tmmi"}
+
+
+def test_identifiant_non_reattribue_apres_git_revert():
+    """#34 : un `git revert` efface l'idée ET sa ligne de journal ; un compteur séquentiel
+    redonnait alors le même identifiant à une autre idée."""
+    jsonl, jnl = chemins.connaissances_jsonl(), chemins.journal_jsonl()
+    connaissances.ajouter(dict(IDEE))
+    etat_commit = jsonl.read_bytes(), jnl.read_bytes()
+    retiree = connaissances.ajouter({**IDEE, "titre": "Charte exploratoire", "resume": "Session cadrée.",
+                                     "probleme": "Exploratoire non tracé.", "principe": "Charte et debriefing.",
+                                     "theme_principal": "exploratoire"})["id"]
+    jsonl.write_bytes(etat_commit[0])  # git revert : idée et journal reviennent à l'état antérieur
+    jnl.write_bytes(etat_commit[1])
+    nouvelle = connaissances.ajouter({**IDEE, "titre": "Tests de mutation", "resume": "Injecter des fautes.",
+                                      "probleme": "Qualité des tests inconnue.", "principe": "Mutants tués.",
+                                      "theme_principal": "boite-blanche"})["id"]
+    assert nouvelle != retiree and re.fullmatch(r"QA-\d{8}-[0-9a-f]{4}", nouvelle)
+
+CHARTE = {**IDEE, "titre": "Charte de session exploratoire", "resume": "Cadrer une session de 90 min.",
+          "probleme": "Exploratoire non tracé.", "principe": "Charte, timebox, debriefing.",
+          "theme_principal": "exploratoire"}
+
+
+def _reecrire_jsonl(transformer):
+    p = chemins.connaissances_jsonl()
+    idees = [json.loads(l) for l in p.read_text(encoding="utf-8").splitlines() if l.strip()]
+    idees = [x for x in (transformer(i) for i in idees) if x]
+    p.write_text("".join(json.dumps(i, ensure_ascii=False) + "\n" for i in idees), encoding="utf-8")
+
+
+def test_jsonl_modifie_a_la_main_trace_et_signale():
+    """#33 : principe modifié, statut forcé à « expérimentée » sans retour et idée supprimée
+    à la main étaient acceptés sans trace ; la relation devenait orpheline (« ? »)."""
+    q1 = connaissances.ajouter(dict(IDEE))["id"]
+    q2 = connaissances.ajouter(dict(CHARTE))["id"]
+    connaissances.lier(q1, q2, "complementaire")
+    connaissances.avertissements()
+
+    def editer(i):
+        if i["id"] == q2:
+            return None
+        return {**i, "principe": "Principe réécrit à la main.", "statut": "experimentee"}
+    _reecrire_jsonl(editer)
+    connaissances.lister()
+    avert = connaissances.avertissements()
+    assert any("modifié hors de l'outil" in w for w in avert)
+    assert any("expérimentée » sans retour" in w for w in avert)
+    assert any("orpheline" in w and q2 in w for w in avert)
+    e = journal.lire()[-1]
+    assert e["action"] == "modification_externe"
+    assert e["details"]["supprimees"] == [q2]
+    assert set(e["details"]["modifiees"][q1]) == {"principe", "statut"}
+    assert e["details"]["modifiees"][q1]["statut"] == {"avant": "a_explorer", "apres": "experimentee"}
+    assert connaissances.avertissements() == []  # signalé une fois, à la reconstruction
+
+
+def test_git_pull_d_ajouts_faits_avec_l_outil_non_signale():
+    """Une idée ajoutée avec l'outil sur un autre poste arrive avec sa ligne de journal :
+    pas de « modification externe »."""
+    connaissances.ajouter(dict(IDEE))
+    p, jnl = chemins.connaissances_jsonl(), chemins.journal_jsonl()
+    jsonl_avant, journal_avant = p.read_text(encoding="utf-8"), jnl.read_text(encoding="utf-8")
+    q2 = connaissances.ajouter(dict(CHARTE))["id"]
+    jsonl_apres, journal_apres = p.read_text(encoding="utf-8"), jnl.read_text(encoding="utf-8")
+    p.write_text(jsonl_avant, encoding="utf-8")   # retour à l'état d'avant…
+    connaissances.lister()
+    jnl.write_text(journal_apres, encoding="utf-8")  # …puis `git pull` du JSONL et du journal
+    p.write_text(jsonl_apres, encoding="utf-8")
+    connaissances.avertissements()
+    assert q2 in [i["id"] for i in connaissances.lister()]
+    assert connaissances.avertissements() == []
+    assert all(e["action"] != "modification_externe" for e in journal.lire())
+
+
+def test_ligne_jsonl_invalide_message_clair():
+    connaissances.ajouter(dict(IDEE))
+    p = chemins.connaissances_jsonl()
+    p.write_text(p.read_text(encoding="utf-8") + "{pas du json\n", encoding="utf-8")
+    with pytest.raises(ErreurValidation, match=r"ligne 2 : JSON invalide"):
+        connaissances.lister()
+    p.write_text('{"id": "QA-0009", "titre": "sans le reste"}\n', encoding="utf-8")
+    with pytest.raises(ErreurValidation, match=r"ligne 1 : champ\(s\) obligatoire\(s\) absent\(s\) : resume"):
+        connaissances.lister()
+
+
+def test_retirer_une_idee_proprement():
+    q1 = connaissances.ajouter(dict(IDEE))["id"]
+    q2 = connaissances.ajouter(dict(CHARTE))["id"]
+    connaissances.lier(q1, q2, "complementaire")
+    with pytest.raises(ErreurValidation, match="10 caractères"):
+        connaissances.retirer(q2, "doublon")
+    r = connaissances.retirer(q2, "fusionnée dans une idée plus complète")
+    assert r["relations_entrantes_retirees"] == [{"source": q1, "type": "complementaire"}]
+    assert [i["id"] for i in connaissances.lister()] == [q1]
+    assert connaissances.voir(q1)["relations"] == []
+    e = [x for x in journal.lire(q2) if x["action"] == "idee_retiree"][0]
+    assert e["details"]["idee"]["titre"] == CHARTE["titre"] and e["motif"].startswith("fusionnée")
+    chemins.base_db().unlink()  # reconstruction : rien d'inexpliqué
+    connaissances.lister()
+    assert connaissances.avertissements() == []
+    with pytest.raises(KeyError):
+        connaissances.retirer(q2, "déjà retirée auparavant")
+
         connaissances.changer_statut("QA-0001", "abandonnee", "   bof    ")
 
 

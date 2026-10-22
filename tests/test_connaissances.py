@@ -258,3 +258,20 @@ def test_source_exigee_pour_documentee_pratiquee_et_validee():
     assert connaissances.changer_statut("QA-0001", "validee", "adopté par l'équipe QA")["apres"] == "validee"
     with pytest.raises(ErreurValidation, match="10 caractères"):
         connaissances.changer_statut("QA-0001", "abandonnee", "   bof    ")
+
+def test_code_istqb_ambigu_departage_par_la_langue_de_l_extrait(bibliotheque_test, tmp_path):
+    """#37 : avec EN et FR « courants », une vraie citation FR était vérifiée contre l'EN."""
+    from qak import bibliotheque
+    fr = tmp_path / "ctfl-fr.md"
+    fr.write_text("# 2.1 Analyse des risques produit\n\nLe niveau de risque est déterminé par la probabilité "
+                  "du risque et par l'impact du risque pour chaque élément.\n", encoding="utf-8")
+    r = bibliotheque.importer(fr, {"code": "CTFL", "version": "9.9", "langue": "fr"})
+    assert r["etat"] == "importe", r
+    extrait_fr = "Le niveau de risque est déterminé par la probabilité du risque et par l'impact du risque"
+    d, _ = connaissances.valider(_ref_ctfl(pages="1", extrait=extrait_fr))
+    assert d["references"][0]["doc_id"] == r["doc_id"]
+    d, _ = connaissances.valider(_ref_ctfl(pages="6", extrait=EXTRAIT_P6))
+    assert d["references"][0]["doc_id"] == bibliotheque_test
+    with pytest.raises(ErreurValidation, match=r"ambigu.*CTFL-9\.9-en.*doc_id exact"):
+        connaissances.valider(_ref_ctfl(pages="1"))
+    connaissances.valider(_ref_ctfl(pages="1", doc_id=r["doc_id"]))  # identifiant exact : pas d'ambiguïté

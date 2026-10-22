@@ -254,6 +254,39 @@ def _verifier_extrait(extrait: str, texte_source: str, lieu: str) -> None:
             "lu (`lire` / `page`), sans reformuler ni couper au milieu.")
 
 
+MARQUEURS_LANGUE = {
+    "fr": {"le", "la", "les", "des", "est", "et", "pour", "une", "dans", "du", "sont", "qui", "par", "au"},
+    "en": {"the", "and", "of", "is", "to", "for", "in", "with", "are", "be", "which", "by", "that"},
+}
+
+
+def _langue_extrait(extrait: str | None) -> str | None:
+    """Langue d'un extrait d'après ses mots-outils ; None si rien ne la départage."""
+    toks = normaliser(extrait or "").split()
+    fr, en = (sum(t in MARQUEURS_LANGUE[l] for t in toks) for l in ("fr", "en"))
+    return None if fr == en else "fr" if fr > en else "en"
+
+
+def _document_reference(cx, doc: str, extrait: str | None):
+    """Document désigné par `doc` : identifiant exact, sinon code ISTQB. Un code peut
+    désigner plusieurs documents courants (EN et FR, syllabus et BoK) : on départage par
+    la langue de l'extrait, sinon on exige l'identifiant exact plutôt que de choisir au
+    hasard (une vraie citation FR était vérifiée contre la version EN, #37)."""
+    exact = cx.execute("SELECT * FROM documents WHERE doc_id=? COLLATE NOCASE", (doc,)).fetchone()
+    if exact:
+        return exact
+    docs = cx.execute("SELECT * FROM documents WHERE code=? COLLATE NOCASE ORDER BY doc_id", (doc,)).fetchall()
+    candidats = [x for x in docs if x["statut_version"] == "courant"] or docs
+    if len(candidats) > 1:
+        langue = _langue_extrait(extrait)
+        candidats = [x for x in candidats if x["langue"] == langue] or candidats
+    if len(candidats) > 1:
+        raise ErreurValidation(
+            f"Code « {doc} » ambigu ({', '.join(x['doc_id'] for x in candidats)}) : préciser le doc_id exact"
+            + (" (la langue de l'extrait ne suffit pas à départager)." if extrait else "."))
+    return candidats[0] if candidats else None
+
+
 def _verifier_reference_istqb(ref: dict) -> list[str]:
     """Contrôle une référence ISTQB contre la bibliothèque indexée : document présent,
     pages existantes, section du plan présente sur les pages citées, extrait recopié
@@ -264,8 +297,7 @@ def _verifier_reference_istqb(ref: dict) -> list[str]:
     cx = bibliotheque.connecter()
     try:
         doc = ref.get("doc_id")
-        d = cx.execute("SELECT * FROM documents WHERE doc_id=? COLLATE NOCASE OR code=? COLLATE NOCASE "
-                       "ORDER BY statut_version='courant' DESC", (doc, doc)).fetchone() if doc else None
+        d = _document_reference(cx, doc, ref.get("extrait")) if doc else None
         if not d:
             return [f"document « {doc} » absent de la bibliothèque : référence non vérifiable"]
         ref["doc_id"] = d["doc_id"]
@@ -381,9 +413,20 @@ def valider(donnees: dict, partiel: bool = False) -> tuple[dict, list[str]]:
         refs.append(r)
     if "references" in d:
         d["references"] = refs
-    if not partiel and d["maturite"] in ("documentee", "pratiquee") and not refs:
-        avert.append("maturité « documentée/pratiquée » sans aucune référence : à étayer")
+    if not partiel:
+        _exiger_source(d)
     return d, avert
+
+
+MOTIF_MIN = 10
+
+
+def _exiger_source(idee: dict) -> None:
+    """« documentée » / « pratiquée » affirment une source : sans référence, c'est faux."""
+    if idee.get("maturite") in ("documentee", "pratiquee") and not idee.get("references"):
+        raise ErreurValidation(
+            f"Maturité « {idee['maturite']} » sans aucune référence : ajouter la source (syllabus, norme, "
+            "publication) dans `references`, ou garder « hypothese ».")
 
 
 # ---------------------------------------------------------------- déduplication
@@ -519,6 +562,7 @@ def modifier(idee_id: str, donnees: dict, remplacer_listes: bool = False, motif:
                 apres[k] = existant + [x for x in v if cle(x) not in vus]
             else:
                 apres[k] = v
+        _exiger_source(apres)
         apres["maj_le"] = datetime.now().isoformat(timespec="seconds")
         changes = {k: {"avant": avant.get(k), "apres": apres.get(k)} for k in maj if avant.get(k) != apres.get(k)}
         if not changes:
@@ -537,8 +581,13 @@ def changer_statut(idee_id: str, statut: str, motif: str | None) -> dict:
     cx = ouvrir()
     try:
         idee = _charger(cx, idee_id)
-        if statut in ("validee", "abandonnee", "experimentee") and not motif:
-            raise ErreurValidation(f"Le statut « {statut} » exige un motif (--motif) : sur quoi repose la décision ?")
+        motif = (motif or "").strip()
+        if statut in ("validee", "abandonnee", "experimentee") and len(motif) < MOTIF_MIN:
+            raise ErreurValidation(f"Le statut « {statut} » exige un motif d'au moins {MOTIF_MIN} caractères "
+                                   "(--motif) : sur quoi repose la décision ?")
+        if statut == "validee" and not idee["references"] and not idee["retours"]:
+            raise ErreurValidation("« validée » exige au moins une référence (`idee modifier`) ou un retour "
+                                   "d'expérience (`idee retour`) : sur quelle source repose la validation ?")
         if statut == "experimentee" and not idee["retours"]:
             raise ErreurValidation("« expérimentée » exige au moins un retour d'expérience (`idee retour`).")
         avant = idee["statut"]

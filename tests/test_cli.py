@@ -15,7 +15,8 @@ def test_parcours_complet_en_ligne_de_commande(capsys, monkeypatch, racine_isole
     assert main(["inventaire"]) == 0 and "CTFL-9.9-en" in capsys.readouterr().out
 
     idee = {"titre": "Matrice des risques", "resume": "Probabilité × impact.", "probleme": "Effort uniforme.",
-            "principe": "Calculer le niveau de risque.", "theme_principal": "rbt"}
+            "principe": "Calculer le niveau de risque.", "theme_principal": "rbt",
+            "references": [{"type": "istqb", "doc_id": "CTFL", "pages": "6"}]}
     monkeypatch.setattr("sys.stdin", __import__("io").StringIO(json.dumps(idee)))
     assert main(["idee", "ajouter"]) == 0
     assert "QA-0001" in capsys.readouterr().out

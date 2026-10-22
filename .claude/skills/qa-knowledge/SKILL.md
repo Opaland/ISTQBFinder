@@ -113,6 +113,7 @@ d'expérience argumentés. Note URL et date de consultation pour la capitalisati
 Après une recherche, propose (sans l'imposer) 0 à 3 connaissances **durables et
 réutilisables** : technique, méthode d'amélioration, pattern/anti-pattern, comparaison,
 retour d'expérience, recommandation étayée. Jamais chaque paragraphe ou hypothèse.
+**Dépôt public** : n'enregistre rien qui nomme un client, une personne, un projet ou un montant (anonymiser) ; un document interne s'importe avec `importer --prive` (`bibliotheque/prive/`, jamais versionné).
 N'enregistre qu'avec l'accord de l'utilisateur. Procédure :
 [reference/capitalisation.md](reference/capitalisation.md) — en bref :
 

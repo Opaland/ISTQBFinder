@@ -40,7 +40,9 @@ JSON
 
 ## Références
 
-- `istqb` : `doc_id` (ou code), `pages` et/ou `section`, `extrait` recommandé. L'outil
+- `istqb` : `doc_id` (ou code), `pages` et/ou `section`, `extrait` recommandé. Un code
+  présent en plusieurs langues (CTAL-TM EN et FR) est départagé par la langue de l'extrait ;
+  sans extrait, donner le `doc_id` exact (ex. `CTAL-TM-3.0-fr`). L'outil
   refuse une page inexistante (ou mal écrite : « 31 », « 31-33 », « 4, 6 »), une section
   absente des pages citées, et un extrait qui n'est pas recopié **mot pour mot** (suite
   continue d'au moins 6 mots significatifs, sans reformulation ni « … ») ; il signale

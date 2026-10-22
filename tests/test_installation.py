@@ -1,6 +1,7 @@
 """Issue #73 : `qa.py diagnostic` et scripts d'installation. L'installation complète
 (venv, dépendances, indexation) est exécutée par la CI sur un clone propre (job
 « installation ») ; ici, les contrôles rapides."""
+import os
 import shutil
 import subprocess
 
@@ -49,7 +50,9 @@ def test_cli_assistant_absente_non_bloquante(monkeypatch):
         assert _etat(etats, f"{nom} : CLI")[0] == "--"
 
 
-@pytest.mark.skipif(not shutil.which("bash"), reason="bash absent")
+# Sous Windows, `bash` peut être le lanceur WSL sans distribution : installer.sh vise
+# Linux/macOS (job CI installation-linux) ; installer.ps1 est testé par installation-windows.
+@pytest.mark.skipif(os.name == "nt" or not shutil.which("bash"), reason="bash POSIX absent")
 def test_installer_sh_options():
     script = RACINE_CODE / "installer.sh"
     assert subprocess.run(["bash", "-n", str(script)]).returncode == 0

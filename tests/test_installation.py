@@ -50,6 +50,29 @@ def test_cli_assistant_absente_non_bloquante(monkeypatch):
         assert _etat(etats, f"{nom} : CLI")[0] == "--"
 
 
+def test_permission_ajoutee_par_l_utilisateur_non_bloquante(bibliotheque_test, monkeypatch, tmp_path, capsys):
+    """#163 : une règle ajoutée à `.claude/settings.json` (`/permissions`, portée projet)
+    périme `.gemini/settings.json`. Diagnostic OK avec un avertissement « -- » qui dit quoi
+    faire ; c'est la CI (`test_fichiers_generes_a_jour`) qui reste bloquante."""
+    import json
+    from qak import chemins
+    copie = tmp_path / "depot"
+    shutil.copytree(RACINE_CODE, copie, ignore=shutil.ignore_patterns(
+        ".git", "bibliotheque", "eval", "__pycache__", ".pytest_cache", ".venv", "venv"))
+    reglages = copie / ".claude" / "settings.json"
+    s = json.loads(reglages.read_text(encoding="utf-8"))
+    s["permissions"]["allow"].append("Bash(git status:*)")
+    reglages.write_text(json.dumps(s, indent=2, ensure_ascii=False), encoding="utf-8")
+    monkeypatch.setattr(chemins, "CODE", copie)
+    monkeypatch.setattr(diagnostic, "REQUETE_TEMOIN", "valeurs limites")
+    etat, _, detail = _etat(diagnostic.diagnostic(), "Fichiers d'intégration")
+    assert etat == "--" and ".gemini/settings.json" in detail
+    assert "non bloquant" in detail and "python scripts/generer_integrations.py" in detail
+    assert main(["diagnostic"]) in (0, None)  # pas de SystemExit(1)
+    sortie = capsys.readouterr().out
+    assert "--  Fichiers d'intégration" in sortie and "Diagnostic : OK" in sortie
+
+
 # Sous Windows, `bash` peut être le lanceur WSL sans distribution : installer.sh vise
 # Linux/macOS (job CI installation-linux) ; installer.ps1 est testé par installation-windows.
 @pytest.mark.skipif(os.name == "nt" or not shutil.which("bash"), reason="bash POSIX absent")

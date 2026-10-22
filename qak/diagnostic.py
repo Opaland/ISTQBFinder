@@ -2,7 +2,8 @@
 témoin, base d'idées et fichiers d'intégration des assistants. Lecture seule.
 
 Chaque contrôle rend (état, sujet, détail) : OK, KO (bloquant : code retour 1) ou
-« -- » (à faire, non bloquant : par exemple une CLI d'assistant non installée)."""
+« -- » (à faire, non bloquant : par exemple une CLI d'assistant non installée, ou des
+fichiers d'intégration à régénérer après une permission ajoutée)."""
 import importlib.util
 import shutil
 import sqlite3
@@ -59,8 +60,15 @@ def _integrations() -> list[tuple]:
     gen = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(gen)
     ecarts = gen.ecarts()
-    return [("OK" if not ecarts else "KO", "Fichiers d'intégration",
-             "à jour" if not ecarts else f"{len(ecarts)} à régénérer : `python scripts/generer_integrations.py`")]
+    # Maintenance du dépôt, pas de l'installation (#163) : une permission ajoutée par
+    # l'utilisateur (`/permissions`, portée projet) suffit à périmer `.gemini/settings.json`.
+    # Avertissement « -- » ici ; la CI reste bloquante (tests/test_integrations.py).
+    if not ecarts:
+        return [("OK", "Fichiers d'intégration", "à jour")]
+    return [("--", "Fichiers d'intégration",
+             f"{len(ecarts)} à régénérer ({', '.join(ecarts)}), non bloquant : `.claude/` a changé "
+             "(une permission ajoutée, par exemple). Pour aligner Copilot et Gemini : "
+             "`python scripts/generer_integrations.py` ; sinon, rien à faire.")]
 
 
 def _assistant(nom: str) -> list[tuple]:

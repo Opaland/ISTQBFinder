@@ -245,8 +245,33 @@ def _verifier_reference_istqb(ref: dict) -> list[str]:
     return problemes
 
 
+CHAMPS_CHAINE = (*CHAMPS_TEXTE, "theme_principal", "maturite", "statut", "provenance")
+
+
+def _controler_types(donnees) -> None:
+    """Types attendus du JSON saisi : un message français plutôt qu'une trace Python."""
+    if not isinstance(donnees, dict):
+        raise ErreurValidation("L'idée doit être un objet JSON ({…}) : voir `idee modele`.")
+    for champ in CHAMPS_CHAINE:
+        if donnees.get(champ) is not None and not isinstance(donnees[champ], str):
+            raise ErreurValidation(f"Champ {champ} : texte attendu (reçu {type(donnees[champ]).__name__}).")
+    t = donnees.get("themes_secondaires")
+    if t is not None and not (isinstance(t, list) and all(isinstance(x, str) for x in t)):
+        raise ErreurValidation("Champ themes_secondaires : liste de codes de thème attendue "
+                               "(ex. [\"metriques\"]).")
+    refs = donnees.get("references")
+    if refs is not None and not (isinstance(refs, list) and all(isinstance(r, dict) for r in refs)):
+        raise ErreurValidation("Champ references : liste d'objets attendue (ex. [{\"type\": \"web\", …}]).")
+    for r in refs or []:
+        for k, v in r.items():
+            if v is not None and not isinstance(v, str) and not (k == "pages" and isinstance(v, int)
+                                                                 and not isinstance(v, bool)):
+                raise ErreurValidation(f"Champ references.{k} : texte attendu (reçu {type(v).__name__}).")
+
+
 def valider(donnees: dict, partiel: bool = False) -> tuple[dict, list[str]]:
     """Normalise et contrôle une idée. Renvoie (idée, avertissements)."""
+    _controler_types(donnees)
     avert = []
     geres = [f"« {k} » ({CHAMPS_GERES[k]})" for k in donnees if k in CHAMPS_GERES]
     if geres:
@@ -278,7 +303,7 @@ def valider(donnees: dict, partiel: bool = False) -> tuple[dict, list[str]]:
                                "la créer puis utiliser `idee statut` avec un motif (et un retour d'expérience).")
     refs = []
     for r in d.get("references", []):
-        r = {k: v for k, v in r.items() if v not in (None, "")}
+        r = {k: (str(v) if k == "pages" else v.strip()) for k, v in r.items() if v not in (None, "")}
         if r.get("type") not in TYPES_REFERENCE:
             raise ErreurValidation(f"Type de référence invalide : {r.get('type')} ({', '.join(TYPES_REFERENCE)}).")
         if r["type"] == "web" and not r.get("url"):

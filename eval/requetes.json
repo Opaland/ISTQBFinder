@@ -977,6 +977,36 @@
    "controle": true
   },
   {
+   "requete": "exploratory testing",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "4.4.2"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "tests exploratoires",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "4.4.2"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "partitionnement d'équivalence",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "4.2.1"
+    }
+   ],
+   "controle": true
+  },
+  {
    "requete": "comment éviter que nos tests cassent à chaque changement d'écran",
    "attendus": [
     {

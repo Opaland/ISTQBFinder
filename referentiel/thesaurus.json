@@ -1193,7 +1193,6 @@
     "compétence",
     "team composition",
     "composition de l'équipe",
-    "motivation",
     "coaching",
     "mentoring",
     "mentorat",
@@ -1209,6 +1208,19 @@
     "leadership",
     "management of the test team",
     "gestion de l'équipe de test"
+   ]
+  },
+  {
+   "id": "motivation",
+   "termes": [
+    "motivation",
+    "motivations",
+    "motivating",
+    "motivating factors",
+    "facteurs de motivation",
+    "démotivation",
+    "demotivating",
+    "motiver"
    ]
   },
   {

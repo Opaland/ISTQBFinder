@@ -60,3 +60,14 @@ def test_exemples_de_lecture_couverts_par_l_allowlist_et_sans_json():
             assert any(cmd.startswith(p) for p in prefixes), f"{f.name} : {cmd} hors allowlist"
             assert "<<" not in cmd and not re.search(r"\{\s*[\"']", cmd), f"{f.name} : {cmd} bloqué en -p"
     assert any("idee doublons --titre" in c for c in vues)
+
+
+def test_confiance_et_diagnostic_preapprouves():
+    """#146 : `confiance` (appelé à chaque réponse) et `diagnostic` n'écrivent rien ; ils sont
+    pré-approuvés dans settings.json et dans le skill qui calcule la confiance."""
+    s = json.loads((RACINE_CODE / ".claude" / "settings.json").read_text(encoding="utf-8"))
+    skill = (RACINE_CODE / ".claude" / "skills" / "qa-knowledge" / "SKILL.md").read_text(encoding="utf-8")
+    for cmd in ("confiance", "diagnostic"):
+        assert f"Bash(python qa.py {cmd}:*)" in s["permissions"]["allow"]
+        assert f"Bash(python qa.py {cmd}:*)" in skill
+        assert not _ecrit(f"Bash(python qa.py {cmd}:*)")

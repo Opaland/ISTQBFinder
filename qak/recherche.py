@@ -23,6 +23,8 @@ from .bibliotheque import TOKENISEUR
 from .textes import MOTS_GENERIQUES, MOTS_VIDES, motif_sous_sections, normaliser, reperer_concepts, thesaurus
 
 CANDIDATS = 300  # passages BM25 reclassés par couverture
+SEMANTIQUE_K = 100  # passages proposés par les embeddings (recherche hybride, optionnelle)
+RRF_K = 60          # constante usuelle de la fusion par rangs réciproques
 # Sections périphériques (annexes, notes de version, bibliographie, matrices de traçabilité,
 # chapitre 0 d'introduction) : elles citent beaucoup de notions sans les traiter.
 # Rétrogradées à couverture égale.
@@ -63,8 +65,10 @@ def mots_ignores(requete: str) -> list[str]:
 def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: str | None = None,
              langue: str | None = None, section: str | None = None, theme: str | None = None,
              toutes_versions: bool = False, inclure_sommaires: bool = False, par_doc: int = 3,
-             cx: sqlite3.Connection | None = None) -> dict:
-    """Renvoie {requete_fts, groupes, resultats:[...], avertissements:[...]}."""
+             cx: sqlite3.Connection | None = None, semantique: bool = False) -> dict:
+    """Renvoie {requete_fts, groupes, resultats:[...], avertissements:[...]}.
+    semantique=True : classement hybride BM25 + embeddings (qak/semantique.py, optionnel) ;
+    sans modèle ni vecteurs, résultats lexicaux et avertissement."""
     gs = groupes(requete)
     avert = []
     obligatoire = None
@@ -109,6 +113,15 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
                f"WHERE passages_fts MATCH ?{where} ORDER BY score LIMIT ?")
         return cx.execute(sql, [expr, *params, limite]).fetchall()
 
+    def executer_ids(ids: list[int]) -> list[sqlite3.Row]:
+        """Passages proposés par la seule recherche sémantique, soumis aux mêmes filtres."""
+        sql = ("SELECT p.id, p.doc_id, p.page, p.page_imprimee, p.section_num, p.section_titre, p.texte, "
+               "d.titre, d.code, d.version, d.langue, d.date_publication, d.statut_version, d.type, "
+               "substr(p.texte, 1, 240) AS extrait, 0.0 AS score "
+               "FROM passages p JOIN documents d ON d.doc_id = p.doc_id "
+               f"WHERE p.id IN ({', '.join('?' * len(ids))}){where}")
+        return cx.execute(sql, [*ids, *params]).fetchall()
+
     propre = cx is None
     cx = cx or bibliotheque.connecter()
     try:
@@ -126,6 +139,16 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
         prefixe = f"{obligatoire.fts()} AND " if obligatoire else ""
         ou = prefixe + "(" + " OR ".join(g.fts() for g in gs) + ")" if gs else obligatoire.fts()
         candidats = executer(ou, CANDIDATS)
+        proches: list[int] = []
+        if semantique:
+            from . import semantique as sem
+            raison = sem.etat(cx)
+            if raison:
+                avert.append(raison[0].upper() + raison[1:] + " : résultats lexicaux seuls.")
+            else:
+                proches = [i for i, _ in sem.classement(requete, SEMANTIQUE_K)]
+                connus = {r["id"] for r in candidats}
+                candidats = list(candidats) + executer_ids([i for i in proches if i not in connus])
         # Notions nommées dans le TITRE de la section : une section dédiée à la notion passe
         # devant une section qui ne fait que l'évoquer (issue #4 : « Shift Left » §2.1.5).
         trouves, en_titre = _notions_des_candidats(candidats, gs)
@@ -145,6 +168,15 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
         # tri stable : couverture décroissante, sections de fond d'abord, puis sections dont le
         # titre nomme les notions, puis l'ordre BM25
         classes = sorted(candidats, key=lambda r: (-couverture(r), peripherique(r), -titre(r)))
+        if proches:
+            # Fusion par rangs réciproques (RRF) du classement lexical et du classement cosinus.
+            presents = {r["id"] for r in candidats}
+            rang_sem = {i: k for k, i in enumerate((i for i in proches if i in presents), 1)}
+            rang_lex = {r["id"]: k for k, r in enumerate((r for r in classes if r["score"] != 0.0), 1)}
+
+            def rrf(r) -> float:
+                return sum(1 / (RRF_K + rangs[r["id"]]) for rangs in (rang_lex, rang_sem) if r["id"] in rangs)
+            classes = sorted(classes, key=lambda r: -rrf(r))
         vus, resultats, par = set(), [], {}
         for r in classes:
             cle = (r["doc_id"], r["page"])

@@ -147,6 +147,17 @@ def cmd_importer(a):
 def cmd_actualiser(a):
     r = bibliotheque.actualiser(forcer=a.forcer)
     _ecrire(f"Inchangés : {r['inchanges']} · importés : {len(r['importes'])} · réindexés : {len(r['reindexes'])}")
+    if a.semantique:
+        from . import semantique
+        if not semantique.dependances_presentes():
+            raise ErreurValidation(semantique.INSTALLATION[0].upper() + semantique.INSTALLATION[1:] + ".")
+        cx = bibliotheque.connecter()
+        try:
+            v = semantique.indexer(cx)
+        finally:
+            cx.close()
+        _ecrire(f"Vecteurs sémantiques : {v['passages']} passages, {v['modele']}, {v['secondes']} s, {v['mo']} Mo "
+                "(bibliotheque/vecteurs.npz, non versionné)")
     for cle, titre in (("importes", "Importés"), ("a_confirmer", "MODIFIÉS SUR PLACE (à confirmer)"), ("reindexes", "Réindexés"), ("doublons", "Doublons ignorés"),
                        ("absents", "Sources disparues (passages retirés de l'index)"), ("echecs", "ÉCHECS"),
                        ("versions", "Versions remplacées")):
@@ -244,7 +255,7 @@ def cmd_retirer(a):
 def cmd_chercher(a):
     r = recherche.chercher(" ".join(a.requete), n=a.n, docs=a.doc, niveau=a.niveau, langue=a.langue,
                            section=a.section, theme=a.theme, toutes_versions=a.toutes_versions,
-                           inclure_sommaires=a.sommaires, par_doc=a.par_doc)
+                           inclure_sommaires=a.sommaires, par_doc=a.par_doc, semantique=a.semantique)
     perime = bibliotheque.avertissement_index()
     if perime:
         r["avertissements"] = [perime, *r.get("avertissements", [])]
@@ -567,7 +578,8 @@ def cmd_diagnostic(a):
 
 def cmd_evaluer(a):
     from . import evaluation
-    r = evaluation.evaluer(a.k, {"reglage": False, "controle": True}.get(a.jeu))
+    r = evaluation.evaluer(a.k, {"reglage": False, "controle": True}.get(a.jeu), semantique=a.semantique,
+                           eloigne=a.jeu == "eloigne")
     for x in r["details"]:
         _ecrire(f"{'OK ' if x['trouve'] else 'KO '} rang {x['rang'] or '-':>2}  {x['requete']}  → attendu {x['attendu']}")
     _ecrire(f"\nRappel@{a.k} : {r['rappel']:.0%} ({r['trouves']}/{r['total']}) · MRR : {r['mrr']:.2f}"
@@ -649,6 +661,8 @@ def analyseur() -> argparse.ArgumentParser:
     x.set_defaults(f=cmd_importer)
     x = sp.add_parser("actualiser", help="réindexation incrémentale de bibliotheque/sources/")
     x.add_argument("--forcer", action="store_true", help="tout réextraire")
+    x.add_argument("--semantique", action="store_true",
+                   help="calculer aussi les vecteurs de la recherche sémantique (optionnelle, requirements-semantique.txt)")
     x.set_defaults(f=cmd_actualiser)
     x = sp.add_parser("inventaire", help="documents indexés, versions, extractions à surveiller")
     x.add_argument("--json", action="store_true")
@@ -679,6 +693,8 @@ def analyseur() -> argparse.ArgumentParser:
     x.add_argument("--toutes-versions", action="store_true", help="inclure les versions remplacées")
     x.add_argument("--sommaires", action="store_true", help="inclure tables des matières et index")
     x.add_argument("--par-doc", type=int, default=3, help="résultats max par document (défaut 3)")
+    x.add_argument("--semantique", action="store_true",
+                   help="classement hybride BM25 + embeddings (optionnel : actualiser --semantique d'abord)")
     x.add_argument("--json", action="store_true")
     x.set_defaults(f=cmd_chercher)
     x = sp.add_parser("confiance", help="score de confiance d'une réponse, calculé avec la grille du skill")
@@ -768,8 +784,10 @@ def analyseur() -> argparse.ArgumentParser:
     x.set_defaults(f=cmd_diagnostic)
     x = sp.add_parser("evaluer", help="mesure la qualité de la recherche sur eval/requetes.json")
     x.add_argument("-k", type=_entier_positif, default=5)
-    x.add_argument("--jeu", choices=["tout", "reglage", "controle"], default="tout",
-                   help="« controle » = questions jamais utilisées pour régler le moteur")
+    x.add_argument("--jeu", choices=["tout", "reglage", "controle", "eloigne"], default="tout",
+                   help="« controle » = questions jamais utilisées pour régler le moteur ; « eloigne » = questions "
+                        "formulées loin du vocabulaire ISTQB (évaluation de la recherche sémantique)")
+    x.add_argument("--semantique", action="store_true", help="mesurer la recherche hybride (optionnelle)")
     x.add_argument("--min-rappel", type=_proportion, metavar="R",
                    help="code retour 2 si le rappel est sous R (0 à 1) ou si aucune question n'est évaluée")
     x.set_defaults(f=cmd_evaluer)

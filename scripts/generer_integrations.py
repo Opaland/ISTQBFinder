@@ -9,6 +9,11 @@ communes dans `AGENTS.md`. Fichiers générés (à ne jamais modifier à la main
 
 - GitHub Copilot : `.github/agents/<agent>.agent.md`. Les skills n'ont pas besoin de copie :
   Copilot (VS Code et Copilot CLI) lit `.claude/skills/` directement.
+- Gemini CLI (qui ne lit pas `.claude/`) : `.gemini/skills/<skill>/` (copie, liens relatifs
+  conservés), `.gemini/agents/<agent>.md` (sous-agents, `@thomas`), `.gemini/commands/<agent>.toml`
+  (`/thomas <question>`) et `.gemini/settings.json` (contexte `AGENTS.md`, commandes `qa.py`
+  en lecture seule pré-approuvées, reprises de `.claude/settings.json`).
+  `.gemini/skills/` plutôt que `.agents/skills/`, que Copilot lit aussi (skills en double).
 
 Le test `tests/test_integrations.py` échoue si un fichier généré n'est pas à jour.
 """
@@ -18,11 +23,17 @@ from pathlib import Path
 
 RACINE = Path(__file__).resolve().parent.parent
 AGENTS_CLAUDE = RACINE / ".claude" / "agents"
+SKILLS_CLAUDE = RACINE / ".claude" / "skills"
+REGLAGES_CLAUDE = RACINE / ".claude" / "settings.json"
 MARQUE = "Fichier généré par scripts/generer_integrations.py"
 
 # Outils Claude Code → alias Copilot (docs.github.com/en/copilot/reference/custom-agents-configuration).
 OUTILS_COPILOT = {"Bash": "execute", "Read": "read", "Grep": "search", "Glob": "search",
                   "WebSearch": "web", "WebFetch": "web"}
+
+# Outils Claude Code → outils intégrés de Gemini CLI (geminicli.com/docs/reference/tools).
+OUTILS_GEMINI = {"Bash": "run_shell_command", "Read": "read_file", "Grep": "grep_search", "Glob": "glob",
+                 "WebSearch": "google_web_search", "WebFetch": "web_fetch"}
 
 
 def lire_entete(texte: str) -> tuple[dict, str]:
@@ -79,16 +90,90 @@ def agent_copilot(chemin: Path) -> str:
     return "\n".join(entete) + preambule(chemin.name, champs, "GitHub Copilot", "read") + corps
 
 
+def agent_gemini(chemin: Path) -> str:
+    champs, corps = lire_entete(chemin.read_text(encoding="utf-8"))
+    entete = ["---",
+              f"name: {champs['name']}",
+              f"description: {json.dumps(champs['description'], ensure_ascii=False)}",
+              "kind: local",
+              "tools:", *[f"  - {o}" for o in outils(champs, OUTILS_GEMINI)],
+              "---", ""]
+    return "\n".join(entete) + preambule(chemin.name, champs, "Gemini CLI", "read_file") + corps
+
+
+def chaine_toml(texte: str) -> str:
+    """Chaîne TOML multiligne « basique » (échappe \\ et \")."""
+    return '"""\n' + texte.replace("\\", "\\\\").replace('"', '\\"') + '"""'
+
+
+def commande_gemini(chemin: Path) -> str:
+    """`/thomas <question>` : le prompt de l'agent joué dans la conversation principale."""
+    champs, corps = lire_entete(chemin.read_text(encoding="utf-8"))
+    nom = champs["name"]
+    # Le marqueur est déjà en commentaire TOML : inutile de l'envoyer au modèle.
+    prompt = (preambule(chemin.name, champs, "Gemini CLI (commande /" + nom + ")", "read_file").split("\n", 2)[2]
+              + "> Ici tu réponds directement dans la conversation (pas en sous-agent) : tu peux poser "
+              "toi-même les questions de cadrage. Pour une délégation en sous-agent : `@" + nom + "`.\n\n"
+              + corps.rstrip("\n") + "\n\n## Demande de l'utilisateur\n\n{{args}}\n")
+    description = champs["description"].split(". ")[0].rstrip(".") + "."
+    return (f"# {MARQUE} depuis .claude/agents/{chemin.name} : ne pas modifier, relancer le script.\n"
+            f"description = {json.dumps(description, ensure_ascii=False)}\n"
+            f"prompt = {chaine_toml(prompt)}\n")
+
+
+def skill_gemini(dossier: Path) -> dict[str, str]:
+    """Copie du skill : en-tête réduit à name/description (allowed-tools, argument-hint sont
+    propres à Claude Code), arborescence conservée pour que les liens relatifs restent valides."""
+    fichiers = {}
+    for f in sorted(p for p in dossier.rglob("*") if p.is_file()):
+        rel = f.relative_to(dossier).as_posix()
+        source = f".claude/skills/{dossier.name}/{rel}"
+        texte = f.read_text(encoding="utf-8").replace("\r\n", "\n")
+        marque = f"<!-- {MARQUE} depuis {source} : ne pas modifier, relancer le script. -->\n"
+        if rel == "SKILL.md":
+            champs, corps = lire_entete(texte)
+            texte = ("---\n"
+                     f"name: {champs['name']}\n"
+                     f"description: {json.dumps(champs['description'], ensure_ascii=False)}\n"
+                     "---\n" + marque + "\n" + corps)
+        elif f.suffix == ".md":
+            texte = marque + "\n" + texte
+        fichiers[f".gemini/skills/{dossier.name}/{rel}"] = texte
+    return fichiers
+
+
+def commandes_lecture() -> list[str]:
+    """Commandes pré-approuvées de `.claude/settings.json` au format Gemini (préfixes)."""
+    regles = json.loads(REGLAGES_CLAUDE.read_text(encoding="utf-8"))["permissions"]["allow"]
+    commandes = []
+    for regle in regles:
+        if regle.startswith("Bash(") and regle.endswith(")"):
+            commande = regle[5:-1].removesuffix(":*").strip()
+            commandes.append(f"run_shell_command({commande})")
+    return commandes
+
+
+def reglages_gemini() -> str:
+    reglages = {"context": {"fileName": ["AGENTS.md"]},
+                "tools": {"allowed": commandes_lecture()}}
+    return json.dumps(reglages, ensure_ascii=False, indent=2) + "\n"
+
+
 def fichiers_attendus() -> dict[str, str]:
     """Chemin relatif (POSIX) → contenu attendu de chaque fichier généré."""
     attendus = {}
     for chemin in sorted(AGENTS_CLAUDE.glob("*.md")):
         attendus[f".github/agents/{chemin.stem}.agent.md"] = agent_copilot(chemin)
+        attendus[f".gemini/agents/{chemin.stem}.md"] = agent_gemini(chemin)
+        attendus[f".gemini/commands/{chemin.stem}.toml"] = commande_gemini(chemin)
+    for dossier in sorted(d for d in SKILLS_CLAUDE.iterdir() if (d / "SKILL.md").exists()):
+        attendus.update(skill_gemini(dossier))
+    attendus[".gemini/settings.json"] = reglages_gemini()
     return attendus
 
 
 def dossiers_geres() -> list[Path]:
-    return [RACINE / ".github" / "agents"]
+    return [RACINE / ".github" / "agents", RACINE / ".gemini"]
 
 
 def orphelins(attendus: dict[str, str]) -> list[str]:

@@ -19,7 +19,7 @@ import sys
 import tempfile
 import time
 from collections import Counter
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from . import chemins, extraction, journal
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS documents (
     statut_version TEXT DEFAULT 'courant', remplace_par TEXT,
     nb_pages INTEGER, pages_vides TEXT, nb_pages_sommaire INTEGER,
     statut_extraction TEXT, message_extraction TEXT, plan_source TEXT, nb_titres INTEGER,
-    version_extracteur INTEGER, indexe_le TEXT
+    version_extracteur INTEGER, indexe_le TEXT, controle_le TEXT
 );
 CREATE TABLE IF NOT EXISTS sections (
     doc_id TEXT NOT NULL, ordre INTEGER NOT NULL, numero TEXT, titre TEXT, page INTEGER,
@@ -89,6 +89,9 @@ def _passer_en_wal(cx: sqlite3.Connection) -> None:
 def connecter(chemin: Path | None = None) -> sqlite3.Connection:
     cx = ouvrir_sqlite(chemin or chemins.index_db())
     cx.executescript(SCHEMA)
+    if "controle_le" not in {r[1] for r in cx.execute("PRAGMA table_info(documents)")}:
+        cx.execute("ALTER TABLE documents ADD COLUMN controle_le TEXT")  # index d'avant #36
+        cx.commit()
     return cx
 
 
@@ -537,17 +540,23 @@ def _actualiser(forcer: bool) -> dict:
     cx = connecter()
     try:
         connus = {r["sha256"]: dict(r) for r in cx.execute("SELECT * FROM documents")}
-        presents = set()
+        presents: dict[str, str] = {}  # empreinte → fichier retenu
         dossier = chemins.sources()
         dossier.mkdir(parents=True, exist_ok=True)
-        for f in sorted(dossier.iterdir()):
-            if f.suffix.lower() not in EXTENSIONS or f.name.startswith(".") or f.name.lower() in IGNORES:
+        fichiers = [f for f in sorted(dossier.iterdir()) if _est_source(f)]
+        empreintes = {f.name: empreinte(f) for f in fichiers}
+        for f in fichiers:
+            sha = empreintes[f.name]
+            # Copie d'un fichier déjà connu : le fichier du manifeste reste la référence, la
+            # copie est signalée en la nommant (et ne masque plus l'original).
+            connu = manif["documents"].get(sha, {}).get("fichier")
+            if connu and connu != f.name and empreintes.get(connu) == sha:
+                rapport["doublons"].append(f"{f.name} : contenu identique à {connu}")
                 continue
-            sha = empreinte(f)
             if sha in presents:
-                rapport["doublons"].append(f"{f.name} (contenu identique à un autre fichier source)")
+                rapport["doublons"].append(f"{f.name} : contenu identique à {presents[sha]}")
                 continue
-            presents.add(sha)
+            presents[sha] = f.name
             entree = manif["documents"].get(sha)
             if entree is None:
                 # Même nom, contenu modifié sur place : rien ne distingue un PDF corrigé d'un
@@ -607,11 +616,81 @@ def _actualiser(forcer: bool) -> dict:
                 cx.execute("UPDATE documents SET statut_extraction='absent', message_extraction="
                            "'fichier source introuvable dans bibliotheque/sources/' WHERE sha256=?", (sha,))
         rapport["versions"] = calculer_versions(cx)
+        maintenant = datetime.now().isoformat(timespec="seconds")
+        cx.executemany("UPDATE documents SET controle_le=? WHERE sha256=?", [(maintenant, s) for s in presents])
         cx.commit()
         ecrire_manifeste(manif)
     finally:
         cx.close()
     return rapport
+
+
+def _est_source(f: Path) -> bool:
+    return f.is_file() and f.suffix.lower() in EXTENSIONS and not f.name.startswith(".") \
+        and f.name.lower() not in IGNORES
+
+
+def controle_index(cx: sqlite3.Connection | None = None) -> dict:
+    """Contrôle léger, à chaque ouverture, de l'accord entre l'index et les sources (après un
+    `git pull`, une suppression, une copie…) : présence des fichiers, date de modification
+    postérieure au dernier contrôle (l'empreinte n'est recalculée que dans ce cas), entrées
+    du manifeste non indexées, nouveaux fichiers. Renvoie {perimes: {doc_id}, messages}."""
+    perimes, messages = set(), []
+    if not chemins.index_db().exists():
+        return {"perimes": perimes, "messages": messages}
+    propre = cx is None
+    cx = cx or connecter()
+    try:
+        docs = {r["sha256"]: dict(r) for r in cx.execute(
+            "SELECT sha256, doc_id, fichier, statut_extraction, indexe_le, controle_le FROM documents")}
+    finally:
+        if propre:
+            cx.close()
+    manif = lire_manifeste()["documents"]
+    dossier = chemins.sources()
+    for sha, e in manif.items():
+        d = docs.get(sha)
+        if d is None:
+            perimes.add(e["doc_id"])
+            messages.append(f"{e['doc_id']} : présent dans le manifeste mais pas dans l'index")
+            continue
+        if d["statut_extraction"] == "absent":
+            continue  # déjà signalé par `actualiser` et `inventaire`
+        if d["statut_extraction"] == "a_confirmer":
+            perimes.add(d["doc_id"])  # modifié sur place : signalé, en attente de `--remplacer`
+            continue
+        f = dossier / e["fichier"]
+        if not f.is_file():
+            perimes.add(d["doc_id"])
+            messages.append(f"{d['doc_id']} : fichier {e['fichier']} disparu de bibliotheque/sources/")
+            continue
+        repere = d["controle_le"] or d["indexe_le"]
+        try:
+            recent = not repere or datetime.fromtimestamp(f.stat().st_mtime) > \
+                datetime.fromisoformat(repere) + timedelta(seconds=1)
+        except ValueError:
+            recent = True
+        if recent and empreinte(f) != sha:
+            perimes.add(d["doc_id"])
+            messages.append(f"{d['doc_id']} : contenu de {e['fichier']} modifié depuis l'indexation")
+    for sha, d in docs.items():
+        if sha not in manif and d["statut_extraction"] != "absent":
+            perimes.add(d["doc_id"])
+            messages.append(f"{d['doc_id']} : indexé mais absent du manifeste (retiré ailleurs ?)")
+    if dossier.is_dir():
+        connus = {e["fichier"] for e in manif.values()}
+        nouveaux = sorted(f.name for f in dossier.iterdir() if _est_source(f) and f.name not in connus)
+        if nouveaux:
+            messages.append(f"fichiers non indexés : {', '.join(nouveaux[:5])}" + (" …" if len(nouveaux) > 5 else ""))
+    return {"perimes": perimes, "messages": messages}
+
+
+def avertissement_index(cx: sqlite3.Connection | None = None) -> str | None:
+    """Phrase d'avertissement si l'index est périmé, sinon None."""
+    c = controle_index(cx)
+    if not c["messages"]:
+        return None
+    return "Index périmé : " + " ; ".join(c["messages"]) + " — lancer `python qa.py actualiser`."
 
 
 def retirer(doc_id: str) -> dict:

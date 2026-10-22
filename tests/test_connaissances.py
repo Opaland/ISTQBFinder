@@ -85,12 +85,7 @@ def test_regles_de_statut():
     with pytest.raises(ErreurValidation, match="motif"):
         connaissances.changer_statut(q1, "validee", None)
     with pytest.raises(ErreurValidation, match="retour"):
-        connaissances.changer_statut("QA-0001", "experimentee", "essai sur la release 3.1")
-    connaissances.ajouter_retour("QA-0001", "Release 3.2", "2 défauts critiques trouvés plus tôt")
-    assert connaissances.changer_statut("QA-0001", "experimentee", "appliqué en 3.2")["apres"] == "experimentee"
-    assert [e["action"] for e in journal.lire("QA-0001")] == ["idee_creee", "retour_ajoute", "statut_change"]
-
-        connaissances.changer_statut(q1, "experimentee", "essai")
+        connaissances.changer_statut(q1, "experimentee", "essai sur la release 3.1")
     connaissances.ajouter_retour(q1, "Release 3.2", "2 défauts critiques trouvés plus tôt")
     assert connaissances.changer_statut(q1, "experimentee", "appliqué en 3.2")["apres"] == "experimentee"
     assert [e["action"] for e in journal.lire(q1)] == ["idee_creee", "retour_ajoute", "statut_change"]
@@ -182,7 +177,6 @@ def test_modifier_refuse_les_champs_geres_par_l_outil_et_inconnus():
     assert chemins.connaissances_jsonl().read_text(encoding="utf-8") == avant
     assert connaissances.voir(q2)["references"][0]["url"] == "https://exemple.org/c"
 
-
 @pytest.mark.parametrize("donnees, message", [
     ([], "objet JSON"),
     (None, "objet JSON"),
@@ -255,18 +249,18 @@ def test_source_exigee_pour_documentee_pratiquee_et_validee():
     for maturite in ("documentee", "pratiquee"):
         with pytest.raises(ErreurValidation, match="sans aucune référence"):
             connaissances.ajouter({**IDEE, "maturite": maturite})
-    connaissances.ajouter(dict(IDEE))
+    q1 = connaissances.ajouter(dict(IDEE))["id"]
     with pytest.raises(ErreurValidation, match="sans aucune référence"):
-        connaissances.modifier("QA-0001", {"maturite": "documentee"})
+        connaissances.modifier(q1, {"maturite": "documentee"})
     with pytest.raises(ErreurValidation, match="10 caractères"):
-        connaissances.changer_statut("QA-0001", "validee", "ok")
+        connaissances.changer_statut(q1, "validee", "ok")
     with pytest.raises(ErreurValidation, match="au moins une référence"):
-        connaissances.changer_statut("QA-0001", "validee", "adopté par l'équipe QA")
-    connaissances.modifier("QA-0001", {"maturite": "documentee",
+        connaissances.changer_statut(q1, "validee", "adopté par l'équipe QA")
+    connaissances.modifier(q1, {"maturite": "documentee",
                                        "references": [{"type": "norme", "titre": "ISO/IEC/IEEE 29119-3"}]})
-    assert connaissances.changer_statut("QA-0001", "validee", "adopté par l'équipe QA")["apres"] == "validee"
+    assert connaissances.changer_statut(q1, "validee", "adopté par l'équipe QA")["apres"] == "validee"
     with pytest.raises(ErreurValidation, match="10 caractères"):
-        connaissances.changer_statut("QA-0001", "abandonnee", "   bof    ")
+        connaissances.changer_statut(q1, "abandonnee", "   bof    ")
 
 def test_code_istqb_ambigu_departage_par_la_langue_de_l_extrait(bibliotheque_test, tmp_path):
     """#37 : avec EN et FR « courants », une vraie citation FR était vérifiée contre l'EN."""
@@ -284,6 +278,7 @@ def test_code_istqb_ambigu_departage_par_la_langue_de_l_extrait(bibliotheque_tes
     with pytest.raises(ErreurValidation, match=r"ambigu.*CTFL-9\.9-en.*doc_id exact"):
         connaissances.valider(_ref_ctfl(pages="1"))
     connaissances.valider(_ref_ctfl(pages="1", doc_id=r["doc_id"]))  # identifiant exact : pas d'ambiguïté
+
 
 def test_identifiant_non_reattribue_apres_git_revert():
     """#34 : un `git revert` efface l'idée ET sa ligne de journal ; un compteur séquentiel

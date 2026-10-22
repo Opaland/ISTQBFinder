@@ -131,3 +131,32 @@ reformulation avec le terme ISTQB) est rempli, mais les embeddings multilingues 
 les résolvent pas (jeu éloigné inchangé), font perdre une question de réglage et coûtent
 15 s par commande. Le prototype reste optionnel pour une réévaluation (autre modèle, ou
 reformulation de la question par l'agent avant `chercher`, piste plus prometteuse).
+
+## Vérification des citations par NLI : étude (#108, 2026-10-22)
+
+Question : un modèle d'inférence (NLI) multilingue peut-il signaler qu'un passage cité ne
+**soutient pas** l'affirmation qu'on lui attribue (citation exacte mais à contresens) ?
+
+- Jeu étiqueté `eval/nli/paires.json` : 48 paires (affirmation en français, passage cité
+  EN ou FR) sur 12 passages ; affirmations « soutenues » tirées des essais réels
+  (`eval/essais-resultats/2026-10-22/`, relues contre le passage), 12 contradictoires
+  (négation / inversion), 24 non soutenues (12 plausibles sur le même sujet, 12 d'un autre
+  passage). La base d'idées étant vide, aucune paire n'en vient.
+- Modèle : `MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7` (MIT, 279 M
+  paramètres, 558 Mo), CPU 4 cœurs, `python scripts/etude_nli.py` (huggingface.co joignable).
+
+| Mesure | Résultat |
+|---|---|
+| Exactitude 3 classes | 69 % (33/48) |
+| Détection « pas soutenue » (non soutenue + contradictoire) | précision 89 %, rappel 86 % |
+| Fausses alertes sur une citation juste | **4/12 (33 %)** |
+| Contradictions jugées « soutenues » | 4/12 |
+| Coût | 22 s de chargement, **4,7 s CPU par paire** (passage ≈ 1 400 caractères, tronqué à 512 jetons) |
+
+**Décision : non retenue** (ni commande `verifier-citation`, ni avertissement dans
+`idee ajouter`). Une citation juste sur trois serait signalée à tort, un tiers des
+contresens passerait, et chaque contrôle coûte plusieurs secondes et 2 Go de dépendances.
+La garde reste la règle du skill (lire avant de citer) et la vérification mot pour mot de
+l'extrait. À réévaluer avec un modèle plus grand ou en découpant le passage en phrases
+(prémisse = phrase la plus proche de l'affirmation) : le jeu et le script sont versionnés.
+

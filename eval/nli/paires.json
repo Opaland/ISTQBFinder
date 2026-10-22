@@ -1,0 +1,353 @@
+{
+ "description": "Jeu étiqueté de l'étude NLI (issue #108) : paires (affirmation en français, passage cité). Les affirmations « soutenues » sont tirées des essais réels (eval/essais-resultats/2026-10-22/), relues contre le passage ; « contradictoire » = négation ou inversion ; « non_soutenue » = affirmation plausible sur le même sujet mais absente du passage, ou affirmation d'un autre passage. Le passage est celui de la page et de la section citées qui partage le plus de mots avec l'affirmation soutenue.",
+ "paires": [
+  {
+   "doc_id": "CTFL-4.0.1-en",
+   "page": 43,
+   "section": "4.3.2",
+   "affirmation": "La couverture des branches inclut celle des instructions, l'inverse est faux.",
+   "etiquette": "soutenue"
+  },
+  {
+   "doc_id": "CTFL-4.0.1-en",
+   "page": 43,
+   "section": "4.3.2",
+   "affirmation": "La couverture des instructions inclut celle des branches.",
+   "etiquette": "contradictoire"
+  },
+  {
+   "doc_id": "CTFL-4.0.1-en",
+   "page": 43,
+   "section": "4.3.2",
+   "affirmation": "La couverture des branches est exigée pour tout logiciel critique.",
+   "etiquette": "non_soutenue"
+  },
+  {
+   "doc_id": "CTFL-4.0.1-en",
+   "page": 43,
+   "section": "4.3.2",
+   "affirmation": "Dans une architecture en couches, les scripts de test n'appellent pas directement les bibliothèques cœur.",
+   "etiquette": "non_soutenue",
+   "note": "affirmation d'un autre passage (hors sujet)"
+  },
+  {
+   "doc_id": "CTFL-4.0.1-en",
+   "page": 43,
+   "section": "4.3.3",
+   "affirmation": "Les tests boîte blanche ne détectent pas les omissions, c'est-à-dire une exigence non implémentée.",
+   "etiquette": "soutenue"
+  },
+  {
+   "doc_id": "CTFL-4.0.1-en",
+   "page": 43,
+   "section": "4.3.3",
+   "affirmation": "Les tests boîte blanche détectent les exigences qui n'ont pas été implémentées.",
+   "etiquette": "contradictoire"
+  },
+  {
+   "doc_id": "CTFL-4.0.1-en",
+   "page": 43,
+   "section": "4.3.3",
+   "affirmation": "Les tests boîte blanche doivent être conçus par les développeurs.",
+   "etiquette": "non_soutenue"
+  },
+  {
+   "doc_id": "CTFL-4.0.1-en",
+   "page": 43,
+   "section": "4.3.3",
+   "affirmation": "En visant moins de 100 % de couverture, on laisse souvent non testé le code le plus complexe et le plus sujet aux défauts.",
+   "etiquette": "non_soutenue",
+   "note": "affirmation d'un autre passage (hors sujet)"
+  },
+  {
+   "doc_id": "CTFL-4.0.1-en",
+   "page": 39,
+   "section": "4.1",
+   "affirmation": "Les techniques basées sur l'expérience peuvent détecter des défauts que les techniques boîte noire et boîte blanche manquent.",
+   "etiquette": "soutenue"
+  },
+  {
+   "doc_id": "CTFL-4.0.1-en",
+   "page": 39,
+   "section": "4.1",
+   "affirmation": "Les techniques basées sur l'expérience ne trouvent aucun défaut que les techniques boîte noire et boîte blanche manqueraient.",
+   "etiquette": "contradictoire"
+  },
+  {
+   "doc_id": "CTFL-4.0.1-en",
+   "page": 39,
+   "section": "4.1",
+   "affirmation": "Les techniques basées sur l'expérience doivent être appliquées avant les techniques boîte noire.",
+   "etiquette": "non_soutenue"
+  },
+  {
+   "doc_id": "CTFL-4.0.1-en",
+   "page": 39,
+   "section": "4.1",
+   "affirmation": "Les tests de régression sont l'opportunité la plus simple pour passer à l'automatisation.",
+   "etiquette": "non_soutenue",
+   "note": "affirmation d'un autre passage (hors sujet)"
+  },
+  {
+   "doc_id": "CTAL-TAE-2.0-en",
+   "page": 25,
+   "section": "3.1.4",
+   "affirmation": "Le capture/playback est facile à démarrer mais difficile à maintenir et à faire évoluer.",
+   "etiquette": "soutenue"
+  },
+  {
+   "doc_id": "CTAL-TAE-2.0-en",
+   "page": 25,
+   "section": "3.1.4",
+   "affirmation": "Le capture/playback est facile à maintenir et à faire évoluer.",
+   "etiquette": "contradictoire"
+  },
+  {
+   "doc_id": "CTAL-TAE-2.0-en",
+   "page": 25,
+   "section": "3.1.4",
+   "affirmation": "Le capture/playback est interdit dans les projets réglementés.",
+   "etiquette": "non_soutenue"
+  },
+  {
+   "doc_id": "CTAL-TAE-2.0-en",
+   "page": 25,
+   "section": "3.1.4",
+   "affirmation": "Pendant la planification d'itération, le testeur peut animer des sessions de risk-storming avec le métier et les développeurs.",
+   "etiquette": "non_soutenue",
+   "note": "affirmation d'un autre passage (hors sujet)"
+  },
+  {
+   "doc_id": "CTAL-TTA-4.0-en",
+   "page": 50,
+   "section": "6.1.2",
+   "affirmation": "Les tests pilotés par mots-clés peuvent réduire significativement les coûts de maintenance.",
+   "etiquette": "soutenue"
+  },
+  {
+   "doc_id": "CTAL-TTA-4.0-en",
+   "page": 50,
+   "section": "6.1.2",
+   "affirmation": "Les tests pilotés par mots-clés augmentent les coûts de maintenance.",
+   "etiquette": "contradictoire"
+  },
+  {
+   "doc_id": "CTAL-TTA-4.0-en",
+   "page": 50,
+   "section": "6.1.2",
+   "affirmation": "Les tests pilotés par mots-clés imposent un outil commercial.",
+   "etiquette": "non_soutenue"
+  },
+  {
+   "doc_id": "CTAL-TTA-4.0-en",
+   "page": 50,
+   "section": "6.1.2",
+   "affirmation": "Le test basé sur les modèles améliore la couverture de test et la traçabilité.",
+   "etiquette": "non_soutenue",
+   "note": "affirmation d'un autre passage (hors sujet)"
+  },
+  {
+   "doc_id": "CTAL-TAE-2.0-en",
+   "page": 24,
+   "section": "3.1.3",
+   "affirmation": "Dans une architecture en couches, les scripts de test n'appellent pas directement les bibliothèques cœur.",
+   "etiquette": "soutenue"
+  },
+  {
+   "doc_id": "CTAL-TAE-2.0-en",
+   "page": 24,
+   "section": "3.1.3",
+   "affirmation": "Dans une architecture en couches, les scripts de test appellent directement les bibliothèques cœur.",
+   "etiquette": "contradictoire"
+  },
+  {
+   "doc_id": "CTAL-TAE-2.0-en",
+   "page": 24,
+   "section": "3.1.3",
+   "affirmation": "Une architecture en couches double le temps d'exécution des tests.",
+   "etiquette": "non_soutenue"
+  },
+  {
+   "doc_id": "CTAL-TAE-2.0-en",
+   "page": 24,
+   "section": "3.1.3",
+   "affirmation": "La couverture des neurones ne garantit pas que le réseau de neurones généralise correctement.",
+   "etiquette": "non_soutenue",
+   "note": "affirmation d'un autre passage (hors sujet)"
+  },
+  {
+   "doc_id": "CTAL-TTA-4.0-en",
+   "page": 18,
+   "section": "2.8",
+   "affirmation": "En visant moins de 100 % de couverture, on laisse souvent non testé le code le plus complexe et le plus sujet aux défauts.",
+   "etiquette": "soutenue"
+  },
+  {
+   "doc_id": "CTAL-TTA-4.0-en",
+   "page": 18,
+   "section": "2.8",
+   "affirmation": "Viser 80 % de couverture garantit que le code le plus complexe est testé.",
+   "etiquette": "contradictoire"
+  },
+  {
+   "doc_id": "CTAL-TTA-4.0-en",
+   "page": 18,
+   "section": "2.8",
+   "affirmation": "La couverture de code doit être mesurée chaque nuit.",
+   "etiquette": "non_soutenue"
+  },
+  {
+   "doc_id": "CTAL-TTA-4.0-en",
+   "page": 18,
+   "section": "2.8",
+   "affirmation": "Placer le code répété avant ou après chaque test dans le setup et le teardown réduit l'effort de maintenance.",
+   "etiquette": "non_soutenue",
+   "note": "affirmation d'un autre passage (hors sujet)"
+  },
+  {
+   "doc_id": "CT-TAS-1.0-fr",
+   "page": 49,
+   "section": "6.1.1",
+   "affirmation": "Les tests de régression sont l'opportunité la plus simple pour passer à l'automatisation.",
+   "etiquette": "soutenue"
+  },
+  {
+   "doc_id": "CT-TAS-1.0-fr",
+   "page": 49,
+   "section": "6.1.1",
+   "affirmation": "Les tests de régression sont les plus difficiles à automatiser.",
+   "etiquette": "contradictoire"
+  },
+  {
+   "doc_id": "CT-TAS-1.0-fr",
+   "page": 49,
+   "section": "6.1.1",
+   "affirmation": "Les tests de régression doivent être exécutés par une équipe indépendante.",
+   "etiquette": "non_soutenue"
+  },
+  {
+   "doc_id": "CT-TAS-1.0-fr",
+   "page": 49,
+   "section": "6.1.1",
+   "affirmation": "La couverture des branches inclut celle des instructions, l'inverse est faux.",
+   "etiquette": "non_soutenue",
+   "note": "affirmation d'un autre passage (hors sujet)"
+  },
+  {
+   "doc_id": "CTAL-AT-2.0-en",
+   "page": 24,
+   "section": "3.1.1",
+   "affirmation": "Pendant la planification d'itération, le testeur peut animer des sessions de risk-storming avec le métier et les développeurs.",
+   "etiquette": "soutenue"
+  },
+  {
+   "doc_id": "CTAL-AT-2.0-en",
+   "page": 24,
+   "section": "3.1.1",
+   "affirmation": "Pendant la planification d'itération, le testeur ne participe pas à l'identification des risques.",
+   "etiquette": "contradictoire"
+  },
+  {
+   "doc_id": "CTAL-AT-2.0-en",
+   "page": 24,
+   "section": "3.1.1",
+   "affirmation": "Les sessions de risk-storming remplacent les rétrospectives.",
+   "etiquette": "non_soutenue"
+  },
+  {
+   "doc_id": "CTAL-AT-2.0-en",
+   "page": 24,
+   "section": "3.1.1",
+   "affirmation": "Les tests boîte blanche ne détectent pas les omissions, c'est-à-dire une exigence non implémentée.",
+   "etiquette": "non_soutenue",
+   "note": "affirmation d'un autre passage (hors sujet)"
+  },
+  {
+   "doc_id": "CT-MBT-1.1-en",
+   "page": 38,
+   "section": "5.1.1",
+   "affirmation": "Le test basé sur les modèles améliore la couverture de test et la traçabilité.",
+   "etiquette": "soutenue"
+  },
+  {
+   "doc_id": "CT-MBT-1.1-en",
+   "page": 38,
+   "section": "5.1.1",
+   "affirmation": "Le test basé sur les modèles dégrade la traçabilité.",
+   "etiquette": "contradictoire"
+  },
+  {
+   "doc_id": "CT-MBT-1.1-en",
+   "page": 38,
+   "section": "5.1.1",
+   "affirmation": "Le test basé sur les modèles supprime le besoin de testeurs.",
+   "etiquette": "non_soutenue"
+  },
+  {
+   "doc_id": "CT-MBT-1.1-en",
+   "page": 38,
+   "section": "5.1.1",
+   "affirmation": "Les techniques basées sur l'expérience peuvent détecter des défauts que les techniques boîte noire et boîte blanche manquent.",
+   "etiquette": "non_soutenue",
+   "note": "affirmation d'un autre passage (hors sujet)"
+  },
+  {
+   "doc_id": "CT-AI-2.0-en",
+   "page": 37,
+   "section": "3.4.3",
+   "affirmation": "La couverture des neurones ne garantit pas que le réseau de neurones généralise correctement.",
+   "etiquette": "soutenue"
+  },
+  {
+   "doc_id": "CT-AI-2.0-en",
+   "page": 37,
+   "section": "3.4.3",
+   "affirmation": "Une couverture des neurones élevée garantit que le réseau de neurones généralise correctement.",
+   "etiquette": "contradictoire"
+  },
+  {
+   "doc_id": "CT-AI-2.0-en",
+   "page": 37,
+   "section": "3.4.3",
+   "affirmation": "La couverture des neurones est imposée par la norme ISO 26262.",
+   "etiquette": "non_soutenue"
+  },
+  {
+   "doc_id": "CT-AI-2.0-en",
+   "page": 37,
+   "section": "3.4.3",
+   "affirmation": "Le capture/playback est facile à démarrer mais difficile à maintenir et à faire évoluer.",
+   "etiquette": "non_soutenue",
+   "note": "affirmation d'un autre passage (hors sujet)"
+  },
+  {
+   "doc_id": "CTAL-TAE-2.0-en",
+   "page": 50,
+   "section": "8.1.2",
+   "affirmation": "Placer le code répété avant ou après chaque test dans le setup et le teardown réduit l'effort de maintenance.",
+   "etiquette": "soutenue"
+  },
+  {
+   "doc_id": "CTAL-TAE-2.0-en",
+   "page": 50,
+   "section": "8.1.2",
+   "affirmation": "Le code de préparation doit être recopié dans chaque test pour réduire la maintenance.",
+   "etiquette": "contradictoire"
+  },
+  {
+   "doc_id": "CTAL-TAE-2.0-en",
+   "page": 50,
+   "section": "8.1.2",
+   "affirmation": "Le setup et le teardown doivent être écrits dans le même langage que l'application.",
+   "etiquette": "non_soutenue"
+  },
+  {
+   "doc_id": "CTAL-TAE-2.0-en",
+   "page": 50,
+   "section": "8.1.2",
+   "affirmation": "Les tests pilotés par mots-clés peuvent réduire significativement les coûts de maintenance.",
+   "etiquette": "non_soutenue",
+   "note": "affirmation d'un autre passage (hors sujet)"
+  }
+ ]
+}

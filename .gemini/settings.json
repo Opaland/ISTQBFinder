@@ -1,0 +1,53 @@
+{
+  "context": {
+    "fileName": [
+      "AGENTS.md"
+    ]
+  },
+  "tools": {
+    "allowed": [
+      "run_shell_command(python qa.py chercher)",
+      "run_shell_command(python3 qa.py chercher)",
+      "run_shell_command(python qa.py lire)",
+      "run_shell_command(python3 qa.py lire)",
+      "run_shell_command(python qa.py section)",
+      "run_shell_command(python3 qa.py section)",
+      "run_shell_command(python qa.py page)",
+      "run_shell_command(python3 qa.py page)",
+      "run_shell_command(python qa.py plan)",
+      "run_shell_command(python3 qa.py plan)",
+      "run_shell_command(python qa.py inventaire)",
+      "run_shell_command(python3 qa.py inventaire)",
+      "run_shell_command(python qa.py manquants)",
+      "run_shell_command(python3 qa.py manquants)",
+      "run_shell_command(python qa.py catalogue)",
+      "run_shell_command(python3 qa.py catalogue)",
+      "run_shell_command(python qa.py themes)",
+      "run_shell_command(python3 qa.py themes)",
+      "run_shell_command(python qa.py couverture)",
+      "run_shell_command(python3 qa.py couverture)",
+      "run_shell_command(python qa.py journal)",
+      "run_shell_command(python3 qa.py journal)",
+      "run_shell_command(python qa.py evaluer)",
+      "run_shell_command(python3 qa.py evaluer)",
+      "run_shell_command(python qa.py idee chercher)",
+      "run_shell_command(python3 qa.py idee chercher)",
+      "run_shell_command(python qa.py idee lister)",
+      "run_shell_command(python3 qa.py idee lister)",
+      "run_shell_command(python qa.py idee voir)",
+      "run_shell_command(python3 qa.py idee voir)",
+      "run_shell_command(python qa.py idee doublons)",
+      "run_shell_command(python3 qa.py idee doublons)",
+      "run_shell_command(python qa.py idee modele)",
+      "run_shell_command(python3 qa.py idee modele)",
+      "run_shell_command(python qa.py idee verifier-refs)",
+      "run_shell_command(python3 qa.py idee verifier-refs)",
+      "run_shell_command(python qa.py theme proposer)",
+      "run_shell_command(python3 qa.py theme proposer)",
+      "run_shell_command(python qa.py --help)",
+      "run_shell_command(python3 qa.py --help)",
+      "run_shell_command(python -m pytest)",
+      "run_shell_command(python3 -m pytest)"
+    ]
+  }
+}

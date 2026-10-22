@@ -389,7 +389,7 @@ def cmd_idee(a):
         _ecrire("Thèmes suggérés : " + ", ".join(c for _, c in taxonomie.proposer(
             " ".join(str(d.get(k, "")) for k in ("titre", "resume", "principe")))))
     elif act == "modifier":
-        r = connaissances.modifier(a.id, _lire_donnees(a.fichier), a.remplacer_listes, a.motif)
+        r = connaissances.modifier(a.id, _lire_donnees(a.fichier), a.remplacer_listes, a.motif, a.forcer)
         _ecrire(f"{a.id} : {r['etat']}" + (f" ({', '.join(r['champs'])})" if r.get("champs") else ""))
         for w in r["avertissements"]:
             _ecrire(f"  ⚠ {w}")
@@ -397,7 +397,7 @@ def cmd_idee(a):
         r = connaissances.changer_statut(a.id, a.statut, a.motif)
         _ecrire(f"{a.id} : {r['avant']} → {r['apres']}")
     elif act == "retour":
-        r = connaissances.ajouter_retour(a.id, a.contexte, a.resultat, a.enseignement, a.date)
+        r = connaissances.ajouter_retour(a.id, a.contexte, a.resultat, a.enseignement, a.date, a.forcer, a.motif)
         _ecrire(f"{a.id} : retour d'expérience enregistré ({r['retours']} au total)")
     elif act == "lier":
         if not a.cible or not a.type:
@@ -466,7 +466,11 @@ def cmd_idee(a):
 
 def cmd_journal(a):
     for e in journal.lire(a.cible, a.n):
-        _ecrire(f"{e['horodatage']} {e['action']:18} {e['cible']}" + (f" — {e['motif']}" if e.get("motif") else ""))
+        _ecrire(f"{e['horodatage']} {e.get('auteur', '?'):12} {e['action']:20} {e['cible']}"
+                + (f" — {e['motif']}" if e.get("motif") else ""))
+        if a.details and e.get("details"):
+            for ligne in json.dumps(e["details"], ensure_ascii=False, indent=1).splitlines():
+                _ecrire(f"      {ligne}")
 
 
 def cmd_evaluer(a):
@@ -626,6 +630,7 @@ def analyseur() -> argparse.ArgumentParser:
     x = sp.add_parser("journal", help="historique des modifications")
     x.add_argument("--cible")
     x.add_argument("-n", type=int, default=30)
+    x.add_argument("--details", action="store_true", help="détails de chaque entrée (avant/après, anomalies)")
     x.set_defaults(f=cmd_journal)
     x = sp.add_parser("evaluer", help="mesure la qualité de la recherche sur eval/requetes.json")
     x.add_argument("-k", type=_entier_positif, default=5)

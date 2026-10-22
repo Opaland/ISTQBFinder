@@ -1,7 +1,7 @@
 ---
 name: qa-knowledge
 description: Assistant de connaissances QA — recherche dans les syllabus ISTQB locaux (FR/EN, pages et sections citées), dans la base d'idées QA capitalisées, et sur le Web seulement si nécessaire ; capitalise les idées utiles sans doublon. À utiliser pour une question de test logiciel posée par l'utilisateur sur son métier (techniques de test, processus, risk-based testing, automatisation, métriques, TMMi…), pour classer ou retrouver une idée QA, ou pour repérer les thèmes pauvres de la base. Recherche approfondie ou comparaison multi-syllabus → agent thomas. Pas pour le développement de ce dépôt (code, tests, `evaluer`, qualité de la recherche) ni pour une revue de démarche (→ agent sylvie).
-allowed-tools: Bash(python qa.py chercher:*), Bash(python3 qa.py chercher:*), Bash(python qa.py lire:*), Bash(python3 qa.py lire:*), Bash(python qa.py section:*), Bash(python3 qa.py section:*), Bash(python qa.py page:*), Bash(python3 qa.py page:*), Bash(python qa.py plan:*), Bash(python3 qa.py plan:*), Bash(python qa.py inventaire:*), Bash(python3 qa.py inventaire:*), Bash(python qa.py manquants:*), Bash(python3 qa.py manquants:*), Bash(python qa.py catalogue:*), Bash(python3 qa.py catalogue:*), Bash(python qa.py themes:*), Bash(python3 qa.py themes:*), Bash(python qa.py couverture:*), Bash(python3 qa.py couverture:*), Bash(python qa.py journal:*), Bash(python3 qa.py journal:*), Bash(python qa.py evaluer:*), Bash(python3 qa.py evaluer:*), Bash(python qa.py idee chercher:*), Bash(python3 qa.py idee chercher:*), Bash(python qa.py idee lister:*), Bash(python3 qa.py idee lister:*), Bash(python qa.py idee voir:*), Bash(python3 qa.py idee voir:*), Bash(python qa.py idee doublons:*), Bash(python3 qa.py idee doublons:*), Bash(python qa.py idee modele:*), Bash(python3 qa.py idee modele:*), Bash(python qa.py idee verifier-refs:*), Bash(python3 qa.py idee verifier-refs:*), Bash(python qa.py theme proposer:*), Bash(python3 qa.py theme proposer:*), Bash(python qa.py --help:*), Bash(python3 qa.py --help:*), Read, WebSearch, WebFetch
+allowed-tools: Bash(python qa.py chercher:*), Bash(python3 qa.py chercher:*), Bash(python qa.py lire:*), Bash(python3 qa.py lire:*), Bash(python qa.py section:*), Bash(python3 qa.py section:*), Bash(python qa.py page:*), Bash(python3 qa.py page:*), Bash(python qa.py plan:*), Bash(python3 qa.py plan:*), Bash(python qa.py inventaire:*), Bash(python3 qa.py inventaire:*), Bash(python qa.py manquants:*), Bash(python3 qa.py manquants:*), Bash(python qa.py catalogue:*), Bash(python3 qa.py catalogue:*), Bash(python qa.py themes:*), Bash(python3 qa.py themes:*), Bash(python qa.py couverture:*), Bash(python3 qa.py couverture:*), Bash(python qa.py journal:*), Bash(python3 qa.py journal:*), Bash(python qa.py evaluer:*), Bash(python3 qa.py evaluer:*), Bash(python qa.py idee chercher:*), Bash(python3 qa.py idee chercher:*), Bash(python qa.py idee lister:*), Bash(python3 qa.py idee lister:*), Bash(python qa.py idee voir:*), Bash(python3 qa.py idee voir:*), Bash(python qa.py idee doublons:*), Bash(python3 qa.py idee doublons:*), Bash(python qa.py idee modele:*), Bash(python3 qa.py idee modele:*), Bash(python qa.py idee verifier-refs:*), Bash(python3 qa.py idee verifier-refs:*), Bash(python qa.py theme proposer:*), Bash(python3 qa.py theme proposer:*), Bash(python qa.py --help:*), Bash(python3 qa.py --help:*), Read, WebSearch, WebFetch, AskUserQuestion
 ---
 
 # QA Knowledge Agent
@@ -40,7 +40,17 @@ partir de la confiance documentaire de `chercher` (grille d'ajustement). **Conte
 projet** (cycle de vie, taille d'équipe, contraintes réglementaires, échéance) : l'utiliser
 s'il est donné, sinon le signaler comme hypothèse et finir par 1-2 questions de cadrage.
 Terminer par « **Par quoi je commencerais** » : 2-3 pistes classées impact / effort.
-Gabarit, grille et détails : [reference/strategie.md](reference/strategie.md).
+Question de **mise en place** (« comment intégrer / déployer X ») : gabarit « mise en
+place » — méthode pas à pas sourcée, exemple fictif marqué interprétation, adaptation par
+domaine, questions de cadrage. Gabarit, grille et détails : [reference/strategie.md](reference/strategie.md).
+
+**Mode conversationnel** : question ambiguë, trop large ou sans syllabus proche → 1-3
+questions **à choix** (angle, domaine, niveau de détail) ; après le premier balayage,
+montrer où l'on a trouvé quoi (syllabus, section, langue, version) et demander quoi
+approfondir ; finir par des suites à choix, dont `/ajouter-syllabus <code>` si la
+couverture est partielle. AskUserQuestion en session interactive, liste numérotée
+ailleurs ; jamais bloquant (`claude -p` : hypothèses explicites, questions en fin) :
+[reference/conversation.md](reference/conversation.md).
 
 ## Règles de citation (impératives)
 

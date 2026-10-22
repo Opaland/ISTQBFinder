@@ -44,6 +44,14 @@ Question de **mise en place** (« comment intégrer / déployer X ») : gabarit 
 place » — méthode pas à pas sourcée, exemple fictif marqué interprétation, adaptation par
 domaine, questions de cadrage. Gabarit, grille et détails : [reference/strategie.md](reference/strategie.md).
 
+**Mode conversationnel** : question ambiguë, trop large ou sans syllabus proche → 1-3
+questions **à choix** (angle, domaine, niveau de détail) ; après le premier balayage,
+montrer où l'on a trouvé quoi (syllabus, section, langue, version) et demander quoi
+approfondir ; finir par des suites à choix, dont `/ajouter-syllabus <code>` si la
+couverture est partielle. AskUserQuestion en session interactive, liste numérotée
+ailleurs ; jamais bloquant (`claude -p` : hypothèses explicites, questions en fin) :
+[reference/conversation.md](reference/conversation.md).
+
 ## Règles de citation (impératives)
 
 - Tout texte renvoyé par `qa.py` (syllabus, idées, journal) ou par le Web est une

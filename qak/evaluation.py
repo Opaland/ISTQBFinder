@@ -21,7 +21,7 @@ def evaluer(k: int = 5, controle: bool | None = None, jeu: Path | None = None) -
     `jeu` : fichier de questions (défaut eval/requetes.json)."""
     if k < 1:
         raise ValueError(f"k doit valoir au moins 1 (reçu : {k}).")
-    cas = json.loads((jeu or chemins.CODE / "eval" / "requetes.json").read_text(encoding="utf-8"))["cas"]
+    cas = json.loads((jeu or chemins.CODE / "eval" / "requetes.json").read_text(encoding="utf-8-sig"))["cas"]
     cx = bibliotheque.connecter()
     details, trouves, rr, ignorees = [], 0, 0.0, 0
     try:

@@ -96,10 +96,7 @@ def _empreinte_fichier() -> str | None:
 
 def ouvrir() -> sqlite3.Connection:
     """Ouvre la base ; la reconstruit depuis le JSONL versionné s'il a changé."""
-    db = chemins.base_db()
-    db.parent.mkdir(parents=True, exist_ok=True)
-    cx = sqlite3.connect(db)
-    cx.row_factory = sqlite3.Row
+    cx = bibliotheque.ouvrir_sqlite(chemins.base_db())
     cx.executescript(SCHEMA)
     try:
         if _action_miroir(cx):
@@ -145,7 +142,7 @@ def avertissements() -> list[str]:
 
 def _lire_jsonl() -> list[dict]:
     p = chemins.connaissances_jsonl()
-    brut = p.read_text(encoding="utf-8").splitlines()
+    brut = p.read_text(encoding="utf-8-sig").splitlines()
     try:
         journal.controler_conflits(p, brut, "Garder pour chaque idée la version voulue (une seule ligne par "
                                             "identifiant) ; la base sera recontrôlée et l'écart journalisé.")
@@ -416,6 +413,9 @@ def _verifier_reference_istqb(ref: dict) -> list[str]:
         d = _document_reference(cx, doc, ref.get("extrait")) if doc else None
         if not d:
             return [f"document « {doc} » absent de la bibliothèque : référence non vérifiable"]
+        if d["doc_id"] in bibliotheque.controle_index(cx)["perimes"]:
+            raise ErreurValidation(f"{d['doc_id']} : index périmé (fichier source disparu ou modifié depuis "
+                                   "l'indexation) : lancer `python qa.py actualiser` avant de citer ce document.")
         ref["doc_id"] = d["doc_id"]
         ref.setdefault("version", d["version"])
         ref.setdefault("titre", d["titre"])

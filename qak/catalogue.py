@@ -28,6 +28,15 @@ def documents(codes: list[str] | None = None, niveau: str | None = None) -> list
     return cat
 
 
+def statut_officiel(code: str | None) -> str:
+    """Avertissement si l'ISTQB retire progressivement ce syllabus (« [Retiring] » sur
+    istqb.org/certifications), avec son successeur ; « » sinon."""
+    d = next((d for d in bibliotheque.catalogue()["documents"] if code and d["code"].lower() == code.lower()), None)
+    if not d or d.get("statut_officiel") != "retiring":
+        return ""
+    return "en retrait par l'ISTQB (Retiring)" + (f", successeur : {d['successeur']}" if d.get("successeur") else "")
+
+
 def _autorise(url: str) -> bool:
     hote = urlparse(url).hostname or ""
     return any(hote == d or hote.endswith("." + d) for d in bibliotheque.catalogue()["domaines_autorises"])

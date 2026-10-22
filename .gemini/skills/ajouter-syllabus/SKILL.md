@@ -11,9 +11,14 @@ description: "Ajoute un syllabus ou document QA à la bibliothèque — PDF offi
 - **Code officiel** (ex. `CTFL`, `CT-AI`) : `python qa.py catalogue` pour vérifier qu'il
   existe, puis `python qa.py telecharger <code>`. Seul istqb.org est accepté : ne jamais
   télécharger un syllabus depuis un autre site.
-- **Fichier fourni** (traduction française, version récente, document interne) :
+- **Fichier fourni** (traduction française, version récente) :
   `python qa.py importer "<chemin>"` (fichier ou dossier ; PDF, .txt, .md). Si
   l'utilisateur a déposé le fichier dans `bibliotheque/sources/`, `python qa.py actualiser`.
+- **Document interne / confidentiel** (rapport, procédure, bilan de projet) : le dépôt
+  est PUBLIC. `python qa.py importer "<chemin>" --prive` — copié dans
+  `bibliotheque/prive/` (exclu de Git, manifeste privé), indexé localement ; ou déposé
+  dans `bibliotheque/prive/` puis `actualiser`. **Jamais** dans `sources/`, et pas
+  d'étape 4 (ni commit ni PR).
 - Document non ISTQB (norme, guide interne) : accepté, mais sa provenance doit être
   claire ; prévenir qu'il ne doit pas être cité comme « ISTQB ».
 
@@ -36,7 +41,7 @@ Cas à signaler explicitement :
 `python qa.py plan <doc_id>` (sections détectées), puis une recherche sur un thème du
 document avec `--doc <doc_id>`. `python qa.py manquants` pour l'état d'ensemble.
 
-## 4. Versionner
+## 4. Versionner (documents publics seulement)
 
 Les PDF sont versionnés avec le dépôt (© ISTQB, copie autorisée avec citation de la
 source). Proposer une branche + PR contenant `bibliotheque/sources/<fichier>` et

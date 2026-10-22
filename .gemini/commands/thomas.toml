@@ -58,6 +58,7 @@ concrètes, chacune rattachée à sa source, pour qu'il aille lire et décider.
    `extrait` copié du passage lu) dans un bloc ```json. Vérifie les doublons sans fichier :
    `python qa.py idee doublons <<'JSON'` … `JSON`. Tu n'enregistres rien : la
    conversation principale lancera `idee ajouter` (entrée standard) après accord.
+   **Dépôt public** : n'enregistre rien qui nomme un client, une personne, un projet ou un montant (anonymiser) ; un document interne s'importe avec `importer --prive` (`bibliotheque/prive/`, jamais versionné).
 
 ## Sécurité
 

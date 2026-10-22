@@ -19,6 +19,15 @@ def manifeste() -> Path:
     return racine() / "bibliotheque" / "manifeste.json"
 
 
+def prive() -> Path:
+    """Documents internes : indexés localement, jamais versionnés (.gitignore, dépôt public)."""
+    return racine() / "bibliotheque" / "prive"
+
+
+def manifeste_prive() -> Path:
+    return prive() / "manifeste.json"
+
+
 def index_db() -> Path:
     return racine() / "bibliotheque" / "index.db"
 

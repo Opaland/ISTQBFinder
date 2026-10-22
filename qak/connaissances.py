@@ -145,8 +145,14 @@ def avertissements() -> list[str]:
 
 def _lire_jsonl() -> list[dict]:
     p = chemins.connaissances_jsonl()
+    brut = p.read_text(encoding="utf-8").splitlines()
+    try:
+        journal.controler_conflits(p, brut, "Garder pour chaque idée la version voulue (une seule ligne par "
+                                            "identifiant) ; la base sera recontrôlée et l'écart journalisé.")
+    except ValueError as exc:
+        raise ErreurValidation(exc.args[0]) from None
     idees = []
-    for n, ligne in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+    for n, ligne in enumerate(brut, 1):
         if not ligne.strip():
             continue
         try:
@@ -256,7 +262,7 @@ def _reconstruire(cx: sqlite3.Connection) -> None:
         resume = ", ".join(f"{len(v)} idée(s) {libelles[k]}" for k, v in diff.items())
         if diff:
             _AVERTISSEMENTS.append(f"{chemins.connaissances_jsonl().name} modifié hors de l'outil ({resume}) : "
-                                   "écart tracé dans le journal (`journal --cible connaissances.jsonl`).")
+                                   "écart tracé dans le journal (`journal --cible connaissances.jsonl --details`).")
         _AVERTISSEMENTS.extend(f"anomalie {a}" for a in anomalies)
 
 

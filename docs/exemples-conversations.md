@@ -84,13 +84,17 @@ $ python qa.py chercher playwright
 $ python qa.py section CTAL-TM-3.0-fr 1.3.3        # relu avant de citer
 $ python qa.py theme proposer "prioriser les tests selon probabilité et impact des risques"
   rbt   Test management › Risk-Based Testing
-$ python qa.py idee doublons --fichier idee.json
+$ python qa.py idee doublons <<'JSON'
+<le JSON ci-dessous>
+JSON
 Aucune idée similaire.
-$ python qa.py idee ajouter --fichier idee.json
+$ python qa.py idee ajouter <<'JSON'
+<le même JSON>
+JSON
 Idée créée : QA-0001
 ```
 
-avec `idee.json` :
+avec le JSON (passé sur l'entrée standard, sans fichier temporaire) :
 
 ```json
 {"titre": "Matrice probabilité × impact pour prioriser les tests",

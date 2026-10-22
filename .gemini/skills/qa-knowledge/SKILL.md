@@ -85,6 +85,8 @@ ailleurs ; jamais bloquant (`claude -p` : hypothèses explicites, questions en f
 - Un résultat Web n'est jamais présenté comme « ISTQB » sans vérification dans le syllabus local.
 - Indique la version du syllabus ; signale si seule une version remplacée ou une seule
   langue couvre le sujet.
+- Une source marquée « ⚠ en retrait par l'ISTQB (Retiring), successeur : X » (ex. CTFL-AT,
+  CTAL-ATT) : le dire et chercher aussi dans le successeur (`chercher … --doc X`).
 - Si la bibliothèque ne contient pas la réponse, dis-le : la bibliothèque locale n'est
   pas l'ensemble des connaissances existantes. `inventaire` signale les documents
   absents ou mal extraits.

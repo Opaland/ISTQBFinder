@@ -435,6 +435,12 @@ def _importer(fichier: Path, sha: str, meta_forcee: dict, copier: bool, cx: sqli
                 existant.update(meta_forcee)
                 existant["champs_forces"] = sorted(set(existant.get("champs_forces", [])) | set(meta_forcee))
         ext = extraction.extraire(fichier)
+        statut, message = ext.statut()
+        if sha not in manif["documents"] and copier and statut not in ("ok", "partiel"):
+            # Import manuel d'un fichier inexploitable (faux PDF, scan sans texte) : rien
+            # n'est copié ni inscrit, la bibliothèque reste telle qu'elle était.
+            return {"etat": "echec", "fichier": fichier.name, "statut_extraction": statut,
+                    "message": f"{statut} : {message} — fichier ni copié ni inscrit au manifeste"}
         if sha in manif["documents"]:
             entree = manif["documents"][sha]
         else:
@@ -461,7 +467,6 @@ def _importer(fichier: Path, sha: str, meta_forcee: dict, copier: bool, cx: sqli
         notes = [n for n in calculer_versions(cx) if entree["doc_id"] in n]
         cx.commit()
         ecrire_manifeste(manif)
-        statut, message = ext.statut()
         return {"etat": "importe" if statut in ("ok", "partiel") else "echec", "fichier": fichier.name,
                 "doc_id": entree["doc_id"], "passages": n, "statut_extraction": statut, "message": message,
                 "versions": notes, "meta": {k: entree.get(k) for k in
@@ -561,10 +566,11 @@ def retirer(doc_id: str) -> dict:
     pas supprimé : le déplacer hors de sources/ pour qu'`actualiser` ne le réimporte pas."""
     with verrou_manifeste():
         manif = lire_manifeste()
-        sha = next((s for s, e in manif["documents"].items() if e["doc_id"] == doc_id), None)
+        sha = next((s for s, e in manif["documents"].items() if e["doc_id"].lower() == doc_id.lower()), None)
         if not sha:
             raise KeyError(f"Document inconnu : {doc_id}. Voir `inventaire`.")
         entree = manif["documents"].pop(sha)
+        doc_id = entree["doc_id"]  # casse exacte (saisie insensible à la casse)
         ecrire_manifeste(manif)
     cx = connecter()
     try:
@@ -583,7 +589,7 @@ def modifier_metadonnees(doc_id: str, **champs) -> dict:
     marqués « forcés » dans le manifeste et prévalent sur la détection."""
     with verrou_manifeste():
         manif = lire_manifeste()
-        cible = next((s for s, e in manif["documents"].items() if e["doc_id"] == doc_id), None)
+        cible = next((s for s, e in manif["documents"].items() if e["doc_id"].lower() == doc_id.lower()), None)
         if not cible:
             raise KeyError(f"Document inconnu : {doc_id}. Voir `inventaire`.")
         champs = {k: v for k, v in champs.items() if v is not None}

@@ -742,6 +742,30 @@
    "controle": true
   },
   {
+   "requete": "j'ai des tests instables",
+   "attendus": [
+    {
+     "code": "CTAL-TAE",
+     "section": "4.3"
+    },
+    {
+     "code": "CTAL-AT",
+     "section": "5.3"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "quel est le processus idéal de revue",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "3.2"
+    }
+   ],
+   "controle": true
+  },
+  {
    "requete": "critical testing processes CTP",
    "attendus": [
     {

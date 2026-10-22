@@ -1,5 +1,5 @@
 {
- "description": "Thésaurus FR/EN des concepts QA. Sert à (1) traduire une question française vers le vocabulaire des syllabus anglais et inversement, (2) élargir aux synonymes, (3) comparer des idées pour la déduplication. Ajouter des termes plutôt que des concepts quand c'est possible. Les noms propres d'outils (Playwright, Selenium…) n'y figurent pas : ils doivent correspondre littéralement, sinon un passage générique sur « les outils de test » passerait pour une réponse sur l'outil.",
+ "description": "Thésaurus FR/EN des concepts QA. Sert à (1) traduire une question française vers le vocabulaire des syllabus anglais et inversement, (2) élargir aux synonymes, (3) comparer des idées pour la déduplication. Ajouter des termes plutôt que des concepts quand c'est possible. Les noms propres d'outils (Playwright, Selenium…) n'y figurent pas : ils doivent correspondre littéralement, sinon un passage générique sur « les outils de test » passerait pour une réponse sur l'outil. Clé « majuscules » d'un concept : termes reconnus dans une question seulement écrits en MAJUSCULES (IDEAL ≠ « idéal ») ; les termes d'un seul mot de 2 lettres (ai, ia, ml, ux) suivent toujours cette règle. Ils restent des termes de recherche.",
  "concepts": [
   {
    "id": "partition-equivalence",
@@ -997,10 +997,12 @@
    "termes": [
     "ideal model",
     "modèle ideal",
-    "ideal",
     "ideal framework",
     "cadre ideal",
-    "processus ideal"
+    "ideal"
+   ],
+   "majuscules": [
+    "ideal"
    ]
   },
   {

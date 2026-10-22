@@ -42,3 +42,15 @@ def test_tpi_ctp_step_et_modele_de_maturite_distincts():
     assert ids("systematic test and evaluation process") == ["step"]
     assert ids("TMMi") == ["tmmi"] and ids("modèle de maturité") == ["modele-maturite"]
     assert ids("Test Maturity Model integration") == ["tmmi"] and ids("TMM") == ["tmm"]
+
+
+def test_sigles_courts_seulement_en_majuscules():
+    # Issue #42 : « j'ai », « ia » ou « idéal » du français ordinaire ne déclenchent pas un concept.
+    def ids(q):
+        return [cid for cid, _ in textes.reperer_concepts(q)[0]]
+    assert "ia" not in ids("j'ai des tests instables")
+    assert "ia" in ids("biais des systèmes d'IA") and "ia" in ids("AI testing")
+    assert "utilisabilite" in ids("tests UX") and "utilisabilite" not in ids("ux")
+    assert "ideal" not in ids("quel est le processus idéal de revue")
+    assert "ideal" in ids("modèle IDEAL") and "ideal" in ids("le cadre IDEAL") and "ideal" in ids("IDEAL")
+    assert "ai" not in textes.reperer_concepts("j'ai des tests instables")[1]  # ni « mot trop court ignoré »

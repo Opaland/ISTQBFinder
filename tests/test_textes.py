@@ -34,6 +34,18 @@ def test_jaccard_et_recouvrement():
     assert textes.jaccard(set(), {"a"}) == 0.0
 
 
+def test_erreur_defaut_defaillance_anomalie_sont_des_concepts_distincts():
+    # Issue #43 : CTFL v4.0.1 §1.2.3 et le glossaire distinguent ces notions.
+    def ids(q):
+        return [cid for cid, _ in textes.reperer_concepts(q)[0]]
+    assert ids("différence entre erreur, défaut et défaillance") == ["erreur", "defaut", "defaillance"]
+    assert ids("mistake fault failure") == ["erreur", "defaut", "defaillance"]
+    assert ids("incident") == ["anomalie"] and ids("bug") == ["defaut"]
+    assert ids("gestion des défauts") == ["gestion-defauts"] and ids("gestion des anomalies") == ["gestion-defauts"]
+    assert ids("estimation d'erreur") == ["estimation-erreur"]
+    assert "difference" not in textes.mots("différence", garder_generiques=False)
+
+
 def test_sigles_courts_seulement_en_majuscules():
     # Issue #42 : « j'ai », « ia » ou « idéal » du français ordinaire ne déclenchent pas un concept.
     def ids(q):

@@ -107,25 +107,27 @@ actualisation sans changement < 1 s.
 
 ## Recherche sémantique : évaluation chiffrée (#107, 2026-10-22)
 
-Jeu : contrôle (28 q., dont 5 questions « loin du vocabulaire ISTQB » ajoutées avant le
-prototype : « comment éviter que nos tests cassent à chaque changement d'écran », « on teste
-trop tard, comment avancer le test », « qui décide quand on arrête de tester », « les
-développeurs ne lisent pas nos rapports de bugs », « combien de temps faut-il prévoir pour
-tester ») et réglage (36 q.). Machine : 4 cœurs CPU, sans GPU. huggingface.co joignable
-depuis l'environnement (proxy) ; sans accès, copier le dossier du modèle et pointer
-`QAK_MODELE_SEMANTIQUE` vers lui.
+Jeux : contrôle (40 q.), réglage (36 q.) et un jeu **« éloigné »** (`evaluer --jeu
+eloigne`, 5 q., exclu des deux autres) de questions formulées loin du vocabulaire ISTQB,
+écrites avant le prototype : « comment éviter que nos tests cassent à chaque changement
+d'écran », « on teste trop tard, comment avancer le test », « qui décide quand on arrête de
+tester », « les développeurs ne lisent pas nos rapports de bugs », « combien de temps
+faut-il prévoir pour tester ». Il est séparé du contrôle pour que le seuil de la CI
+(`--min-rappel 0.80`) continue de mesurer le moteur livré. Machine : 4 cœurs CPU, sans GPU.
+huggingface.co joignable depuis l'environnement (proxy) ; sans accès, copier le dossier du
+modèle et pointer `QAK_MODELE_SEMANTIQUE` vers lui.
 
-| Moteur | Contrôle rappel@5 · MRR | Réglage rappel@5 · MRR | Requête (CLI) | Indexation | Disque |
-|---|---|---|---|---|---|
-| Lexical (FTS5 + thésaurus), référence | 82 % (23/28) · 0,72 | 100 % · 0,91 | 0,23 s | — | — |
-| Hybride RRF + `intfloat/multilingual-e5-small` (MIT, 118 M param.) | 79 % (22/28) · 0,74 | 97 % · 0,88 | 14,8 s (dont 11,5 s de chargement du modèle ; 0,05 s de calcul) | ≈ 10 min, 6 191 passages | vecteurs 4,8 Mo ; modèle 470 Mo ; dépendances 1,4 Go |
-| Hybride RRF + `paraphrase-multilingual-MiniLM-L12-v2` (Apache-2.0) | 79 % (22/28) · 0,56 | 97 % · 0,90 | idem | 193 s | vecteurs 4,8 Mo ; modèle ≈ 470 Mo |
-| e5-small **seul** (cosinus, sans dédoublonnage) | 68 % (19/28) | — | — | — | — |
+| Moteur | Contrôle (40 q.) | Réglage (36 q.) | Éloigné (5 q.) | Requête (CLI) | Indexation | Disque |
+|---|---|---|---|---|---|---|
+| Lexical (FTS5 + thésaurus), référence | 82 % · MRR 0,74 | 100 % · 0,92 | 20 % · 0,20 | 0,2-0,45 s | — | — |
+| Hybride RRF + `intfloat/multilingual-e5-small` (MIT, 118 M param.) | 85 % · 0,74 | **97 %** · 0,87 | 20 % · 0,20 | 14,8 s (dont 11,5 s de chargement du modèle ; 0,05 s de calcul) | 610 s, 6 191 passages | vecteurs 4,8 Mo ; modèle 470 Mo ; dépendances 1,4 Go |
 
-Les 3 questions éloignées qui échouent en lexical échouent aussi en sémantique (attendu
-hors des 5 premiers, rang 11 à « absent des 50 »). **Décision : non retenue.** Le critère
-de `docs/architecture.md` (des questions réalistes qui échouent malgré une reformulation
-avec le terme ISTQB) est rempli, mais les embeddings multilingues légers ne les résolvent
-pas sur ce corpus. Le prototype reste optionnel pour une réévaluation (autre modèle,
+Première mesure (index précédent, contrôle de 28 q.) : e5-small hybride 82 % → 79 % au
+contrôle, 100 % → 97 % au réglage ; `paraphrase-multilingual-MiniLM-L12-v2`
+(Apache-2.0, indexation 193 s) 79 % (MRR 0,56) et 97 % ; e5-small seul (cosinus) 68 %.
+
+**Décision : non retenue.** Le critère (des questions réalistes qui échouent malgré une
+reformulation avec le terme ISTQB) est rempli, mais les embeddings multilingues légers ne
+les résolvent pas (jeu éloigné inchangé), font perdre une question de réglage et coûtent
+15 s par commande. Le prototype reste optionnel pour une réévaluation (autre modèle, ou
 reformulation de la question par l'agent avant `chercher`, piste plus prometteuse).
-

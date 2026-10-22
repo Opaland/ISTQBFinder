@@ -988,7 +988,7 @@
      "section": "4.3"
     }
    ],
-   "controle": true
+   "eloigne": true
   },
   {
    "requete": "on teste trop tard, comment avancer le test",
@@ -1002,7 +1002,7 @@
      "section": "4"
     }
    ],
-   "controle": true
+   "eloigne": true
   },
   {
    "requete": "qui décide quand on arrête de tester",
@@ -1016,7 +1016,7 @@
      "section": "1.1"
     }
    ],
-   "controle": true
+   "eloigne": true
   },
   {
    "requete": "les développeurs ne lisent pas nos rapports de bugs",
@@ -1030,7 +1030,7 @@
      "section": "2.3"
     }
    ],
-   "controle": true
+   "eloigne": true
   },
   {
    "requete": "combien de temps faut-il prévoir pour tester",
@@ -1044,7 +1044,7 @@
      "section": "2.2"
     }
    ],
-   "controle": true
+   "eloigne": true
   }
  ]
 }

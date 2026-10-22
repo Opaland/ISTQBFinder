@@ -15,9 +15,12 @@ def _dans_section(trouvee: str | None, attendue: str) -> bool:
     return not attendue or trouvee == attendue or (trouvee or "").startswith(attendue + ".")
 
 
-def evaluer(k: int = 5, controle: bool | None = None, jeu: Path | None = None, semantique: bool = False) -> dict:
+def evaluer(k: int = 5, controle: bool | None = None, jeu: Path | None = None, semantique: bool = False,
+            eloigne: bool = False) -> dict:
     """controle=None : tout le jeu ; True : seulement les questions de contrôle (jamais
     utilisées pour régler le moteur) ; False : seulement le jeu de réglage.
+    eloigne=True : seulement le jeu « éloigné » (questions formulées loin du vocabulaire ISTQB,
+    issue #107), exclu des deux autres : il mesure une piste, pas le moteur livré.
     `jeu` : fichier de questions (défaut eval/requetes.json)."""
     if k < 1:
         raise ValueError(f"k doit valoir au moins 1 (reçu : {k}).")
@@ -27,6 +30,8 @@ def evaluer(k: int = 5, controle: bool | None = None, jeu: Path | None = None, s
     try:
         codes = {r["code"] for r in cx.execute("SELECT DISTINCT code FROM documents WHERE statut_version='courant'")}
         for c in cas:
+            if bool(c.get("eloigne")) != eloigne:
+                continue
             if controle is not None and bool(c.get("controle")) != controle:
                 continue
             attendus = [a for a in c["attendus"] if a["code"] in codes]

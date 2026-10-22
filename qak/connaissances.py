@@ -40,6 +40,14 @@ TYPES_REFERENCE = ("istqb", "norme", "web", "livre", "article", "interne", "conv
 CHAMPS_TEXTE = ("titre", "resume", "probleme", "principe", "domaine_application", "prerequis",
                 "benefices", "limites")
 SEUIL_DOUBLON, SEUIL_PROCHE = 0.6, 0.35
+# Seuls champs qu'une saisie (`idee ajouter` / `idee modifier`) peut fournir. Identifiant,
+# dates, relations et retours sont gérés par l'outil ou par leurs commandes dédiées
+# (`idee lier`, `idee retour`) : les accepter ici permettrait d'écraser une autre idée
+# ou de falsifier l'historique.
+CHAMPS_SAISIE = (*CHAMPS_TEXTE, "theme_principal", "themes_secondaires", "maturite", "statut",
+                 "provenance", "references")
+CHAMPS_GERES = {"id": "attribué par l'outil", "cree_le": "daté par l'outil", "maj_le": "daté par l'outil",
+                "relations": "passer par `idee lier`", "retours": "passer par `idee retour`"}
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS idees (
@@ -240,6 +248,12 @@ def _verifier_reference_istqb(ref: dict) -> list[str]:
 def valider(donnees: dict, partiel: bool = False) -> tuple[dict, list[str]]:
     """Normalise et contrôle une idée. Renvoie (idée, avertissements)."""
     avert = []
+    geres = [f"« {k} » ({CHAMPS_GERES[k]})" for k in donnees if k in CHAMPS_GERES]
+    if geres:
+        raise ErreurValidation(f"Champ(s) non modifiable(s) par saisie : {', '.join(geres)}.")
+    inconnus = sorted(k for k in donnees if k not in CHAMPS_SAISIE)
+    if inconnus:
+        raise ErreurValidation(f"Champ(s) inconnu(s) : {', '.join(inconnus)} (voir `idee modele`).")
     d = {k: (v.strip() if isinstance(v, str) else v) for k, v in donnees.items() if v not in (None, "", [])}
     if not partiel:
         manquants = [c for c in ("titre", "resume", "probleme", "principe", "theme_principal") if not d.get(c)]

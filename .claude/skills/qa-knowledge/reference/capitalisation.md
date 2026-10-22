@@ -38,6 +38,19 @@ python qa.py idee ajouter <<'JSON'
 JSON
 ```
 
+## Confidentialité : le dépôt est PUBLIC
+
+Tout ce qui est capitalisé (idées, retours d'expérience, références, journal) est publié
+sur GitHub. Avant d'enregistrer, **anonymiser** : ni client, ni personne, ni montant, ni
+projet nommé, ni adresse e-mail ou téléphone — « un client du secteur aéronautique »,
+« un projet de migration », « un budget serré », jamais « Airbus », « A350 » ou
+« 120 k€ ». L'outil bloque les adresses e-mail, montants et numéros de téléphone
+(passage seulement avec `--forcer --motif "…"`, sur décision explicite de
+l'utilisateur) et avertit sur toute référence `interne`. Les noms de clients, de
+personnes ou de projets ne sont pas détectables automatiquement : la règle repose ici
+sur l'agent. Un document interne se range dans `bibliotheque/prive/` (exclu de Git),
+jamais dans `bibliotheque/sources/`.
+
 ## Références
 
 - `istqb` : `doc_id` (ou code), `pages` et/ou `section`, `extrait` recommandé. L'outil

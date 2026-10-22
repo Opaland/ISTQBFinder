@@ -5,6 +5,7 @@ Le rappel@k mesure si ce passage figure dans les k premiers résultats. C'est le
 qui décidera d'ajouter (ou non) une recherche sémantique : elle ne se justifie que si
 des questions réalistes échouent malgré le thésaurus."""
 import json
+from pathlib import Path
 
 from . import bibliotheque, chemins, recherche
 
@@ -14,10 +15,13 @@ def _dans_section(trouvee: str | None, attendue: str) -> bool:
     return not attendue or trouvee == attendue or (trouvee or "").startswith(attendue + ".")
 
 
-def evaluer(k: int = 5, controle: bool | None = None) -> dict:
+def evaluer(k: int = 5, controle: bool | None = None, jeu: Path | None = None) -> dict:
     """controle=None : tout le jeu ; True : seulement les questions de contrôle (jamais
-    utilisées pour régler le moteur) ; False : seulement le jeu de réglage."""
-    cas = json.loads((chemins.CODE / "eval" / "requetes.json").read_text(encoding="utf-8"))["cas"]
+    utilisées pour régler le moteur) ; False : seulement le jeu de réglage.
+    `jeu` : fichier de questions (défaut eval/requetes.json)."""
+    if k < 1:
+        raise ValueError(f"k doit valoir au moins 1 (reçu : {k}).")
+    cas = json.loads((jeu or chemins.CODE / "eval" / "requetes.json").read_text(encoding="utf-8"))["cas"]
     cx = bibliotheque.connecter()
     details, trouves, rr, ignorees = [], 0, 0.0, 0
     try:

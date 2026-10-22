@@ -40,7 +40,9 @@ JSON
 
 ## Références
 
-- `istqb` : `doc_id` (ou code), `pages` et/ou `section`, `extrait` recommandé. L'outil
+- `istqb` : `doc_id` (ou code), `pages` et/ou `section`, `extrait` recommandé. Un code
+  présent en plusieurs langues (CTAL-TM EN et FR) est départagé par la langue de l'extrait ;
+  sans extrait, donner le `doc_id` exact (ex. `CTAL-TM-3.0-fr`). L'outil
   refuse une page inexistante (ou mal écrite : « 31 », « 31-33 », « 4, 6 »), une section
   absente des pages citées, et un extrait qui n'est pas recopié **mot pour mot** (suite
   continue d'au moins 6 mots significatifs, sans reformulation ni « … ») ; il signale
@@ -66,3 +68,12 @@ Chaque création / modification / changement de statut / relation / thème est j
 (`journal`, `journal --cible QA-xxxx`). La base se versionne avec Git via
 `connaissances/connaissances.jsonl` et `journal.jsonl` : proposer un commit
 après une session de capitalisation.
+
+- Ne jamais éditer `connaissances.jsonl` à la main : passer par `idee modifier`, et
+  pour supprimer `idee retirer QA-xxxx --motif "…"` (instantané conservé dans le
+  journal, relations retirées, identifiant jamais réattribué). Préférer
+  `idee statut … abandonnee` quand l'idée garde une valeur historique.
+- Si le fichier a été modifié hors de l'outil (édition, fusion, `git revert`), la base
+  est reconstruite, les règles sont recontrôlées (statut, références, relations
+  orphelines) et l'écart est journalisé (`modification_externe`) : relayer
+  l'avertissement « ⚠ » à l'utilisateur.

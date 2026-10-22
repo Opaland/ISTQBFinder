@@ -14,7 +14,7 @@ from .textes import normaliser
 # Toute modification de l'extraction, du découpage ou de la détection des métadonnées doit
 # incrémenter ce numéro :
 # l'actualisation réindexe alors les documents extraits par une version antérieure.
-VERSION_EXTRACTEUR = 11
+VERSION_EXTRACTEUR = 12
 
 TAILLE_PASSAGE = 1400   # caractères visés par passage
 PAGE_VIDE = 40          # moins de caractères utiles = page vide (scan, image)
@@ -259,10 +259,12 @@ def _recoller(titre: str, vocab: Counter) -> str:
         # Le second fragment ne porte au plus qu'une ponctuation finale : « l’approche » n'est
         # pas un fragment (« que l’approche » ne devient pas « quel’approche »).
         m = re.match(r"^([^\W\d_]+)([.,;:!?)]*)$", mot)
-        if prec.isalpha() and m:
-            reuni = prec + m.group(1)
-            if vocab[reuni.lower()] >= 2 and not (est_mot(prec) and est_mot(m.group(1))):
-                out[-1] = reuni + m.group(2)
+        # Fin alphabétique du mot précédent : « l’utilisabilit » + « é » (élision conservée).
+        f = re.match(r"^(.*?[’'(«]?)([^\W\d_]+)$", prec)
+        if f and m and (prec.isalpha() or f.group(1)[-1:] in "’'"):
+            reuni = f.group(2) + m.group(1)
+            if vocab[reuni.lower()] >= 2 and not (est_mot(f.group(2)) and est_mot(m.group(1))):
+                out[-1] = f.group(1) + reuni + m.group(2)
                 continue
         out.append(mot)
     return " ".join(out)
@@ -419,6 +421,10 @@ def passages(ext: Extraction) -> list[Passage]:
         par_page.setdefault(t.page, []).append(t)
     section = Titre(0, 0, "", "")
     out = []
+    # Mots coupés par une espace parasite (« utilisabilit é », « testi ng ») recollés aussi dans
+    # le texte des passages (issue #106) : la recherche les retrouve ; les citations restent
+    # vérifiables (comparaison sans espaces, voir connaissances).
+    vocab = _vocabulaire(ext.pages) if ext.plan_source != "markdown" else None
     for p in ext.pages:
         lignes = p.texte.split("\n")
         coupures = sorted(par_page.get(p.numero, []), key=lambda t: t.ligne)
@@ -427,6 +433,8 @@ def passages(ext: Extraction) -> list[Passage]:
         for (debut, fin), sec in zip(zip(bornes, bornes[1:]), sections):
             bloc = "\n".join(lignes[debut:fin]).strip()
             for morceau in _couper(bloc) if bloc else []:
+                if vocab is not None:
+                    morceau = "\n".join(_recoller(l, vocab) for l in morceau.split("\n"))
                 if len(morceau) >= 20:
                     out.append(Passage(p.numero, p.imprimee, sec.numero, sec.titre, morceau, p.sommaire))
         if coupures:

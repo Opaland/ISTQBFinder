@@ -239,9 +239,11 @@ qu'avec l'accord de l'utilisateur.
   contrôle jamais vues. Les requêtes très courtes et génériques réussissent mieux avec le
   terme ISTQB anglais. Pas de recherche sémantique : bénéfice non démontré
   ([docs/architecture.md](docs/architecture.md)).
-- Pas d'OCR (PDF scanné = « illisible »). Certains PDF FR produisent des espaces parasites
-  dans les mots (« sélecti on ») : la recherche reste correcte dans l'ensemble mais une
-  expression exacte peut être manquée sur ces pages.
+- Pas d'OCR (PDF scanné = « illisible »). Certains PDF produisent des espaces parasites
+  dans les mots (« sélecti on ») : l'extraction recolle les fragments quand le mot réuni
+  existe dans le document (≈ 80 % des coupures) ; une expression exacte peut encore être
+  manquée sur les pages restantes. Une faute de frappe dans la question (« priorisasion »)
+  est corrigée vers le mot connu le plus proche, avec un avertissement.
 - La bibliothèque locale n'est pas l'ensemble des connaissances : l'assistant le dit
   quand elle ne couvre pas une question.
 

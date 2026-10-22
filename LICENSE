@@ -19,3 +19,20 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+--------------------------------------------------------------------------------
+EXCLUSION — documents tiers / third-party documents
+
+La licence MIT ci-dessus s'applique au code et à la documentation de ce dépôt. Elle
+NE s'applique PAS aux fichiers du dossier `bibliotheque/sources/` : syllabus
+© International Software Testing Qualifications Board (ISTQB®) et, pour les versions
+françaises, traductions propriété de leurs traducteurs (le plus souvent le Comité
+Français des Tests Logiciels, CFTL). Ils sont reproduits sans modification, comme leur
+notice de copyright l'autorise si la source est citée. Liste, ayants droit et sources :
+voir NOTICE.md.
+
+The MIT License above applies to the code and documentation of this repository. It
+does NOT apply to the files in `bibliotheque/sources/`: ISTQB® syllabi (© International
+Software Testing Qualifications Board) and their French translations (© their
+translators, mostly the CFTL), reproduced unmodified as permitted by their copyright
+notice with the source acknowledged. See NOTICE.md.

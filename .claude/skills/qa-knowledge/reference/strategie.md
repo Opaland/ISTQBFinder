@@ -23,6 +23,9 @@
   rarement la réponse : préférer le chapitre de fond.
 - Si rien ne sort : reformuler (synonymes, terme anglais), élargir (`--toutes-versions`),
   puis seulement envisager le Web.
+- Outil, technologie ou pratique nommés par la question et introuvables localement
+  (`chercher playwright` → aucun passage) : les principes ISTQB ne suffisent pas, la
+  recherche Web ciblée (documentation officielle) fait partie de la réponse.
 
 ## Lire et recouper
 
@@ -71,6 +74,9 @@ La grille est dans SKILL.md (seul texte préchargé chez Thomas et Sylvie) et da
 « Confiance : NN/100 (libellé) » suivi du calcul, par exemple :
 `base 79 × 0,6 = 47 ; 3 passages lus +20 ; 2 syllabus concordants +10 ; Web −10 → 67`.
 Aucun autre ajustement (« −5 syllabus non lu », point de départ choisi à l'œil…).
+Plafond : si une notion de la question (ex. l'outil nommé) n'est couverte ni par un
+passage lu ni par une source Web consultée (`--non-couvert 1`), le score ne dépasse pas
+**60** — le dire.
 
 ## Marquage de la provenance
 

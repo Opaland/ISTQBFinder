@@ -9,6 +9,7 @@ Stockage :
 """
 import hashlib
 import json
+import os
 import re
 import sqlite3
 from datetime import date, datetime
@@ -98,13 +99,33 @@ def ouvrir() -> sqlite3.Connection:
     cx = sqlite3.connect(db)
     cx.row_factory = sqlite3.Row
     cx.executescript(SCHEMA)
-    h = _empreinte_fichier()
-    connu = cx.execute("SELECT valeur FROM meta WHERE cle='hash_jsonl'").fetchone()
-    if h and (not connu or connu[0] != h):
-        _reconstruire(cx)
-    elif not h and cx.execute("SELECT 1 FROM idees LIMIT 1").fetchone():
-        _exporter(cx)  # base sans miroir (première version) : on crée le miroir
+    try:
+        if _action_miroir(cx):
+            # Verrou d'écriture puis second contrôle : un autre processus peut être en
+            # train d'exporter ; reconstruire sans verrou depuis un état intermédiaire
+            # effaçait les idées qu'il venait d'ajouter.
+            cx.execute("BEGIN IMMEDIATE")
+            action = _action_miroir(cx)
+            if action == "reconstruire":
+                _reconstruire(cx)
+            elif action == "exporter":
+                _exporter(cx)  # base sans miroir (première version) : on crée le miroir
+            else:
+                cx.rollback()
+    except BaseException:
+        cx.close()
+        raise
     return cx
+
+
+def _action_miroir(cx) -> str | None:
+    """« reconstruire » si le JSONL a changé, « exporter » si la base n'a pas encore de
+    miroir, None si tout est à jour."""
+    h = _empreinte_fichier()
+    if h:
+        connu = cx.execute("SELECT valeur FROM meta WHERE cle='hash_jsonl'").fetchone()
+        return None if connu and connu[0] == h else "reconstruire"
+    return "exporter" if cx.execute("SELECT 1 FROM idees LIMIT 1").fetchone() else None
 
 
 def _reconstruire(cx: sqlite3.Connection) -> None:
@@ -162,7 +183,11 @@ def _exporter(cx: sqlite3.Connection) -> None:
     p.parent.mkdir(parents=True, exist_ok=True)
     lignes = [json.dumps(_charger(cx, r["id"]), ensure_ascii=False, sort_keys=False)
               for r in cx.execute("SELECT id FROM idees ORDER BY id")]
-    p.write_text("".join(l + "\n" for l in lignes), encoding="utf-8")
+    # Écriture atomique : un lecteur concurrent voit l'ancien fichier ou le nouveau,
+    # jamais un fichier tronqué (qui déclenchait une reconstruction à vide).
+    tmp = p.with_name(f".{p.name}.{os.getpid()}.tmp")
+    tmp.write_text("".join(l + "\n" for l in lignes), encoding="utf-8")
+    os.replace(tmp, p)
     cx.execute("INSERT OR REPLACE INTO meta VALUES ('hash_jsonl', ?)", (_empreinte_fichier(),))
     cx.commit()
 
@@ -245,8 +270,33 @@ def _verifier_reference_istqb(ref: dict) -> list[str]:
     return problemes
 
 
+CHAMPS_CHAINE = (*CHAMPS_TEXTE, "theme_principal", "maturite", "statut", "provenance")
+
+
+def _controler_types(donnees) -> None:
+    """Types attendus du JSON saisi : un message français plutôt qu'une trace Python."""
+    if not isinstance(donnees, dict):
+        raise ErreurValidation("L'idée doit être un objet JSON ({…}) : voir `idee modele`.")
+    for champ in CHAMPS_CHAINE:
+        if donnees.get(champ) is not None and not isinstance(donnees[champ], str):
+            raise ErreurValidation(f"Champ {champ} : texte attendu (reçu {type(donnees[champ]).__name__}).")
+    t = donnees.get("themes_secondaires")
+    if t is not None and not (isinstance(t, list) and all(isinstance(x, str) for x in t)):
+        raise ErreurValidation("Champ themes_secondaires : liste de codes de thème attendue "
+                               "(ex. [\"metriques\"]).")
+    refs = donnees.get("references")
+    if refs is not None and not (isinstance(refs, list) and all(isinstance(r, dict) for r in refs)):
+        raise ErreurValidation("Champ references : liste d'objets attendue (ex. [{\"type\": \"web\", …}]).")
+    for r in refs or []:
+        for k, v in r.items():
+            if v is not None and not isinstance(v, str) and not (k == "pages" and isinstance(v, int)
+                                                                 and not isinstance(v, bool)):
+                raise ErreurValidation(f"Champ references.{k} : texte attendu (reçu {type(v).__name__}).")
+
+
 def valider(donnees: dict, partiel: bool = False) -> tuple[dict, list[str]]:
     """Normalise et contrôle une idée. Renvoie (idée, avertissements)."""
+    _controler_types(donnees)
     avert = []
     geres = [f"« {k} » ({CHAMPS_GERES[k]})" for k in donnees if k in CHAMPS_GERES]
     if geres:
@@ -278,7 +328,7 @@ def valider(donnees: dict, partiel: bool = False) -> tuple[dict, list[str]]:
                                "la créer puis utiliser `idee statut` avec un motif (et un retour d'expérience).")
     refs = []
     for r in d.get("references", []):
-        r = {k: v for k, v in r.items() if v not in (None, "")}
+        r = {k: (str(v) if k == "pages" else v.strip()) for k, v in r.items() if v not in (None, "")}
         if r.get("type") not in TYPES_REFERENCE:
             raise ErreurValidation(f"Type de référence invalide : {r.get('type')} ({', '.join(TYPES_REFERENCE)}).")
         if r["type"] == "web" and not r.get("url"):

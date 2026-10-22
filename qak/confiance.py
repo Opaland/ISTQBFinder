@@ -19,7 +19,7 @@ MALUS = {
     "web": (10, "une partie de la réponse repose sur le Web"),
     "raisonnement": (10, "une partie repose sur un raisonnement sans source"),
 }
-PLAFOND_NON_COUVERT = 40  # une notion de la question n'est couverte ni par un passage lu ni par le Web
+PLAFOND_NON_COUVERT = 60  # une notion de la question n'est couverte ni par un passage lu ni par le Web
 
 
 def calculer(base: int, lus: int, concordants: int, ancien: bool = False, contradiction: bool = False,

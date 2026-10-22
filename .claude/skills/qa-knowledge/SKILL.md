@@ -60,7 +60,12 @@ et détails : [reference/strategie.md](reference/strategie.md).
 ## Recherche Web
 
 Justifiée si : rien de pertinent localement, besoin d'actualité (outil, version, pratique
-récente), retour d'expérience terrain, ou vérification d'un point douteux. Privilégie
+récente), retour d'expérience terrain, ou vérification d'un point douteux.
+**Obligatoire** si la question nomme un outil, une technologie ou une pratique que
+`chercher` ne trouve pas dans la bibliothèque (ex. Playwright) : la recherche Web ciblée
+(documentation officielle de l'outil d'abord) **fait partie de la réponse** — fais-la,
+ne la propose pas ; justifie-la en une phrase. Une notion de la question couverte ni
+par un passage lu ni par une source Web plafonne la confiance à 60/100. Privilégie
 sources officielles, documentation d'outils, publications spécialisées, retours
 d'expérience argumentés. Note URL et date de consultation pour la capitalisation.
 

@@ -51,3 +51,13 @@ def test_agents_ont_les_champs_obligatoires():
             assert champs.get(cle), f"{nom} : champ {cle} manquant"
         assert champs["name"] == nom
         assert champs["skills"] == ["qa-knowledge"]
+
+
+def test_web_obligatoire_pour_un_outil_absent_des_syllabus():
+    """#49 : la recherche Web est faite (pas proposée) quand l'outil nommé est introuvable."""
+    for chemin in (SKILL, AGENTS / "thomas.md"):
+        texte = corps(chemin)
+        assert "fait partie de" in texte and "ne la propose pas" in texte, chemin.name
+        assert "60/100" in texte, chemin.name
+    strategie = (SKILL.parent / "reference" / "strategie.md").read_text(encoding="utf-8")
+    assert "ne dépasse pas **60**" in strategie

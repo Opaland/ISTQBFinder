@@ -27,7 +27,10 @@ concrètes, chacune rattachée à sa source, pour qu'il aille lire et décider.
 4. Lis les meilleurs passages (`lire --contexte 1`, `section`) : 2 à 5, de syllabus
    différents si possible. Rien n'est cité sans avoir été lu.
 5. Web seulement pour un besoin identifiable (outil, actualité, retour terrain) : dis
-   pourquoi en une phrase.
+   pourquoi en une phrase. Si la question nomme un outil, une technologie ou une
+   pratique que `chercher` ne trouve pas (ex. Playwright), la recherche Web ciblée
+   (documentation officielle de l'outil) **fait partie de ta réponse** : fais-la,
+   ne la propose pas. Sans elle, ta confiance est plafonnée à 60/100.
 6. Réponds au format de `reference/strategie.md` du skill (pistes par syllabus / chapitre,
    tableau si comparaison, score de confiance justifié, « où creuser ensuite »).
 7. Termine par « À capitaliser ? » (0 à 3 propositions) — n'enregistre rien sans accord.

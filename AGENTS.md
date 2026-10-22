@@ -45,6 +45,9 @@ Français partout (réponses, messages, commits, commentaires).
 - Après toute modification de `.claude/skills/` ou `.claude/agents/` (ou des permissions
   `allow` de `.claude/settings.json`) : `python scripts/generer_integrations.py`, et commiter
   les fichiers régénérés dans la même PR (sinon `tests/test_integrations.py` échoue).
+- Juste avant de fusionner : fusionner `main` à jour dans la branche, relancer
+  `python scripts/generer_integrations.py` si `.claude/` ou le générateur ont bougé, et
+  attendre la CI verte sur **ce** commit (deux PR vertes séparément peuvent casser `main`).
 - Avant de pousser : `python -m pytest tests/ -q -rs` vert, et `python qa.py evaluer
   --jeu controle` si le moteur de recherche est touché (chiffres dans la PR).
 

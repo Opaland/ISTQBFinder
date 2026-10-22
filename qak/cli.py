@@ -334,7 +334,7 @@ def cmd_idee(a):
         _ecrire("Thèmes suggérés : " + ", ".join(c for _, c in taxonomie.proposer(
             " ".join(str(d.get(k, "")) for k in ("titre", "resume", "principe")))))
     elif act == "modifier":
-        r = connaissances.modifier(a.id, _lire_donnees(a.fichier), a.remplacer_listes, a.motif)
+        r = connaissances.modifier(a.id, _lire_donnees(a.fichier), a.remplacer_listes, a.motif, a.forcer)
         _ecrire(f"{a.id} : {r['etat']}" + (f" ({', '.join(r['champs'])})" if r.get("champs") else ""))
         for w in r["avertissements"]:
             _ecrire(f"  ⚠ {w}")
@@ -342,7 +342,7 @@ def cmd_idee(a):
         r = connaissances.changer_statut(a.id, a.statut, a.motif)
         _ecrire(f"{a.id} : {r['avant']} → {r['apres']}")
     elif act == "retour":
-        r = connaissances.ajouter_retour(a.id, a.contexte, a.resultat, a.enseignement, a.date)
+        r = connaissances.ajouter_retour(a.id, a.contexte, a.resultat, a.enseignement, a.date, a.forcer, a.motif)
         _ecrire(f"{a.id} : retour d'expérience enregistré ({r['retours']} au total)")
     elif act == "lier":
         if not a.cible or not a.type:

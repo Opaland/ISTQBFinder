@@ -766,6 +766,16 @@
    "controle": true
   },
   {
+   "requete": "connaissance des parties prenantes dans le management des tests",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.2.2"
+    }
+   ],
+   "controle": true
+  },
+  {
    "requete": "différence entre erreur, défaut et défaillance",
    "attendus": [
     {

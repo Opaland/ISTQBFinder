@@ -44,3 +44,15 @@ def test_erreur_defaut_defaillance_anomalie_sont_des_concepts_distincts():
     assert ids("gestion des défauts") == ["gestion-defauts"] and ids("gestion des anomalies") == ["gestion-defauts"]
     assert ids("estimation d'erreur") == ["estimation-erreur"]
     assert "difference" not in textes.mots("différence", garder_generiques=False)
+
+
+def test_sigles_courts_seulement_en_majuscules():
+    # Issue #42 : « j'ai », « ia » ou « idéal » du français ordinaire ne déclenchent pas un concept.
+    def ids(q):
+        return [cid for cid, _ in textes.reperer_concepts(q)[0]]
+    assert "ia" not in ids("j'ai des tests instables")
+    assert "ia" in ids("biais des systèmes d'IA") and "ia" in ids("AI testing")
+    assert "utilisabilite" in ids("tests UX") and "utilisabilite" not in ids("ux")
+    assert "ideal" not in ids("quel est le processus idéal de revue")
+    assert "ideal" in ids("modèle IDEAL") and "ideal" in ids("le cadre IDEAL") and "ideal" in ids("IDEAL")
+    assert "ai" not in textes.reperer_concepts("j'ai des tests instables")[1]  # ni « mot trop court ignoré »

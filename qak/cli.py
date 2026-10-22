@@ -242,9 +242,14 @@ def cmd_corriger(a):
 
 
 def cmd_retirer(a):
-    e = bibliotheque.retirer(a.doc_id)
-    _ecrire(f"{a.doc_id} retiré de la bibliothèque. Fichier conservé : bibliotheque/sources/{e['fichier']} "
-            "(le déplacer hors du dossier, sinon `actualiser` le réimportera).")
+    e = bibliotheque.retirer(a.doc_id, a.supprimer_fichier)
+    dossier = "bibliotheque/prive" if e["prive"] else "bibliotheque/sources"
+    if e["fichier_supprime"]:
+        _ecrire(f"{a.doc_id} retiré de la bibliothèque privée ; fichier {dossier}/{e['fichier']} supprimé.")
+    else:
+        _ecrire(f"{a.doc_id} retiré de la bibliothèque. Fichier conservé : {dossier}/{e['fichier']} "
+                "(le déplacer hors du dossier, sinon `actualiser` le réimportera"
+                + (" ; ou `--supprimer-fichier`)." if e["prive"] else ")."))
 
 
 def cmd_chercher(a):
@@ -664,6 +669,8 @@ def analyseur() -> argparse.ArgumentParser:
 
     x = sp.add_parser("retirer", help="retirer un document de la bibliothèque (manifeste + index)")
     x.add_argument("doc_id")
+    x.add_argument("--supprimer-fichier", action="store_true",
+                   help="document privé seulement : supprime aussi le fichier de bibliotheque/prive/")
     x.set_defaults(f=cmd_retirer)
 
     x = sp.add_parser("chercher", help="recherche plein texte dans la bibliothèque")

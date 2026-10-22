@@ -6,6 +6,7 @@ import pytest
 
 from qak import bibliotheque, chemins, recherche
 from qak.cli import main
+from conftest import FIXTURES
 
 TEXTE = ("# 1 Bilan de campagne\n\nLe registre des risques du projet interne a été revu chaque semaine avec "
          "les responsables métier zygomorphe.\n")
@@ -60,3 +61,28 @@ def test_import_prive_refuse_un_fichier_de_sources(racine_isolee):
     f.write_text(TEXTE, encoding="utf-8")
     with pytest.raises(ValueError, match="VERSIONNÉ"):
         bibliotheque.importer(f, prive=True)
+
+
+def test_corriger_puis_retirer_un_document_prive(depot, tmp_path_factory, capsys):
+    """#130 : `corriger` et `retirer` ignoraient bibliotheque/prive/ (« Document inconnu »)."""
+    bibliotheque.importer(FIXTURES / "syllabus_v9.pdf")
+    externe = tmp_path_factory.mktemp("externe") / "bilan-client.md"
+    externe.write_text(TEXTE, encoding="utf-8")
+    doc_id = bibliotheque.importer(externe, prive=True)["doc_id"]
+    public_avant = chemins.manifeste().read_bytes()
+    assert main(["corriger", doc_id, "--titre", "Bilan anonymisé", "--langue", "fr"]) == 0
+    entree = next(iter(bibliotheque.lire_manifeste(prive=True)["documents"].values()))
+    assert entree["titre"] == "Bilan anonymisé" and "titre" in entree["champs_forces"]
+    assert {d["doc_id"]: d["titre"] for d in bibliotheque.inventaire()}[doc_id] == "Bilan anonymisé"
+    assert main(["retirer", doc_id, "--supprimer-fichier"]) == 0
+    assert "supprimé" in capsys.readouterr().out
+    assert bibliotheque.lire_manifeste(prive=True)["documents"] == {}
+    assert not (chemins.prive() / "bilan-client.md").exists()
+    assert not recherche.chercher("zygomorphe")["resultats"]
+    assert doc_id not in {d["doc_id"] for d in bibliotheque.inventaire()}
+    assert chemins.manifeste().read_bytes() == public_avant              # manifeste versionné inchangé
+    assert bibliotheque.actualiser()["importes"] == []                    # pas de réimport
+    # --supprimer-fichier refusé pour un document public (versionné)
+    public = next(iter(bibliotheque.lire_manifeste()["documents"].values()))["doc_id"]
+    with pytest.raises(ValueError, match="privés"):
+        bibliotheque.retirer(public, supprimer_fichier=True)

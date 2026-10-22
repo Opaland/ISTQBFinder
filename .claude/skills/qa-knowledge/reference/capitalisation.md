@@ -55,9 +55,12 @@ JSON
 
 - `maturite` : `hypothese` (non étayée) · `documentee` (source fiable) · `pratiquee`
   (répandue dans l'industrie) · `eprouvee` (validée dans NOTRE contexte, avec retour).
+  `documentee` et `pratiquee` sont **refusées sans au moins une référence**.
 - `statut` à la création : `a_explorer` ou `a_evaluer`. `validee`, `abandonnee`,
   `experimentee` : `idee statut QA-xxxx <statut> --motif "…"`, sur décision de
-  l'utilisateur ; `experimentee` exige un retour (`idee retour QA-xxxx --contexte … --resultat …`).
+  l'utilisateur, motif d'au moins 10 caractères (« ok » refusé) ; `validee` exige au
+  moins une référence ou un retour d'expérience ; `experimentee` exige un retour
+  (`idee retour QA-xxxx --contexte … --resultat …`).
 
 ## Traçabilité
 

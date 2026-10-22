@@ -412,9 +412,20 @@ def valider(donnees: dict, partiel: bool = False) -> tuple[dict, list[str]]:
         refs.append(r)
     if "references" in d:
         d["references"] = refs
-    if not partiel and d["maturite"] in ("documentee", "pratiquee") and not refs:
-        avert.append("maturité « documentée/pratiquée » sans aucune référence : à étayer")
+    if not partiel:
+        _exiger_source(d)
     return d, avert
+
+
+MOTIF_MIN = 10
+
+
+def _exiger_source(idee: dict) -> None:
+    """« documentée » / « pratiquée » affirment une source : sans référence, c'est faux."""
+    if idee.get("maturite") in ("documentee", "pratiquee") and not idee.get("references"):
+        raise ErreurValidation(
+            f"Maturité « {idee['maturite']} » sans aucune référence : ajouter la source (syllabus, norme, "
+            "publication) dans `references`, ou garder « hypothese ».")
 
 
 # ---------------------------------------------------------------- déduplication
@@ -511,6 +522,7 @@ def modifier(idee_id: str, donnees: dict, remplacer_listes: bool = False, motif:
                 apres[k] = existant + [x for x in v if cle(x) not in vus]
             else:
                 apres[k] = v
+        _exiger_source(apres)
         apres["maj_le"] = datetime.now().isoformat(timespec="seconds")
         changes = {k: {"avant": avant.get(k), "apres": apres.get(k)} for k in maj if avant.get(k) != apres.get(k)}
         if not changes:
@@ -529,8 +541,13 @@ def changer_statut(idee_id: str, statut: str, motif: str | None) -> dict:
     cx = ouvrir()
     try:
         idee = _charger(cx, idee_id)
-        if statut in ("validee", "abandonnee", "experimentee") and not motif:
-            raise ErreurValidation(f"Le statut « {statut} » exige un motif (--motif) : sur quoi repose la décision ?")
+        motif = (motif or "").strip()
+        if statut in ("validee", "abandonnee", "experimentee") and len(motif) < MOTIF_MIN:
+            raise ErreurValidation(f"Le statut « {statut} » exige un motif d'au moins {MOTIF_MIN} caractères "
+                                   "(--motif) : sur quoi repose la décision ?")
+        if statut == "validee" and not idee["references"] and not idee["retours"]:
+            raise ErreurValidation("« validée » exige au moins une référence (`idee modifier`) ou un retour "
+                                   "d'expérience (`idee retour`) : sur quelle source repose la validation ?")
         if statut == "experimentee" and not idee["retours"]:
             raise ErreurValidation("« expérimentée » exige au moins un retour d'expérience (`idee retour`).")
         avant = idee["statut"]

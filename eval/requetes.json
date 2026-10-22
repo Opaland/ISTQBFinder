@@ -720,6 +720,26 @@
     }
    ],
    "controle": true
+  },
+  {
+   "requete": "adapter l'amélioration du processus de test à un cycle de vie agile ou itératif",
+   "attendus": [
+    {
+     "code": "CTEL-ITP",
+     "section": "10"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "test process improvement in agile life cycles",
+   "attendus": [
+    {
+     "code": "CTEL-ITP",
+     "section": "10"
+    }
+   ],
+   "controle": true
   }
  ]
 }

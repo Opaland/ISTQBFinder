@@ -509,3 +509,39 @@ def test_pas_de_faux_positif_sur_les_nombres_courants():
 def test_reference_interne_avertit():
     r = connaissances.ajouter({**IDEE, "references": [{"type": "interne", "titre": "Bilan de campagne"}]})
     assert any("interne" in w and "public" in w for w in r["avertissements"])
+
+
+def test_empreinte_du_document_lu_enregistree_et_controlee(bibliotheque_test):
+    """#35 : la référence mémorise l'empreinte du PDF lu ; un fichier modifié sur place ne
+    peut pas être cité, et après remplacement `verifier-refs` demande une relecture."""
+    from qak import bibliotheque
+    entree = next(iter(bibliotheque.lire_manifeste()["documents"].values()))
+    q1 = connaissances.ajouter(_ref_ctfl(pages="6", extrait=EXTRAIT_P6))["id"]
+    ref = connaissances.voir(q1)["references"][0]
+    assert ref["empreinte"] == entree["sha256"]
+    assert json.loads(chemins.connaissances_jsonl().read_text(encoding="utf-8"))["references"][0]["empreinte"] \
+        == entree["sha256"]
+    assert connaissances.verifier_references()[0]["problemes"] == []
+    f = chemins.sources() / entree["fichier"]
+    with open(f, "ab") as fh:
+        fh.write(b"\n% altere\n")
+    bibliotheque.actualiser()
+    with pytest.raises(ErreurValidation, match="modifié sur place"):
+        connaissances.valider(_ref_ctfl(doc_id=bibliotheque_test, pages="6", extrait=EXTRAIT_P6))
+    assert "modifié sur place" in connaissances.verifier_references()[0]["problemes"][0]
+    bibliotheque.importer(f, remplacer=True, motif="PDF ré-exporté, contenu vérifié")
+    assert "contenu différent" in connaissances.verifier_references()[0]["problemes"][0]
+
+
+def test_migration_base_sans_colonne_empreinte():
+    import sqlite3
+    q1 = connaissances.ajouter({**IDEE, "references": [{"type": "web", "url": "https://exemple.org/a"}]})["id"]
+    cx = sqlite3.connect(chemins.base_db())  # base créée par une version antérieure
+    cx.executescript("ALTER TABLE refs RENAME TO refs_v; CREATE TABLE refs (idee_id TEXT NOT NULL, ordre INTEGER "
+                     "NOT NULL, type TEXT NOT NULL, titre TEXT, doc_id TEXT, version TEXT, pages TEXT, section TEXT, "
+                     "url TEXT, extrait TEXT, consulte_le TEXT, note TEXT, PRIMARY KEY (idee_id, ordre)); "
+                     "INSERT INTO refs SELECT idee_id, ordre, type, titre, doc_id, version, pages, section, url, "
+                     "extrait, consulte_le, note FROM refs_v; DROP TABLE refs_v;")
+    cx.close()
+    connaissances.modifier(q1, {"references": [{"type": "web", "url": "https://exemple.org/b"}]})
+    assert len(connaissances.voir(q1)["references"]) == 2

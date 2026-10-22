@@ -120,6 +120,8 @@ qu'avec l'accord de l'utilisateur.
 - Actualisation des documents : [docs/actualisation.md](docs/actualisation.md).
 - Schéma des données : [docs/schema.md](docs/schema.md).
 - Architecture, choix, mesures, critères d'acceptation : [docs/architecture.md](docs/architecture.md).
+- Essais réels des agents (questions, réponses, citations vérifiées, coût) :
+  [docs/essais-reponses.md](docs/essais-reponses.md), `python scripts/essais_agents.py`.
 - Tests : `python -m pytest tests -q -rs` (≈ 15 s ; `test_sources_reelles.py`
   appelle vraiment istqb.org et s'ignore, avec la raison, si le site est injoignable).
 - Enrichir le thésaurus (`referentiel/thesaurus.json`) quand une notion n'est pas trouvée ;

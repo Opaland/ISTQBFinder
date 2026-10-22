@@ -58,3 +58,15 @@ def test_aucun_resultat_suggere_reformulation_ou_web(bibliotheque_test):
 def test_filtre_par_theme(bibliotheque_test):
     r = recherche.chercher("tests", theme="rbt")
     assert r["resultats"] and all(x["section_num"] in ("2.1", "1.1") for x in r["resultats"])
+
+
+def test_filtre_qui_exclut_un_document_le_dit(bibliotheque_test):
+    # Issue #2 : « CTFL en français » n'existe pas, mais le CTFL est bien là (en anglais).
+    r = recherche.chercher("equivalence partitioning", docs=["CTFL"], langue="fr")
+    assert not r["resultats"]
+    assert any("seulement en : en" in w for w in r["avertissements"])
+    assert not any("absent de la bibliothèque" in w for w in r["avertissements"])
+    r = recherche.chercher("equivalence partitioning", docs=["CTFL"], niveau="expert")
+    assert any("exclu par `--niveau expert`" in w for w in r["avertissements"])
+    r = recherche.chercher("equivalence partitioning", docs=["CTAL-TM"])
+    assert any("CTAL-TM : absent" in w for w in r["avertissements"])

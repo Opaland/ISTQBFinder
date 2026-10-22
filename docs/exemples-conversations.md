@@ -325,3 +325,90 @@ lues).
 >
 > - J'ai lu §1.3 à §1.3.4 et §1.3.6 de CTAL-TM v3.0 FR, un syllabus courant et explicite sur le sujet.
 > - […]
+
+---
+
+## 8. Mise en place du shift left (cas M) — Thomas
+
+Source : `eval/essais-resultats/2026-10-22/M7-shift-left.md` (8 tours, 0,14 $, 9/9
+citations lues).
+
+> **Utilisateur** : Je veux mettre en place une démarche shift left testing, comment faire ? Qu'est-ce que cela impose ?
+
+```text
+$ python qa.py idee chercher shift left testing
+$ python qa.py section CTFL-4.0.1-en 2.1.5 --max-caracteres 3500
+$ python qa.py section CTAL-AT-2.0-en 4.1.3 --max-caracteres 2500
+$ python qa.py section CT-TAS-1.0-en 3.1.3 --max-caracteres 5000
+```
+
+> **Thomas** : […]
+>
+> ## Ce que l'ISTQB entend par shift left
+> Le shift left est le principe du « test précoce » (early testing). On teste plus tôt dans le cycle de vie (SDLC), sans négliger les tests plus tardifs. [CTFL v4.0.1 EN, §2.1.5, p. 27]
+>
+> ## Méthode pas à pas
+> 1. **Obtenir l'adhésion des parties prenantes et accepter le surcoût initial.**
+>    - […]
+>    - Le shift left peut coûter de la formation, de l'effort et de l'argent au début, mais il est censé faire économiser ensuite. Les parties prenantes doivent y adhérer. [CTFL v4.0.1 EN, §2.1.5, p. 27]
+> 2. **Améliorer la base de test (test basis) avant le code.**
+>    - […]
+>    - L'example mapping est une conversation structurée. Elle produit règles, exemples (qui deviennent des cas de test) et questions. Beaucoup de questions ou de règles signalent une story à découper. [CTAL-AT v2.0 EN, §4.1.3, p. 33]
+> 3. […]
+> 6. **Rééquilibrer l'automatisation vers le bas de la pyramide.**
+>    - […]
+>    - Les tests de contrat permettent de trouver plus tôt les causes racines. [CT-TAS v1.0 EN, §3.1.3, p. 25]
+> 7. **Tester le non-fonctionnel dès le niveau composant, puis compléter par du shift right.**
+>    - […]
+>    - Le shift right déplace des tests après la livraison, avec observabilité, canary releases et dark launches. Il complète le shift left et ne le remplace pas. [CT-TAS v1.0 EN, §3.1.3, p. 25]
+>
+> ## Ce que le shift left impose
+> - Accepter un surcoût au départ et obtenir l'adhésion des parties prenantes. [CTFL v4.0.1 EN, §2.1.5, p. 27]
+> - Faire travailler ensemble testeurs, PO et développeurs dès l'affinage du backlog.
+> - Mettre en place un pipeline CI avec analyse statique.
+> - Garder les tests tardifs et y ajouter le shift right, sans les supprimer.
+>
+> ## Par quoi je commencerais
+> 1. **Impact fort, effort faible** : revue des specs et example mapping en affinage (étape 2).
+> 2. […]
+>
+> **Confiance : 90/100 (élevée)** : base 100, 6 passages lus, 3 syllabus concordants (+20), raisonnement sans source pour l'exemple et l'adaptation par domaine (−10). […]
+
+---
+
+## 9. Aide à la rédaction : critères d'acceptation en Gherkin — Thomas
+
+Source : `eval/essais-resultats/2026-10-22/T7-gherkin.md` (11 tours, 0,161 $, 9/9
+citations lues).
+
+> **Utilisateur** : Je veux rédiger mes critères d'acceptation en Gherkin, j'ai besoin d'aide.
+
+```text
+$ python qa.py chercher Gherkin
+$ python qa.py section CT-AcT-2019-en 2.2.2 --max-caracteres 6000
+$ python qa.py section CT-AcT-2019-en 2.1 --max-caracteres 5000
+$ python qa.py confiance --base 100 --lus 5 --concordants 3 --raisonnement 1
+```
+
+> **Thomas** : […]
+>
+> Les syllabus voient Gherkin comme un format pour écrire des critères d'acceptation sous forme de tests. Ils donnent surtout des règles de rédaction : précis, déclaratifs, atomiques.
+>
+> **Pistes par syllabus**
+> - **CT-AcT v2019 — §2.1 Writing Acceptance Criteria**
+>   - Un bon critère est précis, mesurable et concis. Le testeur doit pouvoir dire si l'objet testé le respecte. [CT-AcT v2019 EN, §2.1, p. 16]
+>   - […]
+> - **CT-AcT v2019 — §2.2.2 Gherkin**
+>   - Le motif est Given (situation), When (action sur le système), Then (résultat attendu). [CT-AcT v2019 EN, §2.2.2, pp. 16-17]
+>   - Les scénarios Gherkin ne citent pas d'éléments d'interface mais des actions de l'utilisateur sur le système. [CT-AcT v2019 EN, §2.2.2, p. 17]
+>   - […]
+> - **CTAL-ATT v1.1 — §2.1.2 BDD (le plus concret, mais en retrait)**
+>   - […]
+>   - Le When décrit une action sémantique (« l'utilisateur confirme la commande »), pas un clic. Le Then décrit des observations précises, pas un « succès » ou une « erreur » génériques. [CTAL-ATT v1.1 EN, §2.1.2, p. 15]
+> - […]
+>
+> **Ce que j'en retiens** (interprétation)
+> - […]
+> - Les consignes « atomique, déclaratif, sans interface » sont dans l'ISTQB. Il ne couvre pas les `Background`, les `Scenario Outline` ni les tags, qui relèvent de la documentation de Cucumber.
+>
+> **Confiance : 90/100** (élevée). Calcul : base 100 × 0,6 = 60 ; 5 passages lus +20 ; 3 syllabus concordants +20 ; raisonnement sans source −10 → 90. […]

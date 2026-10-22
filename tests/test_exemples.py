@@ -60,7 +60,7 @@ def lignes_cli(section):
 
 
 def test_toutes_les_sections_citent_une_sortie_versionnee():
-    assert set(SECTIONS) == set("1234567")
+    assert set(SECTIONS) == set("123456789")
     for numero, section in SECTIONS.items():
         assert sources(section), f"§{numero} sans sortie réelle citée"
         for chemin in sources(section):

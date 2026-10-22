@@ -15,9 +15,8 @@ import sqlite3
 from datetime import date, datetime
 
 from . import bibliotheque, chemins, journal, taxonomie
-from .textes import jaccard, mots, motif_sous_sections, normaliser, recouvrement, signature
-
-from .textes import MOTS_VIDES, jaccard, normaliser, recouvrement, signature, termes_thesaurus
+from .textes import (MOTS_VIDES, jaccard, mots, motif_sous_sections, normaliser, recouvrement, signature,
+                     termes_thesaurus)
 
 STATUTS = {
     "a_explorer": "à explorer — piste repérée, pas encore étudiée",

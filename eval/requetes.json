@@ -720,6 +720,30 @@
     }
    ],
    "controle": true
+  },
+  {
+   "requete": "différence entre erreur, défaut et défaillance",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "1.2.3"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "gestion des anomalies",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.5"
+    },
+    {
+     "code": "CTAL-TM",
+     "section": "2.3"
+    }
+   ],
+   "controle": true
   }
  ]
 }

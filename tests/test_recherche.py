@@ -145,3 +145,28 @@ def test_chapitre_0_d_introduction_retrograde(bibliotheque_test):
         assert res[-1]["section_num"] == "0.2" and res[0]["section_num"] != "0.2"
     finally:
         cx.close()
+
+
+def test_section_au_titre_identique_a_la_requete_d_abord(bibliotheque_test):
+    # Issue #165 : « Exploratory Testing » (CTFL §4.4.2) arrivait au rang 11, derrière des
+    # sections dont le titre nomme le même concept du thésaurus (« Session-Based Test
+    # Management ») et que BM25 classait plus haut. À couverture et titre égaux, le titre qui
+    # EST la question passe devant ; une question en français vise la même section anglaise.
+    from qak import bibliotheque
+    cx = bibliotheque.connecter()
+    try:
+        doc = cx.execute("SELECT doc_id FROM passages LIMIT 1").fetchone()[0]
+        for ordre, num, titre, texte in (
+                (997, "7.1", "Session-Based Test Management (SBTM)", "exploratory testing sessions " * 6),
+                (998, "7.2", "Exploratory Testing", "exploratory testing is an approach where tests are "
+                                                    "designed and executed while learning about the object")):
+            cx.execute("INSERT INTO passages(doc_id, ordre, page, section_num, section_titre, texte, sommaire) "
+                       "VALUES (?, ?, ?, ?, ?, ?, 0)", (doc, ordre, ordre, num, titre, texte))
+        cx.execute("INSERT INTO passages_fts(rowid, texte, section_titre) SELECT id, texte, section_titre "
+                   "FROM passages WHERE ordre IN (997, 998)")
+        cx.commit()
+        for q in ("exploratory testing", "tests exploratoires"):
+            res = recherche.chercher(q, cx=cx)["resultats"]
+            assert [r["section_num"] for r in res[:2]] == ["7.2", "7.1"], q
+    finally:
+        cx.close()

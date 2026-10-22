@@ -69,14 +69,15 @@ Aucun serveur, aucune interface graphique, aucune clé d'API. Dépendance unique
 | #25 §0.x d'introduction rétrogradés (fraîcheur mesurée, non retenue) | 100 % → 100 % | 84 % → 84 % (25 q.) |
 | #47 « layering » ↔ « superposition / couches » | 100 % → 100 % | 88 % → 88 % (25 q.) |
 | #106 fautes de frappe corrigées, mots coupés recollés à l'extraction | 100 % (0,91) → 100 % (0,92) | 72 % → 82 % (40 q.) |
-| **État actuel** (moteur lexical ; #59 : mêmes classements, ≈ 8 × plus rapide) | **100 % (MRR 0,92)** | **82 % (33/40, MRR 0,74)** |
+| #165 titre de section identique à la question (signature puis mots), « partitionnement d'équivalence » au thésaurus | 100 % (0,92) → 100 % (0,94) | 79 % (34/43, 0,70) → 88 % (38/43, 0,79) |
+| **État actuel** (moteur lexical ; #59 : mêmes classements, ≈ 8 × plus rapide) | **100 % (MRR 0,94)** | **88 % (38/43, MRR 0,79)** |
 
 Le 100 % du jeu de réglage est optimiste par construction ; le chiffre honnête est celui
 du jeu de contrôle. Les questions ajoutées au contrôle l'ont été AVANT la correction qu'elles
-motivent ; le contrôle est passé de 18 à 40 questions, en grande partie des questions
+motivent ; le contrôle est passé de 18 à 43 questions, en grande partie des questions
 difficiles issues des revues (fautes de frappe, questions de Test Manager, formulations loin
-du vocabulaire ISTQB) : sa baisse de 89 % à 82 % vient de ces ajouts, pas d'une régression
-(chaque PR a été mesurée avant/après sur le même jeu). Les 7 échecs actuels :
+du vocabulaire ISTQB) : sa baisse de 89 % à 82 % (avant #165) vient de ces ajouts, pas d'une régression
+(chaque PR a été mesurée avant/après sur le même jeu). Les 5 échecs actuels :
 - requêtes très courtes faites de mots omniprésents (« principes du test », « contenu d'un
   plan de test ») : avec le terme ISTQB anglais (« testing principles », « purpose and
   content of a test plan ») la bonne section sort en 1re ou 2e position — le skill demande
@@ -84,9 +85,14 @@ du vocabulaire ISTQB) : sa baisse de 89 % à 82 % vient de ces ajouts, pas d'une
 - « rapport d'avancement des tests parties prenantes », « comment estimer l'effort de
   test » : arbitrages laissés ouverts dans #25 ;
 - « architecture en couches d'un framework d'automatisation » : §3.1.3 n'emploie pas
-  « architecture » (#47) ;
-- « tests exploratoirs » (« tests exploratoires » échoue aussi) et « évaluation de
-  l'utilisabilité » en français : classement entre sections voisines du même syllabus.
+  « architecture » (#47).
+
+#165 : à couverture et titre égaux, une section dont le titre a la même signature que la
+question (concepts du thésaurus + racines : « Exploratory Testing » pour « tests
+exploratoires ») passe devant celles qui nomment seulement le même concept (« Session-Based
+Test Management (SBTM) »), puis, parmi elles, le titre écrit avec les seuls mots de la
+question. Égalité stricte et non proximité : un critère de proximité (Jaccard) faisait
+passer « motivation » du rang 1 au rang 5 (titres courts favorisés contre BM25).
 
 Temps : une recherche ≈ 50 ms de calcul (0,2-0,45 s pour la commande complète) ; import initial ≈ 3 s par syllabus (≈ 2-3 min pour 42) ;
 actualisation sans changement < 1 s.

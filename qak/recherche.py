@@ -20,7 +20,8 @@ from dataclasses import dataclass
 
 from . import bibliotheque, taxonomie
 from .bibliotheque import TOKENISEUR
-from .textes import MOTS_GENERIQUES, MOTS_VIDES, motif_sous_sections, normaliser, reperer_concepts, thesaurus
+from .textes import (MOTS_GENERIQUES, MOTS_VIDES, mots, motif_sous_sections, normaliser, racine,
+                     reperer_concepts, signature, thesaurus)
 
 CANDIDATS = 300  # passages BM25 reclassés par couverture
 SEMANTIQUE_K = 100  # passages proposés par les embeddings (recherche hybride, optionnelle)
@@ -165,9 +166,32 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
         def titre(r) -> float:
             return sum(gs[k].poids for k in en_titre[r["id"]]) / total
 
+        # Titre qui EST la question (issue #165) : « Exploratory Testing » passe devant « Session-Based
+        # Test Management », dont le titre nomme aussi la notion (même concept du thésaurus) mais
+        # traite d'autre chose. Signatures égales (concepts + racines : FR et EN s'équivalent), puis,
+        # parmi elles, titre écrit avec les seuls mots de la question (« Évaluation heuristique »
+        # pour « évaluation heuristique de l'utilisabilité », titre dans la langue de la question).
+        # Égalité stricte, pas une proximité : un titre simplement plus court (« Motivations
+        # principales du MBT ») ne doit pas passer devant la section que BM25 classe en tête.
+        sig_requete, mots_requete = signature(requete), _racines(requete)
+        # Condition nécessaire, bon marché : chaque mot du titre figure dans la question ou dans un
+        # terme d'une de ses notions ; la signature (coûteuse) n'est calculée que pour ces titres.
+        vocabulaire = mots_requete | {racine(m) for g in gs for t in g.termes for m in normaliser(t).split()}
+        identites: dict[str, tuple[bool, bool]] = {}
+
+        def titre_exact(r) -> tuple[bool, bool]:
+            t = r["section_titre"] or ""
+            if t not in identites:
+                meme = (bool(sig_requete) and bool(en_titre[r["id"]])
+                        and {m for m in _racines(t) if len(m) > 2} <= vocabulaire
+                        and signature(t) == sig_requete)
+                identites[t] = (meme, meme and bool(_racines(t)) and _racines(t) <= mots_requete)
+            return identites[t]
+
         # tri stable : couverture décroissante, sections de fond d'abord, puis sections dont le
-        # titre nomme les notions, puis l'ordre BM25
-        classes = sorted(candidats, key=lambda r: (-couverture(r), peripherique(r), -titre(r)))
+        # titre nomme les notions, puis dont le titre se confond avec la question, puis l'ordre BM25
+        classes = sorted(candidats, key=lambda r: (-couverture(r), peripherique(r), -titre(r),
+                                                   *(not x for x in titre_exact(r))))
         if proches:
             # Fusion par rangs réciproques (RRF) du classement lexical et du classement cosinus.
             presents = {r["id"] for r in candidats}
@@ -258,6 +282,10 @@ def _proche_dans_l_index(mot: str, cx: sqlite3.Connection) -> list[str]:
 
 def _remplacer_mots(requete: str, corrections: dict[str, str]) -> str:
     return re.sub(r"\w+", lambda m: corrections.get(normaliser(m.group(0)), m.group(0)), requete)
+
+
+def _racines(texte: str) -> set[str]:
+    return {racine(m) for m in mots(texte, garder_generiques=False)}
 
 
 def _notions_des_candidats(candidats: list[sqlite3.Row], gs: list[Groupe]) -> tuple[dict, dict]:

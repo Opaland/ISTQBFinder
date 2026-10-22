@@ -21,8 +21,9 @@ from .bibliotheque import TOKENISEUR
 from .textes import MOTS_GENERIQUES, motif_sous_sections, normaliser, reperer_concepts
 
 CANDIDATS = 300  # passages BM25 reclassés par couverture
-# Sections périphériques (annexes, notes de version, bibliographie, matrices de traçabilité) :
-# elles citent beaucoup de notions sans les traiter. Rétrogradées à couverture égale.
+# Sections périphériques (annexes, notes de version, bibliographie, matrices de traçabilité,
+# chapitre 0 d'introduction) : elles citent beaucoup de notions sans les traiter.
+# Rétrogradées à couverture égale.
 RE_PERIPHERIQUE = re.compile(r"\b(appendi|annexe|release notes|notes de (version|release)|references|bibliograph|"
                              r"business outcomes|objectifs metier|tracabilite|traceability matrix|index)", re.I)
 
@@ -124,7 +125,9 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
             return sum(gs[k].poids for k in trouves[r["id"]]) / total
 
         def peripherique(r) -> bool:
-            return bool(RE_PERIPHERIQUE.search(normaliser(r["section_titre"] or "")))
+            # §0.x : introduction du syllabus (objet, examen, parcours de carrière) — issue #25
+            return (bool(RE_PERIPHERIQUE.search(normaliser(r["section_titre"] or "")))
+                    or (r["section_num"] or "").split(".")[0] == "0")
 
         def titre(r) -> float:
             return sum(gs[k].poids for k in en_titre[r["id"]]) / total

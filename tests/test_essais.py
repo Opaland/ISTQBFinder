@@ -138,3 +138,15 @@ def test_reference_declaree_non_lue_n_est_pas_une_citation():
 def test_controle_strict_hors_declaration_de_non_lecture(reponse):
     citations = essais_agents.verifier_citations(reponse, {("CTAL-TM", 29)})
     assert [c["lue"] for c in citations] == [False], citations
+
+
+def test_citation_pp_est_controlee_et_ne_fusionne_pas():
+    """#142 : « pp. N-M » est une citation comme une autre, et deux références voisines
+    (S3-reglemente, 2026-10-22) restent deux citations rattachées à leur document."""
+    reponse = ("matrice de risque qualitative [CTAL-TM v3.0 FR, §1.3.3, pp. 30-31 ; "
+               "CTFL v4.0.1 EN, §5.2.3, p. 53].")
+    citations = essais_agents.verifier_citations(reponse, {("CTAL-TM", 31)})
+    assert [(c["citation"].split()[0], c["lue"]) for c in citations] == [("CTAL-TM", True), ("CTFL", False)]
+    assert essais_agents.verifier_citations("[CTAL-TM v3.0 FR, §1.3.3, pp. 30-31]", set())[0]["lue"] is False
+    # « §1.3 ; §1.3.1, p. 29 » : une seule citation, la seconde.
+    assert len(essais_agents.verifier_citations("[CTAL-TM v3.0 FR, §1.3 ; §1.3.1, p. 29]", set())) == 1

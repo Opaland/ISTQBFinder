@@ -228,7 +228,8 @@ qu'avec l'accord de l'utilisateur.
 
 - Recherche **lexicale** (FTS5 + thésaurus FR/EN) : rappel@5 = 89 % sur des questions de
   contrôle jamais vues. Les requêtes très courtes et génériques réussissent mieux avec le
-  terme ISTQB anglais. Pas de recherche sémantique : bénéfice non démontré
+  terme ISTQB anglais. Recherche sémantique (embeddings Hugging Face) évaluée et
+  non retenue : elle baisse les mesures ; prototype optionnel `--semantique`
   ([docs/architecture.md](docs/architecture.md)).
 - Pas d'OCR (PDF scanné = « illisible »). Certains PDF FR produisent des espaces parasites
   dans les mots (« sélecti on ») : la recherche reste correcte dans l'ensemble mais une

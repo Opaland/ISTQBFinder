@@ -15,7 +15,7 @@ def _dans_section(trouvee: str | None, attendue: str) -> bool:
     return not attendue or trouvee == attendue or (trouvee or "").startswith(attendue + ".")
 
 
-def evaluer(k: int = 5, controle: bool | None = None, jeu: Path | None = None) -> dict:
+def evaluer(k: int = 5, controle: bool | None = None, jeu: Path | None = None, semantique: bool = False) -> dict:
     """controle=None : tout le jeu ; True : seulement les questions de contrôle (jamais
     utilisées pour régler le moteur) ; False : seulement le jeu de réglage.
     `jeu` : fichier de questions (défaut eval/requetes.json)."""
@@ -33,7 +33,8 @@ def evaluer(k: int = 5, controle: bool | None = None, jeu: Path | None = None) -
             if not attendus:
                 ignorees += 1
                 continue
-            res = recherche.chercher(c["requete"], n=k, cx=cx, **c.get("filtres", {}))["resultats"]
+            res = recherche.chercher(c["requete"], n=k, cx=cx, semantique=semantique,
+                                     **c.get("filtres", {}))["resultats"]
             rang = next((i for i, r in enumerate(res, 1) if any(
                 r["code"] == a["code"] and _dans_section(r["section_num"], a.get("section", ""))
                 for a in attendus)), None)

@@ -774,6 +774,76 @@
     }
    ],
    "controle": true
+  },
+  {
+   "requete": "comment éviter que nos tests cassent à chaque changement d'écran",
+   "attendus": [
+    {
+     "code": "CTAL-TAE",
+     "section": "3.1"
+    },
+    {
+     "code": "CTAL-TAE",
+     "section": "4.3"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "on teste trop tard, comment avancer le test",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "2.1.5"
+    },
+    {
+     "code": "CTAL-AT",
+     "section": "4"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "qui décide quand on arrête de tester",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.1.3"
+    },
+    {
+     "code": "CTAL-TM",
+     "section": "1.1"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "les développeurs ne lisent pas nos rapports de bugs",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.5"
+    },
+    {
+     "code": "CTAL-TM",
+     "section": "2.3"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "combien de temps faut-il prévoir pour tester",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.1.4"
+    },
+    {
+     "code": "CTAL-TM",
+     "section": "2.2"
+    }
+   ],
+   "controle": true
   }
  ]
 }

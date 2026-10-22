@@ -42,7 +42,7 @@ def test_evaluer_min_rappel_fait_echouer(capsys, racine_isolee):
 
 def test_evaluer_min_rappel_sous_le_seuil(capsys, bibliotheque_test, jeu, monkeypatch):
     vrai = evaluation.evaluer
-    monkeypatch.setattr(evaluation, "evaluer", lambda k, controle=None: vrai(k, controle, jeu=jeu))
+    monkeypatch.setattr(evaluation, "evaluer", lambda k, controle=None, semantique=False: vrai(k, controle, jeu=jeu))
     assert main(["evaluer", "--min-rappel", "0.6"]) == 0  # 2/3
     capsys.readouterr()
     assert main(["evaluer", "--min-rappel", "0.7"]) == 2

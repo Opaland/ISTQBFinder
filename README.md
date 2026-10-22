@@ -84,7 +84,7 @@ La CLI reste utilisable directement (`python qa.py --help`) :
 | Confiance d'une réponse | `confiance --base N --lus N --concordants N [--web 1] [--non-couvert 1] …` (calcul affiché) |
 | Lire avant de citer | `lire <passage> [--contexte 1]` · `section <doc> <num>` · `page <doc> <p[-q]>` (sorties bornées : `--max-caracteres`, défaut 15 000) · `plan <doc>` |
 | Base d'idées | `idee chercher …` · `idee lister [--theme] [--statut]` · `idee voir QA-20261022-7f3a` |
-| Capitaliser | `idee modele` · `idee doublons <<'JSON'` · `idee ajouter <<'JSON'` (JSON sur l'entrée standard) |
+| Capitaliser | `idee modele` · `idee doublons --titre … --resume … --theme …` (une ligne) · `idee ajouter <<'JSON'` (JSON sur l'entrée standard) |
 | Faire évoluer | `idee modifier` · `idee statut … --motif` · `idee retour` · `idee lier` · `journal` |
 | Taxonomie | `themes` · `theme proposer "<texte>"` · `theme ajouter …` · `theme obsolete …` · `couverture` |
 | Syllabus manquants | `manquants [--langue fr]` · skills `/bibliotheque` (maintenance) et `/ajouter-syllabus` |
@@ -238,7 +238,8 @@ qu'avec l'accord de l'utilisateur.
 - Recherche **lexicale** (FTS5 + thésaurus FR/EN) : rappel@5 = 82 % sur 40 questions de
   contrôle jamais vues (dont des questions volontairement difficiles), 100 % sur le jeu
   de réglage. Les requêtes très courtes et génériques réussissent mieux avec le terme
-  ISTQB anglais. Pas de recherche sémantique : bénéfice non démontré
+  ISTQB anglais. Recherche sémantique (embeddings Hugging Face) évaluée et non retenue :
+  elle ne résout pas les questions éloignées du vocabulaire ISTQB ; prototype optionnel `--semantique`
   ([docs/architecture.md](docs/architecture.md)).
 - Pas d'OCR (PDF scanné = « illisible »). Certains PDF produisent des espaces parasites
   dans les mots (« sélecti on ») : l'extraction recolle les fragments quand le mot réuni

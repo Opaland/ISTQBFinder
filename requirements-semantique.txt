@@ -1,0 +1,5 @@
+# Recherche sémantique OPTIONNELLE (issue #107) — jamais requise par la CI ni par l'installation par défaut.
+# CPU seul : pip install --index-url https://download.pytorch.org/whl/cpu torch
+#           pip install -r requirements-semantique.txt
+sentence-transformers>=3.0
+numpy>=1.24

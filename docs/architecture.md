@@ -39,7 +39,7 @@ Aucun serveur, aucune interface graphique, aucune clé d'API. Dépendance unique
 | Stockage | **SQLite** (stdlib) | Local, sans service, transactionnel, FTS5 intégré. |
 | Recherche | **FTS5 BM25 + thésaurus FR/EN + reclassement par couverture** | Les syllabus sont un vocabulaire contrôlé : la recherche lexicale suffit si l'on traduit les concepts (FR → EN). Voir « Mesures ». |
 | Fautes de frappe, mots coupés | **Correction ciblée + recollage à l'extraction** (#106) | Un mot de la question absent à la fois de l'index et du thésaurus est remplacé par le mot connu le plus proche (difflib ≥ 0,8 sur les mots du thésaurus, ≥ 0,85 sur le vocabulaire `fts5vocab` de l'index), avec avertissement ; un mot connu n'est jamais touché, donc aucune question bien orthographiée ne change. Les fragments « utilisabilit é » sont recollés dans les passages quand le mot réuni existe dans le document et qu'un fragment n'est pas un mot (3 136 → 662 coupures probables). Pas de table `trigram` : la correction suffit sur le jeu, et le repli n'aurait servi qu'aux requêtes sans résultat. |
-| Recherche sémantique | **Non ajoutée** | Bénéfice non démontré (rappel@5 = 88 % sur des questions jamais vues), coût réel (modèle d'embeddings ~100-400 Mo, dépendances lourdes, index à recalculer). Critère pour la reconsidérer : questions réalistes qui échouent malgré une reformulation avec le terme ISTQB. Le jeu `eval/` sert d'arbitre. |
+| Recherche sémantique | **Évaluée (#107), non retenue** — prototype optionnel conservé (`qak/semantique.py`, `requirements-semantique.txt`, `actualiser --semantique`, `chercher/evaluer --semantique`), désactivé par défaut | Mesure ci-dessous : la fusion hybride BM25 + cosinus (RRF) gagne une question de contrôle mais en perd une de réglage, et ne résout aucune des questions formulées loin du vocabulaire ISTQB (jeu « éloigné ») ; coût : 1,4 Go de dépendances (torch CPU), modèle 470 Mo, 12 s de chargement par commande. |
 | Versionnement de la base | **JSONL miroir** + SQLite de travail | Un `.db` binaire se fusionne mal dans Git. Le JSONL (une idée par ligne, trié) donne des diffs lisibles ; après un `git pull`, l'empreinte du JSONL change et la base est reconstruite automatiquement. |
 | PDF sources | **Versionnés** (≈ 33 Mo) | Un clone suffit pour travailler hors ligne, et les traductions françaises fournies à la main ne se perdent pas. La notice ISTQB autorise la copie si la source est citée (le manifeste la cite). Le manifeste garde les métadonnées et retrouve chaque fichier par empreinte. |
 | Pages | **Page physique du PDF** + page imprimée si différente | La page physique est non ambiguë (c'est celle qu'ouvre un lecteur PDF) ; la page imprimée (« Page 12 de 80 ») est conservée quand elle diffère. Un passage ne franchit jamais une page. |
@@ -123,3 +123,59 @@ actualisation sans changement < 1 s.
 - Les tableaux PDF sont extraits ligne à ligne (lisibles mais sans structure de colonnes).
 - La recherche est lexicale : une notion absente du thésaurus et formulée autrement que
   dans le syllabus peut être manquée → ajouter le terme au thésaurus (une ligne JSON).
+
+## Recherche sémantique : évaluation chiffrée (#107, 2026-10-22)
+
+Jeux : contrôle (40 q.), réglage (36 q.) et un jeu **« éloigné »** (`evaluer --jeu
+eloigne`, 5 q., exclu des deux autres) de questions formulées loin du vocabulaire ISTQB,
+écrites avant le prototype : « comment éviter que nos tests cassent à chaque changement
+d'écran », « on teste trop tard, comment avancer le test », « qui décide quand on arrête de
+tester », « les développeurs ne lisent pas nos rapports de bugs », « combien de temps
+faut-il prévoir pour tester ». Il est séparé du contrôle pour que le seuil de la CI
+(`--min-rappel 0.80`) continue de mesurer le moteur livré. Machine : 4 cœurs CPU, sans GPU.
+huggingface.co joignable depuis l'environnement (proxy) ; sans accès, copier le dossier du
+modèle et pointer `QAK_MODELE_SEMANTIQUE` vers lui.
+
+| Moteur | Contrôle (40 q.) | Réglage (36 q.) | Éloigné (5 q.) | Requête (CLI) | Indexation | Disque |
+|---|---|---|---|---|---|---|
+| Lexical (FTS5 + thésaurus), référence | 82 % · MRR 0,74 | 100 % · 0,92 | 20 % · 0,20 | 0,2-0,45 s | — | — |
+| Hybride RRF + `intfloat/multilingual-e5-small` (MIT, 118 M param.) | 85 % · 0,74 | **97 %** · 0,87 | 20 % · 0,20 | 14,8 s (dont 11,5 s de chargement du modèle ; 0,05 s de calcul) | 610 s, 6 191 passages | vecteurs 4,8 Mo ; modèle 470 Mo ; dépendances 1,4 Go |
+
+Première mesure (index précédent, contrôle de 28 q.) : e5-small hybride 82 % → 79 % au
+contrôle, 100 % → 97 % au réglage ; `paraphrase-multilingual-MiniLM-L12-v2`
+(Apache-2.0, indexation 193 s) 79 % (MRR 0,56) et 97 % ; e5-small seul (cosinus) 68 %.
+
+**Décision : non retenue.** Le critère (des questions réalistes qui échouent malgré une
+reformulation avec le terme ISTQB) est rempli, mais les embeddings multilingues légers ne
+les résolvent pas (jeu éloigné inchangé), font perdre une question de réglage et coûtent
+15 s par commande. Le prototype reste optionnel pour une réévaluation (autre modèle, ou
+reformulation de la question par l'agent avant `chercher`, piste plus prometteuse).
+
+## Vérification des citations par NLI : étude (#108, 2026-10-22)
+
+Question : un modèle d'inférence (NLI) multilingue peut-il signaler qu'un passage cité ne
+**soutient pas** l'affirmation qu'on lui attribue (citation exacte mais à contresens) ?
+
+- Jeu étiqueté `eval/nli/paires.json` : 48 paires (affirmation en français, passage cité
+  EN ou FR) sur 12 passages ; affirmations « soutenues » tirées des essais réels
+  (`eval/essais-resultats/2026-10-22/`, relues contre le passage), 12 contradictoires
+  (négation / inversion), 24 non soutenues (12 plausibles sur le même sujet, 12 d'un autre
+  passage). La base d'idées étant vide, aucune paire n'en vient.
+- Modèle : `MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7` (MIT, 279 M
+  paramètres, 558 Mo), CPU 4 cœurs, `python scripts/etude_nli.py` (huggingface.co joignable).
+
+| Mesure | Résultat |
+|---|---|
+| Exactitude 3 classes | 69 % (33/48) |
+| Détection « pas soutenue » (non soutenue + contradictoire) | précision 89 %, rappel 86 % |
+| Fausses alertes sur une citation juste | **4/12 (33 %)** |
+| Contradictions jugées « soutenues » | 4/12 |
+| Coût | 22 s de chargement, **4,7 s CPU par paire** (passage ≈ 1 400 caractères, tronqué à 512 jetons) |
+
+**Décision : non retenue** (ni commande `verifier-citation`, ni avertissement dans
+`idee ajouter`). Une citation juste sur trois serait signalée à tort, un tiers des
+contresens passerait, et chaque contrôle coûte plusieurs secondes et 2 Go de dépendances.
+La garde reste la règle du skill (lire avant de citer) et la vérification mot pour mot de
+l'extrait. À réévaluer avec un modèle plus grand ou en découpant le passage en phrases
+(prémisse = phrase la plus proche de l'affirmation) : le jeu et le script sont versionnés.
+

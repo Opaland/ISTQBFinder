@@ -81,3 +81,11 @@ def test_niveau_corrige_dans_le_manifeste_reporte_dans_l_index(bibliotheque_test
     bibliotheque.ecrire_manifeste(manif)
     bibliotheque.actualiser()
     assert bibliotheque.inventaire()[0]["niveau"] == "expert"
+
+
+def test_jeu_nli_bien_forme():
+    # Issue #108 : jeu étiqueté de l'étude NLI (affirmation, passage cité).
+    paires = json.loads((chemins.CODE / "eval" / "nli" / "paires.json").read_text(encoding="utf-8"))["paires"]
+    from collections import Counter
+    assert Counter(p["etiquette"] for p in paires) == {"soutenue": 12, "contradictoire": 12, "non_soutenue": 24}
+    assert all(p["affirmation"] and p["doc_id"] and p["page"] and p["section"] for p in paires)

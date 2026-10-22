@@ -35,6 +35,7 @@ Une idée = une ligne de `connaissances.jsonl` (source versionnée) et une ligne
 | `pages` | « 31 », « 31-33 » ou « 4, 6 » (pages physiques du PDF, à partir de 1) — vérifiées |
 | `section` | « 3.1.1 » (chiffres et points seulement) — doit figurer sur les pages citées |
 | `extrait` | au moins 6 mots significatifs recopiés mot pour mot (suite continue) du passage lu — vérifiés sur les pages (ou la section) citées |
+| `empreinte` | (istqb) SHA-256 du fichier lu, enregistré automatiquement ; `idee verifier-refs` signale une référence lue dans un contenu différent du fichier actuel (relire). Un document « à confirmer » (modifié sur place) ne peut pas être cité |
 | `url`, `titre`, `consulte_le`, `note` | (web/article) URL obligatoire, date ajoutée automatiquement |
 
 ### Règles d'intégrité appliquées par l'outil

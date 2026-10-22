@@ -19,12 +19,12 @@ def test_parcours_complet_en_ligne_de_commande(capsys, monkeypatch, racine_isole
             "references": [{"type": "istqb", "doc_id": "CTFL", "pages": "6"}]}
     monkeypatch.setattr("sys.stdin", __import__("io").StringIO(json.dumps(idee)))
     assert main(["idee", "ajouter"]) == 0
-    assert "QA-0001" in capsys.readouterr().out
+    q1 = capsys.readouterr().out.split("Idée créée : ")[1].split()[0]
     assert main(["idee", "chercher", "matrice", "risques"]) == 0
-    assert "QA-0001" in capsys.readouterr().out
-    assert main(["idee", "statut", "QA-0001", "validee"]) == 2  # motif obligatoire
+    assert q1 in capsys.readouterr().out
+    assert main(["idee", "statut", q1, "validee"]) == 2  # motif obligatoire
     assert "motif" in capsys.readouterr().err
-    assert main(["idee", "statut", "QA-0001", "validee", "--motif", "adopté par l'équipe"]) == 0
+    assert main(["idee", "statut", q1, "validee", "--motif", "adopté par l'équipe"]) == 0
     assert main(["journal"]) == 0 and "statut_change" in capsys.readouterr().out
 
 

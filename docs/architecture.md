@@ -50,7 +50,8 @@ Aucun serveur, aucune interface graphique, aucune clé d'API. Dépendance unique
 ## Mesures de la recherche (bibliothèque réelle : 42 fichiers, 26 codes EN + 14 FR)
 
 `python qa.py evaluer --jeu reglage|controle` — rappel@5 = la réponse attendue
-(code + section) figure dans les 5 premiers résultats.
+(code + section) figure dans les 5 premiers résultats. La CI exige `evaluer --jeu controle --min-rappel 0.80`
+(code retour 2 sous le seuil, ou si aucune question n'a pu être évaluée).
 
 | Version du moteur | Jeu de réglage (36 q.) | Jeu de contrôle (16 q., jamais utilisées pour régler) |
 |---|---|---|

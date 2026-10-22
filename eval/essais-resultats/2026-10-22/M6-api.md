@@ -2,159 +2,122 @@
 
 **Question** : Comment mettre en place les tests d'une API REST utilisée par plusieurs équipes : tests de contrat, test d'intégration et performance ?
 
-**Tours** : 19 · **coût** : 0.216 $ · **confiance annoncée** : 80 · **citations** : 11/11 lues · **Web** : 0 · **critères** : 7/7
+**Tours** : 14 · **coût** : 0.193 $ · **confiance annoncée** : 81 · **verdict** : réussi · **citations** : 9/9 lues · **Web** : 0 · **critères** : 7/7
 
 ## Réponse
 
-La vérification des doublons n'a pas pu s'exécuter, car l'environnement a bloqué la commande. Je le signale dans la section « À capitaliser ? ».
+Je termine la vérification des sources et je rédige le rapport.
 
-# Tests d'une API REST partagée par plusieurs équipes : contrat, intégration, performance
+## Sources retenues
 
-**Sources retenues**
-- CT-QDO v1.0 EN (2026), §3.2.2 : tests d'API et tests de contrat. C'est la source la plus directe.
-- CTAL-TAE v2.0 EN, §5.1.3 : dépendances de l'automatisation d'API et approches de contrat.
-- CT-TAS v1.0 EN/FR, §3.1.1 : place des tests de contrat, d'intégration et d'API dans la distribution des tests.
-- CTAL-TTA v4.0 EN, §2.7 : test d'API, couverture REST, types de défauts.
-- CT-PT 2018 EN, §3.2 et §4.1.2 : risques de performance et plan de test de performance.
-- CTAL-TM v3.0 FR, §1.4.2 : alignement entre équipes.
-- Base d'idées : rien sur ce sujet.
-- Les tests de contrat n'existent qu'en anglais (CT-QDO, CTAL-TAE). Il n'y a pas de syllabus API dédié.
-- Je n'ai pas fait de recherche Web : la question ne nomme aucun outil.
+Lus et cités: CT-QDO v1.0 EN (§3.2.2), CTAL-TAE v2.0 EN (§5.1.3), CTAL-TTA v4.0 EN (§2.7), CT-TAS v1.0 FR (§3.1.1), CT-PT 2018 EN (§3.2, §4.1.2, §2.1.2, §4.2.6).
+- La base d'idées n'a rien donné: 3 requêtes, aucune idée capitalisée.
+- Il n'y a pas de syllabus API dédié.
+- Les tests de contrat ne sont couverts qu'en anglais (CT-QDO, CTAL-TAE). CT-TAS en parle en français, mais seulement dans une définition.
+- Aucun outil n'est nommé dans ta question, donc je n'ai pas fait de recherche Web.
 
-**Hypothèse de contexte** : API REST de type microservices, cycle agile avec CI/CD, plusieurs équipes consommatrices, pas de contrainte réglementaire. Je n'ai pas cette information, d'où les questions de cadrage en fin de rapport.
+Les syllabus décrivent les tests de contrat comme un test d'intégration complémentaire des autres tests d'API. La performance se traite à part, avec ses propres critères d'acceptation.
+
+**Hypothèse de contexte:** une API REST interne exposée à plusieurs équipes consommatrices, en microservices, avec CI/CD, sans contrainte réglementaire.
 
 ## Méthode pas à pas
 
-1. **Cartographier la répartition des tests entre niveaux.** Le niveau « service » se découpe en trois types :
-   - les tests d'intégration de composants, avec des doubles de test (mocks, stubs) ;
-   - les tests de contrat ;
-   - les tests d'API fonctionnels, avec de vraies données et de vraies connexions.
-
-   Il faut dessiner l'état actuel et l'état cible. [CT-TAS v1.0 EN, §3.1.1, p. 23]
-   *Qui / livrable* : QA Lead avec les tech leads, une cartographie « qui teste quoi, à quel niveau » (interprétation pour le format).
-2. **Aligner les équipes et prioriser selon le risque.** Dans un système de systèmes, le test doit être aligné avec les autres équipes. Le test basé sur les risques sert à hiérarchiser les tests d'intégration. [CTAL-TM v3.0 FR, §1.4.2, p. 37]
-   *Livrable* : liste des consommateurs et des parcours critiques, avec leur niveau de risque (interprétation).
-3. **Définir et versionner le contrat.** Le contrat décrit les formats de requête, les champs de réponse, les codes de statut et les types de données. Il est versionné sous gestion de configuration, parce que plusieurs équipes y touchent. [CT-QDO v1.0 EN, §3.2.2, p. 40-41]
-   *Qui* : fournisseur et consommateurs, ensemble.
-4. **Choisir le sens du contrat.**
-   - Approche pilotée par le consommateur : chaque consommateur exprime ses attentes.
-   - Approche pilotée par le fournisseur : le fournisseur publie le contrat.
-
-   [CTAL-TAE v2.0 EN, §5.1.3, p. 36]
-   Pour une API partagée, l'approche consommateur donne au fournisseur la liste de ce qu'il peut casser. C'est mon raisonnement, pas une recommandation des syllabus (interprétation).
-5. **Écrire les tests d'API et d'intégration.**
-   - Le minimum : des appels avec des valeurs réalistes et des valeurs inattendues. [CTAL-TTA v4.0 EN, §2.7, p. 18]
-   - Les critères de couverture REST se divisent en entrées (opérations, paramètres, séquences d'opérations) et sorties (codes de statut corrects et erronés, propriétés des ressources). [CTAL-TTA v4.0 EN, §2.7, p. 17-18]
-   - Les défauts attendus sont les problèmes d'interface, de données, de timing, les transactions perdues ou dupliquées, et les exceptions mal gérées. [CTAL-TTA v4.0 EN, §2.7, p. 18]
-   - Les tests négatifs sont souvent déterminants, tout comme les tests de reprise et de nouvelle tentative. [CTAL-TTA v4.0 EN, §2.7, p. 17]
-6. **Brancher dans le pipeline CI/CD.** Les tests de contrat s'exécutent à chaque changement, pour détecter les ruptures avant le déploiement. [CT-QDO v1.0 EN, §3.2.2, p. 41] Les tests d'API plus lourds se placent plus loin dans le pipeline (interprétation).
-7. **Planifier la performance.** Rédiger un plan de test de performance (PTP) avec :
-   - des objectifs par type de partie prenante ;
-   - des critères d'acceptation reliés aux SLA et à une valeur de référence (*baseline*) ;
-   - des données de test.
-
-   Le temps de réponse est une préoccupation de l'utilisateur, le débit une préoccupation métier, l'usage des ressources une préoccupation du système. [CT-PT 2018 EN, §4.1.2, p. 33-34]
-   Une API ouverte à plusieurs consommateurs peut subir des charges imprévues. Le syllabus le décrit pour les mainframes exposés par API. [CT-PT 2018 EN, §3.2, p. 27]
+1. **Cartographier les consommateurs et les dépendances.** QA Lead, au démarrage. Livrable: liste des équipes consommatrices, documentation de l'API (paramètres, en-têtes, types de requête/réponse) et relations entre les API. [CTAL-TAE v2.0 EN, §5.1.3, p. 36]
+2. **Répartir les tests par niveau.** QA Lead avec les équipes. Livrable: une pyramide cible. Le niveau service se découpe en tests d'intégration de composants (avec doubles de test), tests de contrat (entre services) et tests d'API (données réelles, services réels). Dessine l'état actuel et l'état ciblé. [CT-TAS v1.0 FR, §3.1.1, p. 25]
+3. **Définir les contrats.** Fournisseur et consommateurs, ensemble. Livrable: contrat versionné décrivant les formats de requête, les champs de réponse, les codes de statut et les types de données. [CT-QDO v1.0 EN, §3.2.2, p. 40-41]
+   - Choisis un mode. En mode piloté par le consommateur, chaque consommateur fixe ce qu'il attend du fournisseur. En mode piloté par le fournisseur, c'est le fournisseur qui publie le contrat. [CTAL-TAE v2.0 EN, §5.1.3, p. 36]
+   - Avec plusieurs équipes consommatrices, le mode consommateur semble plus naturel (interprétation).
+4. **Vérifier les contrats en CI et les gouverner.** Chaque équipe, à chaque build. Livrable: contrats stockés en gestion de versions, tests lancés dans le pipeline pour détecter les ruptures avant déploiement. Le syllabus prévient que les changements de contrat demandent une coordination entre équipes et un investissement en outillage et en standards communs. [CT-QDO v1.0 EN, §3.2.2, p. 41]
+5. **Concevoir les tests d'API et d'intégration.** TTA ou développeurs, par sprint. Livrable: une suite de tests d'API. [CTAL-TTA v4.0 EN, §2.7, p. 17-18]
+   - Couverture minimale: des appels avec des valeurs réalistes et des valeurs inattendues.
+   - Critères d'entrée possibles: toutes les opérations, tous les paramètres, des séquences d'opérations.
+   - Critères de sortie possibles: tous les codes de statut corrects et erronés, des réponses avec toutes les propriétés.
+   - Les tests négatifs sont souvent essentiels. Teste aussi la reprise et les nouvelles tentatives (transactions perdues, problèmes de timing).
+   - Le contrat ne remplace pas ces tests: il en est un complément. [CT-QDO v1.0 EN, §3.2.2, p. 41]
+6. **Fixer les critères de performance avant d'écrire les scripts.** Ingénieur performance, avec les métiers. Livrable: un plan de test avec des critères d'acceptation reliés aux objectifs, aux SLA et à une baseline mesurée. Le temps de réponse est une préoccupation utilisateur, le débit une préoccupation métier, l'utilisation des ressources une préoccupation système. [CT-PT 2018 EN, §4.1.2, p. 34]
+   - Les métriques possibles incluent le débit des transactions clés, les taux de violation de SLA, la concurrence et les erreurs. [CT-PT 2018 EN, §2.1.2, p. 19]
+7. **Scripter la charge au niveau protocole.** Ingénieur performance. Livrable: des scripts avec initialisation, corps et nettoyage.
+   - Les chronomètres encadrent une unité de travail logique. À ce niveau, on ne mesure que le temps serveur et réseau.
+   - Ajoute des vérifications du résultat, car la gestion d'erreur par défaut des outils est minimale (souvent le seul code HTTP). [CT-PT 2018 EN, §4.2.6, p. 45-46]
+   - L'API est aussi une source de charge imprévue, par exemple en ouvrant à des clients nouveaux un système ancien. [CT-PT 2018 EN, §3.2, p. 27]
 
 ## Exemple de mise en œuvre (fictif, interprétation)
 
-« Cinq équipes consomment une API de commandes ; l'équipe fournisseur livre toutes les 2 semaines. Je ferais :
-- Atelier de 2 h pour lister les consommateurs et les endpoints critiques (étapes 1 et 2).
-- Contrats versionnés dans un dépôt partagé, avec un propriétaire par contrat (étape 3).
-- Chaque consommateur publie ses attentes (étape 4). Le fournisseur les vérifie à chaque merge (étape 6).
-- Suite d'API nocturne : cas négatifs, codes d'erreur, idempotence des retries (étape 5).
-- Test de charge avant chaque release majeure. Il couvre les 3 endpoints les plus appelés, avec une baseline et un seuil de temps de réponse négocié avec les consommateurs (étape 7). »
+« Une API Commandes est consommée par trois équipes: web, mobile et facturation.
+- Chaque consommateur publie ses attentes dans un dépôt de contrats versionné (étapes 3-4).
+- Le fournisseur rejoue ces contrats à chaque pull request. Les ruptures bloquent la fusion.
+- Une suite d'API nocturne couvre les codes d'erreur et les séquences create → read → cancel (étape 5).
+- Avant chaque release majeure, un test de charge vise le débit et le temps de réponse de référence convenus avec le métier, comparés à la baseline (étapes 6-7). »
 
 ## Adaptation par domaine
 
 | Domaine | Ce qui change | Où lire |
 |---|---|---|
-| Santé / réglementé | Traçabilité renforcée des contrats et des résultats. Aucun syllabus santé dans la bibliothèque (IEC 62304 absente) ; le Web serait nécessaire pour la norme. | CTAL-TTA v4.0 §2.8.2 (non lu) |
-| Web | Cas du présent exemple. Aucun syllabus web dédié, principes transposés. | CT-PT §3.2 |
-| Embarqué | Contraintes temps réel et charge différente. | CT-PT §3.2 (non lu en détail) |
-| Mobile | Réseau variable et dépendance à des services distants. | CT-PT 2018 §3.2, p. 26 |
-| API | Cas central de la question. | CT-QDO §3.2.2, CTAL-TAE §5.1.3 |
+| API (ton cas) | Le contrat sert de pivot entre équipes | CT-QDO §3.2.2, CTAL-TAE §5.1.3, CTAL-TTA §2.7 |
+| Santé / réglementé | Pas de syllabus santé, donc pas de norme IEC 62304 dans la bibliothèque. Une recherche Web serait nécessaire. | — |
+| Web | Pas de syllabus dédié. Les risques de performance par architecture se transposent. | CT-PT §3.2 |
+| Embarqué | Peu pertinent pour une API REST. | CT-PT §3.2 |
+| Mobile | Les applications mobiles dépendent de services distants, source possible de goulot de performance. | CT-PT §3.2, CT-MAT |
 
 ## Par quoi je commencerais
 
-1. **Contrats versionnés avec vérification CI** : impact fort, effort moyen. C'est ce qui protège le plus les équipes entre elles.
-2. **Suite d'API avec cas négatifs et couverture des statuts** : impact fort, effort moyen.
-3. **Plan de performance léger** (baseline, 2-3 endpoints, SLA) : impact moyen, effort faible à moyen. À commencer avant que la charge augmente.
+1. Cartographier les consommateurs et choisir un seul contrat pilote. Impact fort, effort faible.
+2. Brancher la vérification des contrats dans la CI. Impact fort, effort moyen.
+3. Définir les SLA et la baseline de performance, avant tout outil de charge. Impact moyen, effort faible.
 
 ## Où creuser ensuite
 
-- `section CT-QDO-1.0-en 3.2.2` : la suite sur les compromis des tests de contrat, et §4.1 sur l'outillage.
-- `section CTAL-TAE-2.0-en 5.1` : la suite de l'infrastructure d'API.
-- `section CT-PT-2018-en 4.2` : conception et exécution des tests de performance.
-- `section CT-TAS-1.0-en 3.1` : distribution et optimisation du *shift left*.
+- `section CT-QDO-1.0-en 3.1.1`: gestion de versions et contrats (renvoi du §3.2.2, non lu).
+- `section CT-PT-2018-en 4.1`: approche de charge et plan de test.
+- `section CT-TAS-1.0-fr 3.1`: distribution des tests et pyramide.
+- `section CTAL-TAE-2.0-en 5.1`: stratégie d'automatisation d'API.
 
-## Confiance : 80/100 (élevée)
+## Confiance
 
-- La confiance documentaire est de 100/100 sur les recherches d'API. Pour la performance, elle est de 69 : seul CT-PT couvre bien le sujet, et il date de 2018.
-- J'ai lu au moins quatre passages de syllabus différents.
-- L'ordre des étapes et l'exemple relèvent de mon raisonnement (−10).
-- Aucune notion n'est restée sans passage lu.
+**Confiance: 81/100 (élevée)**. Calcul: base 85 × 0,6 = 51, plus 7 passages lus (+20), plus 4 syllabus concordants (+20), moins 10 pour le raisonnement sans source. Les deux étapes marquées « interprétation » sont le choix du mode consommateur et l'exemple.
 
 ## À capitaliser ?
 
-Je propose une seule idée. Je n'ai pas pu vérifier les doublons : la commande `idee doublons` a été bloquée par l'environnement. La conversation principale devra la relancer avant `idee ajouter`.
+Pas de doublon (`idee doublons`: aucune idée similaire; thème suggéré: `api`).
 
 ```json
 {
- "titre": "Contrats d'API versionnés et vérifiés en CI pour une API partagée par plusieurs équipes",
- "resume": "Pour une API REST consommée par plusieurs équipes, formaliser le contrat consommateur/fournisseur, le versionner et le vérifier dans chaque pipeline CI/CD.",
- "probleme": "Les changements d'une API partagée cassent des consommateurs découverts tard, en intégration ou en production.",
- "principe": "Définir le contrat, écrire des tests de contrat côté consommateur et fournisseur, les exécuter en CI/CD, versionner les contrats sous gestion de configuration.",
- "theme_principal": "api",
- "themes_secondaires": ["cicd", "shift-left"],
- "domaine_application": "API REST / microservices consommés par plusieurs équipes",
- "prerequis": "Standards partagés et outillage de tests de contrat",
- "benefices": "Retour rapide et isolé, détection des ruptures avant déploiement",
- "limites": "Ne couvre pas tous les aspects fonctionnels ; coordination entre équipes requise",
- "maturite": "documentee",
- "statut": "a_evaluer",
- "provenance": "Recherche du 2026-10-22 : mise en place des tests d'une API REST multi-équipes",
- "references": [
-  {"type": "istqb", "doc_id": "CT-QDO-1.0-en", "pages": "41", "section": "3.2.2", "extrait": "contracts should be versioned and stored in version control"}
- ]
+  "titre": "Séquencer tests de contrat, d'API et de performance pour une API partagée entre équipes",
+  "resume": "Le contrat versionné sert de pivot entre équipes et se vérifie en CI. Il complète les tests d'API, qui couvrent les cas négatifs et les séquences. La performance se pilote à part, avec SLA et baseline.",
+  "principe": "Définir le contrat, le versionner, le faire vérifier en CI par fournisseur et consommateurs. Compléter par des tests d'API (valeurs inattendues, codes d'erreur). Fixer des critères d'acceptation de performance avant de scripter la charge.",
+  "theme": "api",
+  "references": [
+    {"doc": "CT-QDO-1.0-en", "page": 41, "extrait": "Contract tests do not cover all functional aspects of API testing, and they supplement other test types."},
+    {"doc": "CT-PT-2018-en", "page": 34, "extrait": "response time is a user concern, throughput is a business concern, and resource utilization is a system concern."}
+  ]
 }
 ```
 
+L'`extrait` reprend les passages lus. Les champs doivent être confrontés à `python qa.py idee modele` avant `idee ajouter`.
+
 ## Questions à choix
 
-1. Quel est ton contexte ?
-   1. Microservices en agile avec CI/CD.
-   2. Plateforme d'API plus classique, avec des releases espacées.
-   3. Domaine réglementé (santé, finance).
-2. Par où continuer ?
-   1. Approfondir la performance (conception des scénarios et profils de charge).
-   2. Comparer contrat piloté par le consommateur et par le fournisseur.
-   3. Capitaliser l'idée proposée.
-3. Un outil précis est-il envisagé ? Si oui, je ferai une recherche Web sur sa documentation officielle.
-   1. Oui, un outil de tests de contrat.
-   2. Oui, un outil de charge.
-   3. Non.
+1. **Quel est ton contexte?**
+   1. Microservices en agile avec CI/CD
+   2. Système plus ancien avec cycle séquentiel
+   3. Secteur réglementé (santé, finance)
+2. **Quelle suite?**
+   1. Approfondir les tests de contrat (consommateur contre fournisseur)
+   2. Approfondir la performance d'API (SLA, baseline)
+   3. Capitaliser cette idée
 
 ## Commandes exécutées
 
-- `Read {"file_path": "/tmp/claude-0/-home-user/da9346e2-ce5e-5882-830a-19be129b35c4/scratchpad/wt-90/.claude/skills/qa-knowledg`
-- `python qa.py idee chercher "contrat API" ; python qa.py idee chercher "API REST intégration"; python qa.py idee chercher "performance API"`
-- `for q in "contract testing API" "test de contrat" "API testing" "integration testing approach" "tests d'intégration API" "performance testing API" "test de performance" "service virtualization" "consu`
-- `python qa.py chercher "contract testing API" 2>&1 | head -40`
-- `python qa.py chercher "API testing integration" 2>&1 | head -40`
-- `python qa.py chercher "performance testing load API" 2>&1 | head -40`
-- `python qa.py chercher "service virtualization test doubles" 2>&1 | head -40`
-- `python qa.py section CT-QDO-1.0-en 3.2.2 2>&1 | head -80`
-- `python qa.py section CTAL-TAE-2.0-en 5.1.3 2>&1 | head -60`
-- `python qa.py section CTAL-TTA-4.0-en 2.7 2>&1 | head -50`
-- `python qa.py lire 7575 --contexte 1 2>&1 | head -40; python qa.py lire 10338 --contexte 1 2>&1 | head -30`
-- `python qa.py chercher "performance test objectives metrics load profile" --doc CT-PT 2>&1 | head -30`
-- `python qa.py chercher "integration testing strategy big bang incremental interfaces between teams" 2>&1 | head -30`
-- `python qa.py lire 8859 --contexte 1 2>&1 | head -40`
-- `python qa.py lire 7590 --contexte 1 2>&1 | head -50; python qa.py lire 11304 --contexte 1 2>&1 | head -30`
-- `python qa.py idee modele 2>&1 | head -50`
-- `python qa.py themes 2>&1 | head -60`
-- `python qa.py idee doublons <<'JSON'
-{
- "titre": "Contrats d'API versionnés et vérifiés en CI pour une API partagée par plusieurs équipes",
- "resume": "Pour une API REST consommée par plusieurs équipes`
+- `Read {"file_path": "/tmp/claude-0/-home-user/da9346e2-ce5e-5882-830a-19be129b35c4/scratchpad/wt-G/.claude/skills/qa-knowledge`
+- `python qa.py idee chercher "contrat API" ; python qa.py idee chercher "performance API" ; python qa.py idee chercher "intégration API REST"`
+- `python qa.py chercher "contract testing API" ; python qa.py chercher "API testing REST" ; python qa.py chercher "tests d'intégration API" ; python qa.py chercher "performance testing API load"`
+- `python qa.py section CT-QDO-1.0-en 3.2.2 --max-caracteres 7000`
+- `python qa.py section CTAL-TAE-2.0-en 5.1.3 --max-caracteres 5000`
+- `python qa.py section CTAL-TTA-4.0-en 2.7 --max-caracteres 6000`
+- `python qa.py lire 3477 --contexte 1 --max-caracteres 5000; python qa.py lire 850 --contexte 0 --max-caracteres 3000; python qa.py lire 886 --contexte 0 --max-caracteres 3000`
+- `python qa.py lire 3477 --contexte 1; python qa.py lire 850; python qa.py lire 886`
+- `python qa.py section CT-PT-2018-en 4.2.6 --max-caracteres 3500`
+- `python qa.py chercher "performance test objectives service level agreements throughput response time" --doc CT-PT | head -30; python qa.py chercher "Pact consumer-driven contract" ; python qa.py cherc`
+- `python qa.py lire 865; python qa.py lire 833`
+- `python qa.py confiance --help | head -20; python qa.py idee doublons --titre "Mise en place tests API REST multi-équipes : contrat, intégration, performance" --resume "Séquencer tests de contrat versi`
+- `python qa.py confiance --base 85 --lus 7 --concordants 4 --raisonnement 1`

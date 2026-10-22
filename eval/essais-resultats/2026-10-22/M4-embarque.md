@@ -2,142 +2,111 @@
 
 **Question** : Comment organiser les niveaux de test et le test d'intégration matériel/logiciel d'un système embarqué (calculateur industriel) ?
 
-**Tours** : 10 · **coût** : 0.175 $ · **confiance annoncée** : 68 · **citations** : 5/5 lues · **Web** : 0 · **critères** : 7/7
+**Tours** : 11 · **coût** : 0.174 $ · **confiance annoncée** : 66 · **verdict** : réussi · **citations** : 8/8 lues · **Web** : 0 · **critères** : 7/7
 
 ## Réponse
 
-Pour un calculateur industriel, la bibliothèque couvre bien l'intégration matériel/logiciel. Les sources viennent surtout de l'automobile (CT-AuT) et d'un syllabus Expert de 2011 (CTEL-TM).
-
 **Sources retenues**
-- CTEL-TM 2011 EN, §8.3.3.
-- CT-AuT v2.1.1 EN, §2.4.2, §3.2.3.2 et §3.2.4.3.
-- CTAL-TTA v4.0 EN, §4.1.
-- CT-ATLaS BoK v2.0 FR, §3.2.
-- Base d'idées : rien de capitalisé sur ce sujet.
-- Il n'existe aucun syllabus « industriel » ni IEC 61508 dédié. Un extrait du TTA §2.8.2 (IEC 61508, niveaux d'intégrité) est apparu dans une recherche, mais je ne l'ai pas lu. Je ne le cite pas.
-- Je n'ai pas fait de recherche Web : la question ne nomme ni outil ni norme précise.
+- CTEL-TM 2011 EN, §8.3.3 (lu). Il est ancien (2011), mais c'est la seule source qui traite directement du matériel/logiciel embarqué.
+- CT-AuT v2.1.1 EN (2025), §2.4.2 et §3.2 (lus).
+- CTAL-TTA v4.0 EN, §4.1 et §2.8.2 (lus).
+- Base d'idées : rien de capitalisé sur le sujet.
+- Il n'existe aucun syllabus « embarqué industriel ». Le plus proche est l'automobile, que je transpose, et ce choix est une interprétation.
+- Je n'ai pas fait de recherche Web : aucun outil ni norme précis n'est nommé dans la question.
 
-**Hypothèse de contexte :** calculateur (ECU/PLC) avec firmware et logiciel applicatif, cycle en V ou hybride, sans exigence de sûreté certifiée. La réponse change si une norme s'applique (voir les questions de cadrage).
+Hypothèse de contexte : calculateur industriel avec firmware, cycle en V, matériel en prototype au début. Je n'ai pas supposé de norme de sécurité fonctionnelle imposée.
 
-## Méthode pas à pas
+**Méthode pas à pas**
+1. **Définir les niveaux en tenant compte du matériel.** CT-AuT note que, pour ASPICE et ISO 26262, un « système » mêle matériel et logiciel, alors que CTFL ne parle que de logiciel. Fixez donc un vocabulaire commun avec l'équipe. [CT-AuT v2.1.1 EN, §2.4.2, p. 30]
+   - Correspondance proposée : composant/unité → intégration logicielle → test du logiciel embarqué sur cible → intégration système (matériel + logiciel) → validation. [CT-AuT v2.1.1 EN, §2.4.2, p. 31]
+   - Pour ASPICE et ISO 26262, l'intégration d'un item passe par plusieurs phases : matériel + logiciel d'un élément, puis tous les éléments, puis l'item avec les autres items. [CT-AuT v2.1.1 EN, §2.4.2, p. 31, note 18]
+2. **Associer un environnement à chaque niveau, pour décaler les tests vers le virtuel.** Voici la classification de CT-AuT. [CT-AuT v2.1.1 EN, §3.2.4.3, p. 40] [CT-AuT v2.1.1 EN, §3.2.2.2, p. 36]
+   - **MiL** (modèle) : conception et fonctions, très tôt.
+   - **SiL** (code compilé) : composants et intégration. C'est là qu'on repère les écarts entre modèle et code (flottant contre virgule fixe). Les tests de performance et de fiabilité y sont peu pertinents, car ils dépendent de la cible.
+   - **HiL** : tests système sur le vrai matériel.
+3. **Mettre en place un laboratoire d'intégration.** Le matériel ou firmware non testé y est isolé de l'environnement de test logiciel. Il doit y « graduer » avant d'entrer en test système. [CTEL-TM 2011 EN, §8.3.3, p. 65]
+   - Livrable : un critère de sortie du labo (« graduation ») et une stratégie d'intégration écrite.
+4. **Construire le banc HiL.** Il comprend alimentation, calculateur temps réel, pièces réelles, unité d'injection de fautes (coupures et courts-circuits de câbles), breakout box et simulation des bus manquants. [CT-AuT v2.1.1 EN, §3.2.3.1, p. 37]
+   - Un HiL tourne en temps réel : on ne peut ni le mettre en pause ni l'arrêter. [CT-AuT v2.1.1 EN, §3.2.3.2, p. 37]
+   - Un seul calculateur : « component HiL ». Plusieurs calculateurs : « system HiL » (échanges de données entre eux). [CT-AuT v2.1.1 EN, §3.2.3.2, p. 37]
+   - Le choix des points d'accès compte : un mauvais point peut rendre les résultats inutilisables. [CT-AuT v2.1.1 EN, §3.2.3.2, p. 37]
+5. **Gérer le prototype et les changements en rafale.** (Test Manager, en continu.) [CTEL-TM 2011 EN, §8.3.3, p. 65]
+   - Prévoir dans le planning les pannes d'équipement et des moyens d'occuper les ressources de test pendant ces arrêts.
+   - Un comportement de prototype n'est pas forcément un défaut. À l'inverse, un matériel défaillant peut être accepté à tort par le logiciel, qui masque alors le problème.
+   - Chaque évolution de matériel ou de firmware déclenche des tests d'intégration répétés : coordonnez les calendriers et réordonnez les livraisons de fonctions.
+6. **Traiter les caractéristiques non fonctionnelles selon le niveau.** Benchmarks de performance et consommation de ressources dès le test de composant sur système temps réel ou embarqué. Fiabilité (reprise après incident) en test système. [CTAL-TTA v4.0 EN, §4.1, p. 28]
+7. **Régler la profondeur sur le niveau d'intégrité, s'il y a une norme de sécurité.** IEC 61508 définit 4 SIL, avec une couverture structurelle recommandée croissante : 100 % des branches normalement exigé en SIL 3, et MC/DC fortement recommandé en SIL 4. [CTAL-TTA v4.0 EN, §2.8.2, p. 20]
 
-1. **Nommer les niveaux selon un vocabulaire commun.**
-   - Le CTFL réserve « système » au logiciel seul, alors que ISO 26262 et ASPICE désignent un produit matériel + logiciel.
-   - Fixe donc un glossaire dès le départ. Livrable : tableau de correspondance de tes niveaux.
-   - Correspondance proposée par CT-AuT : composant/unité → intégration de composants → test du logiciel embarqué sur cible matérielle → intégration système → système de systèmes → validation. [CT-AuT v2.1.1 EN, §2.4.2, p. 30-31]
-2. **Associer un environnement à chaque niveau.**
-   - MiL pour valider la conception.
-   - SiL pour les tests de composants et d'intégration logicielle.
-   - HiL pour les tests système. [CT-AuT v2.1.1 EN, §3.2.4.3, p. 40]
-   - Le HiL peut servir aux niveaux composant, intégration et système, avec un HiL « composant » (un calculateur) et un HiL « système » (plusieurs calculateurs, échanges entre eux). [CT-AuT v2.1.1 EN, §3.2.3.2, p. 37]
-   - Le HiL tourne en temps réel et ne peut pas être mis en pause. [CT-AuT v2.1.1 EN, §3.2.3.2, p. 37]
-   - Livrable : matrice niveau × environnement × types de test.
-3. **Remonter les tests vers les niveaux virtuels, moins chers.** C'est l'un des trois critères d'optimisation cités : réduire les risques produit, réduire le coût de test, être conforme aux normes. Garde le non-fonctionnel propre au niveau, par exemple la performance au niveau système sur HiL. [CT-AuT v2.1.1 EN, §3.2.4.3, p. 40]
-4. **Prévoir un laboratoire d'intégration séparé.**
-   - Il isole le matériel et le firmware non testés de l'environnement de test logiciel.
-   - Le matériel et le firmware doivent « graduer » du labo avant d'entrer en test système. [CTEL-TM 2011 EN, §8.3.3, p. 65]
-   - Livrable : critères de sortie du labo d'intégration.
-5. **Planifier avec les contraintes matérielles.**
-   - Prévoir plus de temps pour monter les configurations de test.
-   - Prévoir des indisponibilités (prototypes, outils de diagnostic) et un moyen d'employer les ressources pendant les pannes. [CTEL-TM 2011 EN, §8.3.3, p. 65]
-   - Le Test Manager coordonne les plannings des composants et peut réordonner les livraisons de fonctionnalités. [CTEL-TM 2011 EN, §8.3.3, p. 65]
-6. **Se méfier du matériel prototype.**
-   - Il peut avoir un comportement que la série n'aura pas, et dans ce cas un rapport d'anomalie n'est pas forcément approprié.
-   - Il peut aussi être fautif alors que le logiciel accepte ce défaut, ce qui masque un problème qui n'apparaîtra qu'avec du matériel correct. [CTEL-TM 2011 EN, §8.3.3, p. 65]
-   - Travaille en lien étroit avec les développeurs matériel et firmware, et prévois un peu d'expertise matériel/firmware dans l'équipe de test.
-7. **Placer les tests non fonctionnels à chaque niveau, selon les risques.** Par exemple : benchmark de performance et consommation de ressources dès le test de composants temps réel/embarqués, puis fiabilité (recouvrement) en test système. [CTAL-TTA v4.0 EN, §4.1, p. 28]
+**Exemple de mise en œuvre** (fictif, interprétation)
+« Un calculateur de pilotage de presse, avec un firmware sur microcontrôleur et une carte d'E/S. Je ferais ainsi :
+- Les tests unitaires et d'intégration logicielle tournent en SiL dans l'intégration continue (étape 2).
+- La carte d'E/S prototype passe d'abord au labo d'intégration (étape 3). Elle n'entre dans le banc HiL qu'une fois le critère de graduation atteint.
+- Sur le HiL, l'injection de fautes simule une coupure du capteur de position (étape 4).
+- Le planning prévoit deux semaines de marge pour les remplacements de prototypes (étape 5). »
 
-## Exemple de mise en œuvre (fictif — interprétation)
-
-« Pour un calculateur de régulation, je ferais ceci :
-- Étape 2 : tests unitaires et d'intégration logicielle sur SiL en intégration continue.
-- Étape 4 : un banc d'intégration où chaque nouvelle carte ou révision de firmware passe un jeu de tests d'entrée.
-- Étape 2 : un HiL composant pour le logiciel sur cible, puis un HiL système si plusieurs calculateurs communiquent.
-- Étape 5 : un planning commun de livraisons matériel / firmware / logiciel, géré par le Test Manager. »
-
-## Adaptation par domaine
-
+**Adaptation par domaine**
 | Domaine | Ce qui change | Où lire |
 |---|---|---|
-| Embarqué / industriel | Couvert par CT-AuT (HiL/SiL, niveaux) et CTEL-TM §8.3.3. À transposer, car les syllabus parlent de véhicule. | passages lus ci-dessus |
-| Santé / réglementé | Pas de syllabus dispositif médical (IEC 62304 absent). Niveaux d'intégrité à creuser dans TTA §2.8.2 (non lu). Web nécessaire pour la norme. | CTAL-TTA v4.0 §2.8.2 |
-| Web / API / mobile | Hors sujet ici : pas de matériel dédié à intégrer. | non traité |
+| Embarqué industriel (votre cas) | Pas de syllabus dédié. Transposer l'automobile (XiL, ASPICE) et le TM 2011 | CT-AuT §2.4, §3.2 ; CTEL-TM §8.3.3 |
+| Santé / réglementé | IEC 62304 absente de la bibliothèque. Pour la couverture par niveau d'intégrité, voir TTA | CTAL-TTA §2.8.2 |
+| Web, mobile, API | Sans objet pour le matériel. Les principes de niveaux restent valables | CTFL (niveaux) |
 
-## Par quoi je commencerais
+**Par quoi je commencerais**
+1. Table de correspondance niveaux ↔ environnements (étapes 1-2). Impact fort, effort faible.
+2. Critère de graduation du labo d'intégration (étape 3). Impact fort, effort moyen.
+3. Banc HiL avec injection de fautes (étape 4). Impact fort, effort fort : à lancer en parallèle.
 
-1. Glossaire et matrice niveau × environnement (étapes 1-2). Impact fort, effort faible.
-2. Critères de « graduation » du labo d'intégration (étape 4). Impact fort, effort moyen.
-3. Transfert des tests vers le SiL (étape 3). Impact moyen à fort, effort fort, car il faut construire le modèle d'environnement.
+**Où creuser ensuite**
+- `section CT-AuT-2.1.1-en 3.2.4.1` : avantages et inconvénients de chaque XiL.
+- `section CT-AuT-2.1.1-en 4.2.3` : injection de fautes.
+- `section CTEL-TM-2011-en 8.3` : autres cas de systèmes spécifiques.
 
-## Où creuser ensuite
+**Confiance : 66/100** (moyenne). Calcul : base 60 × 0,6 = 36 ; 8 passages lus +20 ; 3 syllabus concordants +20 ; raisonnement sans source −10 (exemple et transpositions). Les sources principales sont automobiles ou anciennes (2011), donc la transposition au monde industriel est mon interprétation.
 
-- `section CT-AuT-2.1.1-en 3.2` : MiL, SiL, PiL, HiL, ViL.
-- `section CT-AuT-2.1.1-en 2.2` : tables de méthodes ISO 26262 par niveau d'intégrité.
-- `section CTAL-TTA-4.0-en 2.8.2` : systèmes liés à la sécurité (IEC 61508).
-- `section CTEL-TM-2011-en 8.3` : le contexte de l'extrait lu.
-
-**Confiance : 68/100 (moyenne).**
-- La confiance documentaire est élevée (87 sur la meilleure requête), et j'ai lu 5 passages de 4 syllabus.
-- J'ai retiré des points parce que le cœur vient d'un syllabus Expert de 2011 et d'un syllabus automobile transposé à l'industriel. Cette transposition est mon interprétation.
-
-## Questions de cadrage
-
-1. Une norme s'applique-t-elle ?
-   1. IEC 61508 / sûreté fonctionnelle.
-   2. Aucune norme.
-   3. Autre (précise).
-2. Quel est le cycle de développement ?
-   1. En V séquentiel.
-   2. Agile avec livraisons matérielles tardives.
-   3. Hybride.
-
-## Questions à choix
-
-1. Quelle suite veux-tu ?
-   1. Approfondir HiL/SiL (CT-AuT §3.2).
-   2. Creuser les niveaux d'intégrité IEC 61508 (TTA §2.8.2).
-   3. Capitaliser la proposition ci-dessous.
-
-## À capitaliser ?
-
-J'ai vérifié les doublons avec `idee chercher` : rien d'équivalent. Mon contrôle `idee doublons` a été refusé par le shell, donc il reste à relancer. Rien n'est enregistré.
-
+**À capitaliser ?**
 ```json
 {
- "titre": "Laboratoire d'intégration matériel/firmware avec critère de graduation avant le test système",
- "resume": "Isoler le matériel et le firmware non testés de l'environnement de test logiciel dans un labo d'intégration. Ils n'entrent en test système qu'après avoir gradué.",
- "probleme": "Les changements répétés de matériel, firmware et logiciel provoquent des ré-intégrations qui cassent l'avancement de l'équipe de test.",
- "principe": "Labo d'intégration séparé, critères de sortie explicites, planning de livraison des composants coordonné par le Test Manager.",
- "theme_principal": "environnements",
- "themes_secondaires": ["test-management"],
- "domaine_application": "Systèmes embarqués et combinaisons matériel/logiciel (calculateur industriel)",
- "prerequis": "Équipes matériel, firmware et logiciel qui partagent un planning de livraisons",
- "benefices": "Moins d'arrêts dus aux équipements prototypes ; test système plus stable",
- "limites": "Source ancienne (CTEL-TM 2011) ; coût d'un second banc de test",
- "maturite": "documentee",
- "statut": "a_evaluer",
- "provenance": "Recherche du 2026-10-22 : niveaux de test et intégration matériel/logiciel d'un calculateur industriel",
- "references": [
-  {
-   "type": "istqb",
-   "doc_id": "CTEL-TM-2011-en",
-   "pages": "65",
-   "section": "8.3.3",
-   "extrait": "An integration test lab is often used to separate the untested equipment/firmware from the software testing environment."
-  }
- ]
+  "titre": "Intégration matériel/logiciel embarqué : laboratoire d'intégration et passage de relais",
+  "resume": "Isoler le matériel/firmware non testé dans un labo d'intégration ; il doit y être validé avant d'entrer en test système.",
+  "principe": "Faire graduer le matériel/firmware depuis le labo d'intégration avant le test système.",
+  "theme": "niveaux-types",
+  "references": [
+    {"document": "CTEL-TM-2011-en", "page": 65, "section": "8.3.3", "extrait": "An integration test lab is often used to separate the untested equipment/firmware from the software testing environment. The equipment/firmware has to ―graduate‖ from the integration lab before it can enter the system testing phase."}
+  ]
 }
 ```
+```json
+{
+  "titre": "Aligner chaque niveau de test sur un environnement XiL (MiL, SiL, HiL)",
+  "resume": "Associer l'environnement de test au niveau pour décaler les tests vers des niveaux virtuels moins coûteux.",
+  "principe": "MiL pour la conception, SiL pour composants et intégration, HiL pour le test système.",
+  "theme": "niveaux-types",
+  "references": [
+    {"document": "CT-AuT-2.1.1-en", "page": 40, "section": "3.2.4.3", "extrait": "In system tests, certain functionalities of the test object have been entirely developed. The tester can execute the system test with a HiL test environment."}
+  ]
+}
+```
+Le contrôle de doublons n'en signale aucun pour ces deux propositions.
+
+**Questions à choix**
+1. Quelle contrainte réglementaire s'applique ?
+   1. Sécurité fonctionnelle (IEC 61508 ou dérivée)
+   2. Aucune norme particulière
+   3. Autre norme (je chercherai sur le Web)
+2. Que fait-on ensuite ?
+   1. Approfondir les environnements XiL et l'injection de fautes
+   2. Comparer avec les niveaux CTFL
+   3. Capitaliser les deux idées ci-dessus
 
 ## Commandes exécutées
 
-- `Read {"file_path": "/tmp/claude-0/-home-user/da9346e2-ce5e-5882-830a-19be129b35c4/scratchpad/wt-90/.claude/skills/qa-knowledg`
-- `python qa.py idee chercher "embarqué intégration matériel logiciel niveaux de test"; python qa.py idee chercher "embedded hardware software integration"`
-- `python qa.py chercher "test levels embedded systems hardware software integration"; echo ----; python qa.py chercher "niveaux de test système embarqué intégration matériel logiciel"; echo ----; python`
-- `python qa.py section CTEL-TM-2011-en 8.3.3; echo ======; python qa.py section CT-AuT-2.1.1-en 2.4.2; echo ======; python qa.py section CT-AuT-2.1.1-en 3.2.4.3; echo =====; python qa.py section CT-AuT-`
-- `python qa.py lire 10502 --contexte 1; echo =====; python qa.py lire 8889 --contexte 1`
-- `python qa.py idee modele`
-- `python qa.py themes | head -60`
-- `python qa.py idee doublons <<'JSON'
-{"titre":"Laboratoire d'intégration matériel/firmware avec critère de « graduation » avant le test système","resume":"Isoler le matériel et le firmware non testés d`
-- `python qa.py idee chercher "laboratoire d'intégration matériel firmware graduate système"; python qa.py idee chercher "HiL SiL niveaux de test calculateur ECU"`
+- `Read {"file_path": "/tmp/claude-0/-home-user/da9346e2-ce5e-5882-830a-19be129b35c4/scratchpad/wt-G/.claude/skills/qa-knowledge`
+- `python qa.py idee chercher "embarqué intégration matériel logiciel niveaux de test" 2>&1 | head -40`
+- `python qa.py chercher "embedded systems test levels hardware software integration" 2>&1 | head -60`
+- `python qa.py chercher "systèmes embarqués intégration matériel logiciel" 2>&1 | head -60`
+- `python qa.py section CTEL-TM-2011-en 8.3.3 --max-caracteres 5000 2>&1; echo ======; python qa.py section CT-AuT-2.1.1-en 2.4.2 --max-caracteres 6000 2>&1`
+- `python qa.py section CT-AuT-2.1.1-en 3.2.3 --max-caracteres 7000 2>&1; echo ======; python qa.py section CTAL-TTA-4.0-en 4.1 --max-caracteres 4000 2>&1`
+- `python qa.py section CT-AuT-2.1.1-en 3.2 --max-caracteres 3500 2>&1; echo ======; python qa.py section CTAL-TTA-4.0-en 2.8.2 --max-caracteres 4500 2>&1`
+- `python qa.py section CT-AuT-2.1.1-en 3.2.4.3 --max-caracteres 3000 2>&1; echo =====; python qa.py section CT-AuT-2.1.1-en 3.2.2.2 --max-caracteres 2500 2>&1; echo ====; python qa.py confiance --help 2`
+- `python qa.py confiance --base 60 --lus 8 --concordants 3 --raisonnement 1 2>&1; python qa.py idee doublons --titre "Intégration matériel/logiciel embarqué : laboratoire d'intégration et passage de rel`
+- `python qa.py idee doublons --titre "Intégration matériel/logiciel embarqué : laboratoire d'intégration et passage de relais" --resume "Isoler le matériel/firmware non testé dans un labo d'intégration;`

@@ -2,100 +2,129 @@
 
 **Question** : Je suis Test Manager sur le logiciel d'un dispositif médical. Comment mettre en place la traçabilité des exigences vers les tests et un test basé sur les risques ?
 
-**Tours** : 6 · **coût** : 0.163 $ · **confiance annoncée** : 55 · **citations** : 9/9 lues · **Web** : 1 · **critères** : 7/7
+**Tours** : 11 · **coût** : 0.194 $ · **confiance annoncée** : 73 · **verdict** : réussi · **citations** : 12/12 lues · **Web** : 1 · **critères** : 7/7
 
 ## Réponse
 
 ## Sources retenues
 
-- **Lus dans la bibliothèque :**
-  - CTFL v4.0.1 EN §1.4.4 (traçabilité).
-  - CTAL-TM v3.0 FR et EN §1.3 à 1.3.6 (test basé sur les risques).
-  - CT-FT v1.0 EN §3.3 (matrices risques → conditions de test → résultats).
-  - CTAL-TA v4.0 §2.1 : lu seulement en introduction, rien n'en est cité plus bas.
-- **Base d'idées :** aucune idée capitalisée sur ce sujet.
-- **Rien trouvé :** aucun syllabus santé / dispositif médical. `chercher "IEC 62304 dispositif médical"` ne renvoie que des passages sans rapport (ASPICE, accessibilité…).
-- **Web :** je l'ai utilisé pour IEC 62304 et ISO 14971, que la bibliothèque ne couvre pas. Les sources sont des blogs et des éditeurs d'outils, pas le texte des normes.
+- **Lus :**
+  - CTFL v4.0.1 EN, §1.4.4, p. 20-21.
+  - CTAL-TM v3.0 EN, §1.3.1 à §1.3.4, p. 28-31. Je n'ai pas lu la fin du §1.3.4, qui traite du suivi du test basé sur les risques.
+  - CTEL-TM 2011 EN, §8.3.4, p. 66.
+  - CT-FT v1.0 EN, §2.4.1, p. 22.
+  - CT-AuT v2.1.1 EN, §2.1.2.6, p. 23.
+- **Rien dans la base d'idées** sur le sujet (`idee chercher` : aucun résultat).
+- **Aucun syllabus santé / dispositif médical** dans la bibliothèque. IEC 62304 et ISO 14971 ne sont donc pas couvertes. J'ai fait une recherche Web ciblée pour combler ce manque.
 
-**Hypothèse de contexte :** logiciel de dispositif médical, soumis à IEC 62304 et ISO 14971, avec audit réglementaire. Je ne connais ni la classe de sécurité du logiciel, ni le cycle de vie, ni l'outillage.
+Les syllabus donnent le « quoi » et le « pourquoi » de la traçabilité et du test basé sur les risques. La norme de ton secteur (IEC 62304 avec ISO 14971) donne le « combien » et le « quelles preuves ».
+
+**Hypothèse de contexte :** logiciel de dispositif médical soumis à IEC 62304 (marquage CE ou FDA), cycle de vie plutôt séquentiel ou hybride, équipe de taille moyenne.
 
 ## Méthode pas à pas
 
-1. **Fixer le périmètre et la chaîne de traçabilité** (Test Manager, au démarrage, dans le plan de test). Éléments à relier : exigences système, exigences logicielles, risques et mesures de maîtrise, conditions et cas de test, résultats, défauts. La traçabilité sert à vérifier la couverture, mesurer l'impact des changements, faciliter les audits et rendre compte [CTFL v4.0.1 EN, §1.4.4, p. 20-21]. Le Web indique que IEC 62304 §5.1.1 demande de la prévoir entre exigences système, exigences logicielles, tests système et mesures de maîtrise des risques [Web — DQS, dqsglobal.com, consulté le 2026-10-22]. À vérifier dans la norme.
-2. **Faire l'analyse de risques avec les parties prenantes** (atelier avec qualité/réglementaire, cliniciens, développeurs, support ; livrable : registre des risques). Techniques : ateliers, entretiens, checklists, retours d'expérience [CTAL-TM v3.0 FR, §1.3.2, p. 29-30]. Le niveau de risque combine probabilité et impact. Pour la sûreté, les besoins de sûreté font partie des facteurs d'impact [§1.3.3, p. 30-31].
-   - *Interprétation :* utilise l'analyse ISO 14971 comme registre unique, sans le dupliquer côté test. Les risques « qualité » du syllabus se rattachent alors aux dangers et situations dangereuses.
-3. **Rattacher chaque risque à une exigence, puis à un test** (Test Analyst, en analyse et conception ; livrable : matrice risque → exigence → condition de test → cas de test → résultat). Les matrices relient les risques aux conditions de test, puis aux résultats [CT-FT v1.0 EN, §3.3, p. 27]. Le Web décrit la même chaîne : mesure de maîtrise → exigence → implémentation → test → vérification [Web — Matrix One, matrixone.health, consulté le 2026-10-22].
-4. **Moduler la rigueur selon le risque** (Test Manager, planification). L'effort est proportionnel au niveau de risque : les risques élevés sont testés tôt et avec des techniques plus rigoureuses. Les facteurs à examiner sont les éléments testés, les niveaux et types de test, l'équipe et l'indépendance [CTAL-TM v3.0 FR, §1.3.4, p. 32 ; EN, p. 30-31]. Les normes de sûreté peuvent imposer des techniques et une couverture selon le niveau d'intégrité, et le Test Manager doit s'assurer qu'elles sont suivies [CTAL-TM v3.0 EN, §1.3.4, p. 31].
-   - *Interprétation :* ce niveau d'intégrité correspond à la classe de sécurité A/B/C de IEC 62304. Le syllabus cite IEC 61508 comme exemple, pas IEC 62304.
-5. **Prioriser l'exécution** (planification, puis exécution). Deux approches : *depth-first*, par ordre strict de risque décroissant, et *breadth-first*, au moins un test par risque en priorité haute. En pratique on commence en depth-first puis on bascule en breadth-first quand le temps manque [CTAL-TM v3.0 EN, §1.3.4, p. 31].
-6. **Suivre et piloter par le risque résiduel** (pendant l'exécution ; livrable : rapports d'avancement exprimés en risques). Le suivi des tests inclut le suivi des risques et l'ajustement du registre [CTAL-TM v3.0 FR, §1.3.1, p. 29]. Le reporting se fait en risque résiduel, ce qui sert à décider d'une livraison ou d'accepter le risque restant [CTAL-TM v3.0 EN, §1.3.4, p. 31]. La traçabilité résultats → risques permet d'évaluer ce risque résiduel [CTFL v4.0.1 EN, §1.4.4, p. 21].
-7. **Mesurer en rétrospective** (fin de cycle ou de release). Questions à se poser : parties prenantes représentées ? défauts critiques trouvés tôt ? tests sautés moins risqués que les tests exécutés ? [CTAL-TM v3.0 FR, §1.3.6, p. 34].
+1. **Définir la chaîne de traçabilité et ses identifiants.** Le Test Manager la fixe au démarrage, dans le plan de test.
+   - Livrable : un schéma des liens, avec une ID unique par élément.
+   - Les éléments à relier sont la base de test, les conditions de test, les risques, les cas de test, les résultats et les anomalies [CTFL v4.0.1 EN, §1.4.4, p. 20].
+   - Pour un dispositif médical, j'ajouterais les dangers (hazards) et les mesures de maîtrise du risque (interprétation, voir étape 6).
+2. **Rendre la traçabilité bidirectionnelle.**
+   - Sens avant : exigence → cas de test. Sens arrière : résultat ou anomalie → exigence ou règle d'origine [CT-FT v1.0 EN, §2.4.1, p. 22].
+   - Les cas de test relient aux exigences prouvent la couverture. Les résultats reliés aux risques donnent le risque résiduel [CTFL v4.0.1 EN, §1.4.4, p. 21].
+   - Le même syllabus cite l'analyse d'impact des changements et la préparation des audits.
+   - CT-AuT donne un modèle vertical et horizontal, plus un lien entre demandes de changement et anomalies [CT-AuT v2.1.1 EN, §2.1.2.6, p. 23]. Il s'agit d'ASPICE (automobile), à transposer.
+3. **Analyser les risques qualité avec des parties prenantes variées.**
+   - Techniques d'identification citées : entretiens d'experts, ateliers, brainstorming, listes de contrôle, retours d'expérience. Les parties prenantes participantes sont à valider avec le chef de projet [CTAL-TM v3.0 EN, §1.3.2, p. 28-29].
+   - Dans ton contexte, cela suppose les affaires réglementaires, la gestion des risques et le clinique.
+4. **Évaluer le niveau de risque.**
+   - Le niveau combine la probabilité et l'impact. Souvent l'échelle est qualitative, avec une matrice de risque [CTAL-TM v3.0 EN, §1.3.3, p. 29-30].
+   - Parmi les facteurs d'impact figurent la criticité de la fonction, les sanctions légales et les « safety needs ».
+5. **Adapter l'effort de test au niveau de risque.**
+   - Un risque élevé donne des tests plus tôt et plus rigoureux, un risque faible des tests plus tardifs et plus légers [CTAL-TM v3.0 EN, §1.3.4, p. 30].
+   - Le niveau de risque influence aussi les revues des cas de test, l'indépendance du test et l'étendue de la régression [CTAL-TM v3.0 EN, §1.3.4, p. 31].
+   - Il guide la sélection des conditions de test et l'ordre d'exécution [CTAL-TM v3.0 EN, §1.3.1, p. 28].
+6. **Caler la rigueur sur la norme.**
+   - Le syllabus prévoit que des normes de sûreté (il cite IEC 61508) imposent techniques et couverture selon le niveau d'intégrité. Le Test Manager doit s'assurer qu'elles sont suivies [CTAL-TM v3.0 EN, §1.3.4, p. 31].
+   - Pour IEC 62304, des sources secondaires indiquent trois classes (A, B, C) fixées via ISO 14971. Les classes B et C appellent une traçabilité plus stricte et des tests plus poussés [Web — IEC 62304 Compliance guide, freyrsolutions.com, consulté le 2026-10-22].
+   - Ces sources sont des blogs. **Vérifie les clauses dans le texte des normes.**
+7. **Conserver les preuves et les versions.** Les exigences du secteur peuvent fixer le niveau de documentation, les outils permis, la couverture et les critères de sortie. Les documents sont versionnés et les changements validés. L'équipe maintient les matrices de traçabilité [CTEL-TM 2011 EN, §8.3.4, p. 66]. Pour l'auditabilité (preuves inaltérables, reproductibilité), CT-FT offre un modèle [CT-FT v1.0 EN, §2.4.1, p. 22], issu de la finance et à transposer.
+8. **Suivre et rapporter par risque.** La surveillance des tests inclut celle des risques : nouveaux risques et mise à jour du registre [CTAL-TM v3.0 EN, §1.3.1, p. 28].
 
 ## Exemple de mise en œuvre (fictif, interprétation)
 
-Logiciel de pompe à perfusion, classe C, cycle en V avec itérations, outil ALM ou outil dédié.
-- Chaque danger de l'analyse de risques a un identifiant (étape 2).
-- Chaque mesure de maîtrise devient une exigence logicielle taguée « sécurité ». Chaque exigence est liée à au moins un cas de test (étapes 1 et 3).
-- Les exigences taguées C reçoivent des techniques plus fortes (valeurs limites, injection de fautes) et une revue indépendante. Les exigences de classe inférieure reçoivent moins (étape 4).
-- Un rapport hebdomadaire liste les risques dont aucun test n'est passé ou dont un test a échoué (étape 6).
-- Avant la release, un contrôle vérifie qu'aucune exigence ou mesure de maîtrise n'est orpheline (étape 1).
+« Pour une pompe à perfusion pilotée par logiciel de classe C, je ferais ceci :
+- Chaque exigence reçoit une ID (REQ-xxx), reliée à un danger du dossier de gestion des risques (HAZ-xx).
+- Chaque danger a une mesure de maîtrise (RC-xx) et des cas de test (TC-xxx) qui la vérifient (étapes 1-2).
+- Un atelier avec le clinique, la R&D et les affaires réglementaires classe les risques sur une matrice 5×5 (étapes 3-4).
+- Les risques élevés reçoivent des tests de limites, des tests négatifs et une revue indépendante des cas. Les risques faibles reçoivent un test simple (étape 5).
+- Chaque release produit un rapport de traçabilité : exigences non couvertes, risques résiduels, anomalies ouvertes par risque (étapes 7-8). »
 
 ## Adaptation par domaine
 
 | Domaine | Ce qui change | Où lire |
 |---|---|---|
-| **Santé / réglementé (ton cas)** | Les syllabus ne couvrent pas IEC 62304, ISO 14971 ni les exigences d'audit. Seuls des principes transposables existent. Il faut lire les normes elles-mêmes. | CTAL-TM §1.3.4 ; CTAL-TTA v4.0 §2.8.2 (à lire, non lu ici) ; CT-AuT §2.1.2.6 (traçabilité ASPICE, analogie automobile, non lu en entier) |
-| Web / embarqué / mobile / API | Non traités, la question portait sur le dispositif médical. | `section CTEL-TM-2011-en 8.3.3` pour l'embarqué (non lu) |
+| **Santé / réglementé (ton cas)** | Les classes IEC 62304 et ISO 14971 fixent la rigueur. La documentation et les preuves sont auditables. | CTEL-TM §8.3.4, CTAL-TM §1.3.4, CT-FT §2.4. **Pas de syllabus dispositif médical** : lire les normes. |
+| Web | Pas de contrainte d'audit. Traçabilité allégée via les user stories. | CT-QDO §3.1.2 |
+| Embarqué | Tests matériel/logiciel intégrés, lab d'intégration. | CTEL-TM §8.3.3 |
+| Mobile / API | Non pertinent ici. | — |
 
 ## Par quoi je commencerais
 
-1. **Impact fort, effort faible :** identifier chaque exigence et chaque risque de façon unique, et relier risque → exigence → test dans l'outil existant (étapes 1 et 3).
-2. **Impact fort, effort moyen :** organiser l'atelier de risques commun avec le réglementaire (étape 2).
-3. **Impact moyen, effort moyen :** moduler la rigueur selon la classe de sécurité et passer au reporting en risque résiduel (étapes 4 et 6).
+1. **Impact fort, effort faible :** définir la chaîne d'ID et la matrice exigences, risques, tests. Un tableur versionné suffit pour démarrer.
+2. **Impact fort, effort moyen :** atelier d'analyse de risques avec toutes les parties prenantes, et lien entre risques et tests (étapes 3-5).
+3. **Impact moyen, effort moyen :** obtenir ou lire IEC 62304 et ISO 14971, puis aligner les critères de sortie sur la classe de sécurité.
 
 ## Où creuser ensuite
 
-- `section CTAL-TM-3.0-fr 1.3` (en entier, jusqu'à §1.3.5 Techniques RBT, que je n'ai pas lu).
-- `section CTAL-TTA-4.0-en 2.8` (couverture par niveau d'intégrité).
-- `section CT-AuT-2.1.1-en 2.1.2` (traçabilité bidirectionnelle, par analogie).
-- Les textes de IEC 62304 et ISO 14971 : je n'ai pas lu les normes, seulement des blogs.
+- `section CTAL-TM-3.0-en 1.3` (la suite du §1.3.4, puis les §1.3.5 et §1.3.6 : techniques du test basé sur les risques, métriques).
+- `section CTAL-TA-4.0-en 2` (rôle de l'analyste de test dans le test basé sur les risques).
+- `section CT-FT-1.0-en 2.4` (auditabilité).
+- `section CTEL-TM-2011-en 8.3.4` (systèmes critiques pour la sécurité).
 
-## Confiance : 55/100 (moyenne)
-
-- La confiance documentaire est de 100/100, avec plusieurs syllabus concordants et lus.
-- Moins 10 : l'adaptation à IEC 62304 / ISO 14971 repose sur le Web, et sur des sources secondaires.
-- Moins 10 : le lien avec la classe de sécurité est mon interprétation.
-- Plafonné à 60 : les normes ne sont couvertes ni par un syllabus ni par leur texte.
-
-## Questions de cadrage
-
-- Quelle classe de sécurité (A, B ou C) et quel cycle de vie (en V ou agile) ?
-- Quel outillage (Jira, Polarion, Excel, outil dédié) pour la traçabilité ?
-
-## À capitaliser ?
-
-Aucune proposition. Les références utiles sont déjà lues, mais la chaîne risque → exigence → test dans un contexte réglementé repose surtout sur le Web et sur mon interprétation. Je ne l'enregistre pas sans source ISTQB solide.
+**Confiance : 73/100 (moyenne)** — base 88 × 0,6 = 53 ; 9 passages lus +20 ; 3 syllabus concordants +10... le calcul de l'outil donne +20 pour les concordants ; Web −10 ; raisonnement sans source −10 → 73. Les syllabus concordent sur la traçabilité et le test basé sur les risques, mais les normes médicales n'ont été vues que via des sources secondaires.
 
 ## Questions à choix
 
-1. Quelle suite veux-tu ?
-   1. Approfondir CTAL-TM §1.3.5 (techniques RBT) et §1.3.6.
-   2. Comparer avec la traçabilité ASPICE (CT-AuT) comme modèle d'un domaine réglementé.
-   3. Ajouter un syllabus avec `/ajouter-syllabus <code>` si un syllabus santé existe. La couverture est nulle ici.
-2. Quel est ton contexte ?
-   1. Classe C, cycle en V.
-   2. Classe B, agile.
-   3. Autre : précise.
+1. **Quelle est la classe de sécurité IEC 62304 visée ?**
+   1. A ou B.
+   2. C.
+   3. Pas encore déterminée.
+2. **Quelle suite veux-tu ?**
+   1. Approfondir le test basé sur les risques (techniques, métriques).
+   2. Approfondir la traçabilité (outillage, audit).
+   3. Capitaliser les propositions ci-dessous.
+
+## À capitaliser ?
+
+Les références ci-dessous reprennent des extraits lus. L'extrait de la proposition est à recopier tel quel au moment de `idee ajouter`.
+
+```json
+{
+  "titre": "Chaîne risque-exigence-test pour logiciel réglementé",
+  "resume": "Traçabilité bidirectionnelle exigences-risques-tests et rigueur de test proportionnée au niveau de risque, pour un logiciel soumis à une norme de sûreté.",
+  "principe": "Le niveau de risque pilote la rigueur de test; la traçabilité fournit la preuve de couverture et le risque résiduel.",
+  "theme": "reglementee",
+  "references": [
+    {"doc": "CTFL-4.0.1-en", "page": 21, "extrait": "Traceability of test cases to requirements can verify that the requirements are covered by test cases."},
+    {"doc": "CTAL-TM-3.0-en", "page": 30, "extrait": "Testing for higher risk levels should start early and use more rigorous test techniques"}
+  ]
+}
+```
+
+Doublons vérifiés : aucune idée similaire. Le thème `tracabilite` n'existe pas ; `reglementee` convient, avec `rbt`, `couverture` et `exigences` en thèmes secondaires.
 
 Sources :
-- [DQS — IEC 62304 traceability framework](https://www.dqsglobal.com/en/explore/blog/iec62304-traceability-framework)
-- [Matrix One — software risk control measures](https://matrixone.health/guides/software-risk-control-measures-implementation)
-- [jamb — IEC 62304 risk management](https://jamb.readthedocs.io/en/stable/iec-62304/risk-management.html)
+- [IEC 62304 Compliance guide — Freyr Solutions](https://freyrsolutions.com/blog/iec-62304-compliance-the-complete-guide-to-medical-device-software-development-without-the-pitfalls) (secondaire, consulté le 2026-10-22)
+- [Software Safety Classifications — jamb docs](https://jamb.readthedocs.io/en/latest/iec-62304/safety-classifications.html) (secondaire, consulté le 2026-10-22)
 
 ## Commandes exécutées
 
-- `Read {"file_path": "/tmp/claude-0/-home-user/da9346e2-ce5e-5882-830a-19be129b35c4/scratchpad/wt-90/.claude/skills/qa-knowledg`
-- `python qa.py idee chercher traçabilité risques exigences dispositif médical; python qa.py chercher traçabilité exigences tests; python qa.py chercher risk-based testing risk analysis`
-- `python qa.py lire 11487 --contexte 1; python qa.py section CTAL-TM-3.0-fr 1.3 | head -150; python qa.py chercher IEC 62304 dispositif médical | head -20; python qa.py chercher safety-critical integrit`
-- `WebSearch {"query": "IEC 62304 traceability requirements tests ISO 14971 risk control verification software medical device", "mode`
-- `python qa.py lire 6874 --contexte 1; python qa.py lire 11094 --contexte 1; python qa.py lire 11295 --contexte 0; python qa.py lire 8676 --contexte 0`
+- `Read {"file_path": "/tmp/claude-0/-home-user/da9346e2-ce5e-5882-830a-19be129b35c4/scratchpad/wt-G/.claude/skills/qa-knowledge`
+- `python qa.py idee chercher traçabilité exigences tests risques; python qa.py idee chercher dispositif médical`
+- `python qa.py chercher traçabilité exigences tests; python qa.py chercher risk-based testing risk assessment; python qa.py chercher medical device regulated safety-critical traceability`
+- `python qa.py lire 4768 --contexte 1 --max-caracteres 3500; python qa.py section CTAL-TM-3.0-en 1.3.1 --max-caracteres 4000; python qa.py lire 137 --contexte 1 --max-caracteres 3000; python qa.py lire `
+- `python qa.py section CTAL-TM-3.0-en 1.3.2 --max-caracteres 4000; python qa.py section CTAL-TM-3.0-en 1.3.3 --max-caracteres 3500; python qa.py lire 3204 --contexte 1 --max-caracteres 3000`
+- `python qa.py lire 4768 --contexte 1; python qa.py lire 137 --contexte 1; python qa.py lire 2707 --contexte 1; python qa.py lire 3204 --contexte 1; python qa.py section CTAL-TM-3.0-en 1.3.4 --max-carac`
+- `WebSearch {"query": "IEC 62304 software safety classification traceability requirements tests ISO 14971 risk control verification"`
+- `python qa.py idee doublons --titre "Traçabilité exigences-risques-tests pour dispositif médical" --resume "Chaîne de traçabilité bidirectionnelle et test basé sur les risques en contexte réglementé" -`
+- `python qa.py themes | head -40; python qa.py confiance --base 88 --lus 9 --concordants 3 --web 1 --raisonnement 1`
+- `python qa.py idee doublons --titre "Chaîne risque-exigence-test pour logiciel réglementé" --resume "Traçabilité bidirectionnelle exigences-risques-tests et rigueur de test proportionnée au niveau de r`

@@ -2,65 +2,103 @@
 
 **Question** : J'ai vu qu'on pouvait mettre en place une stratégie de test basée sur les risques. Je pense faire ceci : un atelier en début de release avec le PO pour lister les fonctionnalités risquées, on teste ces fonctionnalités en premier et plus en profondeur, et on ne fait que du smoke test sur le reste. Est-ce que je suis aligné ISTQB ? Quel est le niveau de maturité de ma démarche ?
 
-**Tours** : 9 · **coût** : 0.171 $ · **confiance annoncée** : 82 · **citations** : 9/10 lues · **Web** : 0
+**Tours** : 6 · **coût** : 0.117 $ · **confiance annoncée** : 78 · **verdict** : réussi · **citations** : 6/6 lues · **Web** : 0
 
 ## Réponse
 
-Ta démarche va dans le bon sens, mais elle est incomplète. Elle couvre l'identification des risques et la priorisation. L'évaluation structurée, l'atténuation proportionnée au niveau de risque et le suivi ne sont pas décrits. Je la place au niveau 1 de maturité.
+**Avis indicatif d'alignement sur les syllabus ISTQB locaux ; ni attestation de conformité, ni évaluation ISTQB/TMMi/ISO.**
 
-## Ta démarche, reformulée
-- **P1** : un atelier en début de release avec le PO pour lister les fonctionnalités risquées.
-- **P2** : tester ces fonctionnalités en premier.
-- **P3** : les tester plus en profondeur.
-- **P4** : ne faire que du smoke test sur le reste.
+Ta démarche suit l'esprit du test basé sur les risques (RBT), mais elle est incomplète. Trois étapes sont à compléter : les parties prenantes de l'atelier, l'évaluation du niveau de risque, et le suivi des risques pendant la release. Le « smoke test seulement » sur le reste ne correspond pas à ce que décrit le syllabus. Rien n'est encore en place, donc le niveau est plafonné à 1.
 
-## Verdicts par pratique
+## Pratiques décrites
 
-| Pratique | Verdict | Ce que dit l'ISTQB | Source |
-|---|---|---|---|
-| P1 – Atelier avec le PO | **Partiellement conforme** | Les ateliers sur les risques sont une technique reconnue d'identification. Il faut impliquer « l'échantillon le plus large possible de parties prenantes », dont la liste est convenue avec le chef de projet. Ne pas tenir compte des parties prenantes clés est « très problématique ». Le PO seul ne suffit donc pas (dev, ops/support, sécurité, métier…). | CTAL-TM 3.0 fr, §1.3.2, p. 29-30 |
-| P1 – « Lister » les fonctionnalités risquées | **Partiellement conforme** | Après l'identification vient l'évaluation. Elle catégorise les risques, estime la probabilité et l'impact de chacun, puis détermine le niveau de risque (matrice qualitative ou produit quantitatif). Une simple liste ne donne pas de niveau de risque. | CTAL-TM 3.0 fr, §1.3.3, p. 30-31 ; CTFL 4.0.1 en, §5.2.3, p. 52-53 |
-| P2 – Tester les risques en premier | **Conforme** | La priorisation des tests s'appuie sur les niveaux de risque. À l'exécution, elle assure une couverture précoce des zones les plus critiques. L'approche « profondeur d'abord » convient quand il faut atténuer les risques les plus élevés au plus tôt. | CTAL-TM 3.0 fr, §1.3.4, p. 32-33 |
-| P3 – Tester plus en profondeur | **Partiellement conforme** | Le principe est exact : effort et rigueur proportionnels au niveau de risque. Mais le syllabus attend des choix explicites : techniques et couverture, niveaux et types de test, testeurs les plus expérimentés, indépendance, étendue de la régression, revues. « Plus en profondeur » ne dit pas comment. | CTAL-TM 3.0 fr, §1.3.4, p. 32 ; CTFL 4.0.1 en, §5.2.4, p. 53 |
-| P4 – Smoke test seul sur le reste | **Partiellement conforme** | Les risques plus faibles peuvent être testés plus tard avec des techniques moins rigoureuses. Mais « le reste » n'est pas évalué dans ta démarche. L'acceptation du risque est une réponse légitime, à condition d'être décidée sur la base d'une analyse. L'approche « largeur d'abord » donne au moins un test par risque. Je n'ai pas lu de passage qui définisse le smoke test, donc je ne juge pas sa pertinence. | CTAL-TM 3.0 fr, §1.3.4, p. 32-33 |
+- **P1** : atelier de début de release avec le PO pour lister les fonctionnalités risquées (*intention*).
+- **P2** : tester d'abord les fonctionnalités risquées (*intention*).
+- **P3** : tester ces fonctionnalités plus en profondeur (*intention*).
+- **P4** : ne faire que du smoke test sur le reste (*intention*).
+
+## Verdict par pratique
+
+| Pratique | Statut | Verdict | Ce que dit l'ISTQB | Source |
+|---|---|---|---|---|
+| P1 Atelier avec le PO | Intention | Partiellement aligné | Les « ateliers sur les risques » font partie des techniques d'identification. Il faut impliquer l'échantillon le plus large possible de parties prenantes, avec une liste complète et convenue avec le chef de projet. Une identification qui ignore des parties prenantes clés « peut s'avérer très problématique ». Le PO seul est probablement insuffisant (dev, ops, support, sécurité, etc.). Le syllabus demande aussi d'évaluer les risques, pas seulement de les lister. | [CTAL-TM v3.0 FR, §1.3.2, pp. 29-30] ; [§1.3.3, pp. 30-31] |
+| P2 Tester d'abord le risqué | Intention | Aligné | Pour les risques élevés, les tests « doivent commencer tôt ». À l'exécution, la priorisation suit les niveaux de risque, ce qui assure une couverture précoce des zones critiques. Une exécution « profondeur d'abord » convient quand il faut atténuer les risques les plus élevés au plus vite. | [CTAL-TM v3.0 FR, §1.3, p. 29] ; [§1.3.4, pp. 32-33] |
+| P3 Tests plus profonds | Intention | Partiellement aligné | Le temps et l'effort doivent être proportionnels au niveau de risque, avec des techniques plus rigoureuses pour les risques élevés. Le syllabus demande aussi d'analyser des facteurs contextuels : éléments du test, caractéristiques de qualité, niveaux et types de test, cycle de vie, équipe, exigences réglementaires. Ta démarche ne dit pas comment le niveau de risque est établi, ni comment il fixe la profondeur et les techniques. | [CTAL-TM v3.0 FR, §1.3.4, p. 32] |
+| P4 Smoke test seul sur le reste | Intention | Partiellement aligné | Les risques plus faibles peuvent commencer plus tard et utiliser des techniques moins rigoureuses. Le niveau de risque doit aussi influencer l'étendue des tests de régression. L'approche « largeur d'abord » donne au moins un test à chaque risque. Tout le reste en smoke test n'est pas une approche que le syllabus décrit. Il faut décider explicitement, pour chaque risque, de tester moins, de contourner, de transférer ou d'accepter. | [CTAL-TM v3.0 FR, §1.3.4, pp. 32-33] |
+
+Je n'ai pas lu de passage qui définisse le « smoke test ». Je ne me prononce donc pas sur le terme lui-même, seulement sur son usage comme seule couverture des risques faibles.
 
 ## Ce qui manque
-- **Évaluation probabilité × impact**, avec une échelle ou une matrice, et un niveau de risque par élément de test (CTAL-TM §1.3.3 ; CTFL §5.2.3).
-- **Découpage par élément de test**. Le risque n'est pas uniforme dans l'objet de test (CTAL-TM §1.3.2 et §1.3.4 ; CTAL-TA 4.0 fr §2.1.1, p. 27).
-- **Parties prenantes élargies** et liste convenue avec le chef de projet (CTAL-TM §1.3.2).
-- **Traduction du niveau de risque en actions de test** : techniques, couverture, types de test, testeurs, indépendance, régression (CTAL-TM §1.3.4 ; CTFL §5.2.3, qui liste aussi l'estimation de l'effort).
-- **Suivi des risques** pendant la release : registre mis à jour, nouveaux risques, efficacité de l'atténuation (CTAL-TM §1.3.1 ; CTFL §5.2.4).
-- **Rapport en termes de risque résiduel** et recommandation au management quand le temps manque : prolonger les tests ou accepter le risque (CTAL-TM §1.3.4, p. 33).
-- **Analyse itérative**, pas une seule fois en début de release. Les parties prenantes et les risques évoluent (CTAL-TM §1.3.6, p. 34).
-- **Rétrospective avec métriques de succès** : défauts critiques détectés tôt, tests ignorés de risque inférieur aux tests exécutés, incidents en production (CTAL-TM §1.3.6).
 
-## Niveau de maturité : 1 — Initial
-Selon la grille du dépôt, un niveau n'est atteint que si tous ses critères le sont. Tes pratiques décrivent une intention structurée avec un seul atelier. Elles n'ont ni évaluation, ni suivi, ni rôles explicites. Le niveau 2 (Géré) exige des risques évalués et traduits en priorité et profondeur de test, puis suivis pendant le projet. Tout critère non mentionné est « non démontré », pas « acquis ». Si tu as déjà certains de ces éléments, dis-le-moi et je réviserai.
+- **Évaluation du niveau de risque.** Chaque risque est évalué par sa probabilité et son impact, qualitativement dans la plupart des cas, avec une matrice de risque. Les facteurs de probabilité et d'impact sont listés [CTAL-TM v3.0 FR, §1.3.3, pp. 30-31].
+- **Suivi des risques pendant la release.** Le suivi des tests doit inclure celui des risques : nouveaux risques et ajustement du registre. L'analyse est « continue et itérative », à ne pas faire une seule fois en début de projet [CTAL-TM v3.0 FR, §1.3.1, p. 29 ; §1.3.6, p. 34].
+- **Reporting en risque résiduel et décision de fin de test.** Si le temps s'épuise, le RBT permet de recommander au management de prolonger les tests ou d'accepter le risque restant. Cela suppose d'avoir tracé ce qui a été couvert et ce qui ne l'a pas été [CTAL-TM v3.0 FR, §1.3.4, pp. 32-33].
+- **Mesure du bénéfice en rétrospective.** Par exemple : les parties prenantes étaient-elles représentées ? Les défauts prioritaires ont-ils été trouvés tôt ? Les tests ignorés avaient-ils un risque plus faible que les tests exécutés ? [CTAL-TM v3.0 FR, §1.3.6, p. 34]
+- **Rattachement à une stratégie de test écrite.** C'est un critère du niveau 2 de la grille du dépôt, qui n'est pas dans le passage lu.
 
-**Pour passer au niveau 2** :
-1. Évaluer chaque risque (probabilité × impact) avec un barème partagé.
-2. Relier chaque niveau de risque à une profondeur de test précise.
-3. Tenir un registre des risques, revu pendant la release.
-4. Rapporter l'avancement en risque résiduel.
+## Niveau atteint : 1 — Initial · niveau visé : 2 — Discipliné
 
-Ce niveau n'est pas une évaluation TMMi officielle, qui exige un évaluateur accrédité et des preuves de terrain.
+- **Pourquoi 1 :** toutes les pratiques sont des intentions. Seules les pratiques en place comptent (grille du dépôt).
+- **Pourquoi pas 2 même une fois appliquée :** le niveau 2 de la grille suppose une stratégie écrite, des risques identifiés avec les parties prenantes, évalués en probabilité et impact, et traduits en priorité et profondeur. Il suppose aussi un suivi des risques pendant le projet. Aujourd'hui, seule l'identification est esquissée, et incomplète.
+- **Pour passer au niveau 2 :**
+  1. Élargir l'atelier.
+  2. Évaluer les risques avec une matrice, et conserver un registre des risques.
+  3. Relier chaque niveau de risque à une profondeur et des techniques de test.
+  4. Revoir le registre pendant la release.
+  5. Rapporter le risque résiduel.
+  6. Écrire la stratégie.
+- Les niveaux 3 à 5 sont une adaptation du dépôt : standardisation, indicateurs, amélioration continue. Ils ne sont pas démontrés ici.
 
-## Confiance : 82/100
-- **Ce qui la soutient** : j'ai lu les passages de trois syllabus récents (CTAL-TM 3.0, CTFL 4.0.1, CTAL-TA 4.0), et ils concordent.
-- **Ce qui la limite** : ta description est courte, donc plusieurs éléments sont « non démontrés » plutôt que absents. La fin de CTFL §5.2.4 (p. 53-54) n'est lue que partiellement. Je n'ai lu aucune définition du smoke test.
+## Questions à choix
 
-**Limites** : l'ISO/IEC/IEEE 29119 n'est pas dans la bibliothèque, donc toute conformité ISO est non vérifiable ici. L'ISTQB n'est pas une norme : je parle d'alignement sur ses pratiques.
+1. Dans quel contexte appliques-tu cette démarche ?
+   - a) Agile itératif, avec des releases régulières.
+   - b) Cycle séquentiel.
+   - c) Domaine réglementé (santé, ferroviaire, finance, etc.).
 
-## Piste à capitaliser
-Je te propose de conserver la liste de contrôle RBT (identification → évaluation → atténuation → suivi → rapport en risque résiduel → rétrospective), avec les sources ci-dessus. Je ne l'enregistre pas sans ton accord. Si tu veux comparer avec les pratiques hors ISTQB, comme le smoke test ou les workshops agiles, Thomas pourra faire une recherche plus large.
+   Je n'ai pas lu les syllabus agiles pour cet avis. Pour un domaine réglementé, aucun syllabus de la bibliothèque ne couvre la réglementation.
+2. Quelle suite veux-tu ?
+   - a) Une liste de contrôle RBT prête à l'emploi (JSON).
+   - b) Un modèle de matrice de risque et de registre.
+   - c) Une recherche plus large avec Thomas, par exemple sur la place des smoke tests et de la régression en agile.
+
+## Confiance : 78/100
+
+- J'ai lu §1.3 à §1.3.4 et §1.3.6 de CTAL-TM v3.0 FR, un syllabus courant et explicite sur le sujet.
+- La description de ta démarche est courte, et je n'ai pas lu §1.3.5 (techniques RBT).
+- Je n'ai pas lu les syllabus CTFL ni CTAL-AT. Le contexte agile n'est donc pas vérifié.
+
+## Limites
+
+- Aucun syllabus de la bibliothèque ne couvre le cadre réglementaire éventuel de ton produit. Les pratiques qui en dépendent sont « Non vérifiable ».
+- L'ISO/IEC/IEEE 29119 n'est pas dans la bibliothèque, donc toute conformité ISO est non vérifiable.
+- Ce n'est pas une évaluation TMMi.
+
+## Traçabilité
+
+- **Date de l'avis :** 2026-10-22.
+- **Document lu :** `CTAL-TM-3.0-fr`, ISTQB Advanced Level Test Management, v3.0, publié le 2024-03-28.
+- **Sections et pages lues :**
+  - §1.3 (introduction), p. 29
+  - §1.3.1, p. 29
+  - §1.3.2, pp. 29-30
+  - §1.3.3, pp. 30-31 (sortie tronquée juste après le passage sur la matrice de risque)
+  - §1.3.4, pp. 32-33
+  - §1.3.6, p. 34
+- **Grille :** `referentiel/grille-maturite.md`. Je ne cite aucune page de ses références.
+- **Requêtes `chercher` :**
+  1. `"risk-based testing identification évaluation atténuation"`
+  2. `"risk-based testing" CTFL`
+  3. `"test basé sur les risques smoke test régression agile release"`
+
+  Je n'ai pas cité les passages vus uniquement en extrait.
+
+**Avis indicatif d'alignement sur les syllabus ISTQB locaux ; ni attestation de conformité, ni évaluation ISTQB/TMMi/ISO.**
 
 ## Commandes exécutées
 
-- `python qa.py chercher "risk-based testing identification évaluation atténuation" 2>&1 | head -60`
-- `Read {"file_path": "/home/user/istqbfinder/referentiel/grille-maturite.md"}`
-- `python qa.py inventaire 2>&1 | head -40`
-- `for s in 1.3.1 1.3.2 1.3.3 1.3.4 1.3.5 1.3.6; do echo "=== TM-fr §$s"; python qa.py section CTAL-TM-3.0-fr $s 2>&1 | head -60; done`
-- `python qa.py section CTFL-4.0.1-en 5.2 2>&1 | head -60; echo ======; python qa.py section CTAL-TA-4.0-fr 2.1 2>&1 | head -60`
-- `python qa.py section CTFL-4.0.1-en 5.2.3 2>&1 | tail -25; echo; python qa.py section CTFL-4.0.1-en 5.2.4 2>&1 | head -30`
-- `python qa.py section CTAL-TM-3.0-fr 1.3 2>&1 | head -120`
-- `python qa.py section CTAL-TM-3.0-fr 1.3.4 2>&1 | head -70; python qa.py section CTAL-TM-3.0-fr 1.3.5 2>&1 | head -50; python qa.py section CTAL-TM-3.0-fr 1.3.6 2>&1 | head -60`
+- `Read {"file_path": "/tmp/claude-0/-home-user/da9346e2-ce5e-5882-830a-19be129b35c4/scratchpad/wt-G/referentiel/grille-maturite`
+- `python qa.py chercher "risk-based testing identification évaluation atténuation" 2>&1 | head -80`
+- `python qa.py section CTAL-TM-3.0-fr 1.3 --max-caracteres 9000 2>&1`
+- `python qa.py chercher "risk-based testing" CTFL 2>&1 | head -30; python qa.py chercher "test basé sur les risques smoke test régression agile release" 2>&1 | head -40`
+- `python qa.py section CTAL-TM-3.0-fr 1.3.4 2>&1; python qa.py section CTAL-TM-3.0-fr 1.3.6 2>&1`

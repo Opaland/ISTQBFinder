@@ -2,77 +2,108 @@
 
 **Question** : Quelles pratiques pourraient améliorer notre processus de qualification ?
 
-**Tours** : 5 · **coût** : 0.125 $ · **confiance annoncée** : 70 · **citations** : 4/5 lues · **Web** : 0
+**Tours** : 10 · **coût** : 0.164 $ · **confiance annoncée** : 75 · **verdict** : réussi · **citations** : 10/10 lues · **Web** : 0
 
 ## Réponse
 
-Ta question est large, et « qualification » peut vouloir dire plusieurs choses. J'ai donc supposé que tu parlais de ton **processus de test / de recette** (vérifier qu'une version est bonne pour la mise en production). Dis-moi si tu pensais à autre chose, par exemple la qualification de fournisseurs, de personnes ou une qualification réglementaire.
+**Hypothèse :** « processus de qualification » = ton **processus de test** (de la conception à la recette). Je cherche donc comment l'améliorer, pas comment qualifier un produit. Aucun contexte projet n'est donné. Dis-moi si tu pensais à la validation réglementée ou à la recette, et je réoriente.
 
-La base d'idées capitalisées ne contient rien sur ce sujet. Toutes les pistes ci-dessous viennent des syllabus, et j'ai lu chaque passage cité.
+## Sources retenues
+- Base d'idées : rien de capitalisé sur le sujet.
+- CTAL-TM v3.0 FR §1.5, CTAL-AT v2.0 EN §3.4 (publié en 2026), CTEL-ITP 2011 EN §5. J'ai lu ces trois sections.
+- CTEL-ITP date de 2011 : ses principes restent utiles, mais c'est une source ancienne.
+- La recherche « qualification / validation / recette » ramène surtout CT-AcT (critères d'acceptation). Je ne l'ai pas lu, car cela sort de ton intention supposée.
+
+## Diagnostic
+Avant de choisir une pratique, il faut savoir quel problème tu veux résoudre. Les syllabus distinguent trois familles d'amélioration.
 
 ## Pistes par syllabus
 
-**1. Suivre un cycle d'amélioration structuré (IDEAL)**
-- Le CTAL-TM v3.0 décrit le cycle IDEAL, qui va d'un plan d'amélioration à l'apprentissage après déploiement.
-- Le plan peut être formel ou très léger selon le contexte. On classe les améliorations par ROI, risques, alignement avec la stratégie ou bénéfices mesurables.
-- On les met en œuvre avec formation et pilote avant le déploiement complet, puis on vérifie les bénéfices obtenus, prévus ou non, avant de relancer un cycle.
-- [CTAL-TM v3.0 FR, §1.5.1, p. 40]
+**CTAL-TM v3.0 — §1.5 Amélioration du processus de test**
+- **Cycle IDEAL** (Initier, Diagnostiquer, Établir, Agir, Apprendre). Il est proche du PDCA et applicable à une équipe ou un projet, pas seulement à l'organisation. [CTAL-TM v3.0 FR, §1.5.1, p. 39]
+- **Plan d'amélioration priorisé** selon le ROI, les risques, l'alignement avec la stratégie, ou les bénéfices mesurables. Il peut rester très léger. [CTAL-TM v3.0 FR, §1.5.1, p. 40]
+- **Modèles de maturité** : TMMi (5 niveaux) et TPI NEXT (16 domaines clés, 4 niveaux, matrice de maturité). [CTAL-TM v3.0 FR, §1.5.2, p. 40-41]
+- **Application au niveau projet** : on ne retient que les domaines du modèle liés au projet, comme la planification et la conception des tests. [CTAL-TM v3.0 FR, §1.5.2, p. 40]
+- *À creuser : §1.5.3, approche analytique. Je ne l'ai pas lu, je ne le cite que par son titre.*
 
-**2. Évaluer ta maturité avec un modèle (TMMi, TPI NEXT)**
-- L'amélioration « basée sur un modèle » part de l'hypothèse que la qualité du produit dépend fortement de la qualité des processus.
-- Le syllabus cite TMMi (5 niveaux de maturité) et TPI NEXT.
-- On peut aussi l'appliquer au seul niveau projet, par exemple planification et conception des tests. On laisse alors de côté les sujets d'organisation comme la politique de test.
-- [CTAL-TM v3.0 FR, §1.5.2, p. 40]
-- Pour le détail et le choix d'une approche, le syllabus Expert « Improving the Test Process » renvoie à TPI. Il contient un objectif d'apprentissage K5 « recommander une approche selon le scénario et le périmètre ». [CTEL-ITP v2011 FR, §3.3.1, p. 28 ; EN §5, p. 36]
-- Attention : ce syllabus Expert date de 2011, à prendre comme une base ancienne.
+**CTAL-AT v2.0 — §3.4 Test Process Improvement (agile)**
+- **Métriques vers action.** Exemples : un DDP en baisse oriente vers l'exploratoire et l'automatisation, des tests instables vers la gestion d'environnements, un MTTR élevé vers le chaos testing. [CTAL-AT v2.0 EN, §3.4.1, p. 28-29]
+- **Garde-fou sur les métriques.** Hors vrais KPI, ce sont des retours d'information, pas des objectifs. Chaque action doit être mesurable et validée, et les métriques rattachées aux risques (GQM). [CTAL-AT v2.0 EN, §3.4.1, p. 29]
+- **Pratiques légères** (§3.4.2) : rétrospectives centrées sur le test, évaluation de référence (baseline) par auto-évaluation, ateliers de risques conjoints, petites expériences (SBTM), Value Stream Mapping. [CTAL-AT v2.0 EN, §3.4.2, p. 29-30]
+- **Gestion du changement.** Chaque amélioration est une hypothèse à tester, et la résistance au changement se traite par le dialogue. [CTAL-AT v2.0 EN, §3.4.2, p. 30]
 
-**3. Utiliser les rétrospectives et les leçons apprises**
-- La clôture des tests est un moment privilégié pour une rétrospective ou une revue des leçons apprises.
-- En Agile, la boucle d'amélioration se fait à chaque sprint.
-- En test exploratoire, elle se fait à la fin de chaque session.
-- Avec une approche basée sur les risques, les tests doivent évoluer quand les risques changent.
-- [CTEL-ITP v2011 FR, §2.5.4.3, p. 21]
+**CTEL-ITP 2011 — §5.1 Choisir l'approche**
 
-**4. Faire des petites expériences et surveiller les métriques avec prudence (contexte Agile/CI-CD)**
-- Le CTAL-AT v2.0 (2026) recommande plusieurs pratiques :
-  - des rétrospectives centrées sur le test ;
-  - une évaluation de départ (baseline) par auto-évaluation ou checklist ;
-  - des ateliers de risques communs entre métier, test et développement ;
-  - le test exploratoire et le pair testing pour avoir du feedback tôt ;
-  - de petites expériences, par exemple en session-based test management.
-- Il met en garde contre la comparaison des équipes entre elles. Il demande aussi de traiter la résistance au changement.
-- Le texte dit que chaque amélioration est « une hypothèse à tester ».
-- Il cite aussi des outils d'analyse : Value Stream Mapping, PDCA, diagrammes causaux.
-- [CTAL-AT v2.0 EN, §3.4.2, p. 29-30]
+| Approche | Quand l'utiliser | Source |
+|---|---|---|
+| Modèle de processus (TMMi, TPI Next) | Un processus existe déjà ; il faut un benchmark, un niveau de maturité visé, ou un chemin prédéfini | [CTEL-ITP 2011 EN, §5.1, p. 36] |
+| Modèle de contenu (CTP, STEP) | Il faut établir un processus ou évaluer coûts et risques ; on veut un ordre guidé par le métier ; changements rapides | [CTEL-ITP 2011 EN, §5.1, p. 36] |
+| Analytique | Problèmes ciblés, métriques disponibles, accord à obtenir sur les causes ; un pilote est budgété | [CTEL-ITP 2011 EN, §5.1, p. 36-37] |
 
-**5. Outiller l'amélioration elle-même**
-- Les outils de collecte, d'analyse statistique et de modélisation de processus ne sont pas forcément des outils de test.
-- L'analyse causale après un pilote d'outil sert à améliorer la façon dont on choisit les outils.
-- [CTEL-ITP v2011 FR, §2.5.4.2, p. 21]
+Ces approches se combinent, par exemple une analyse causale dans un programme TMMi. [CTEL-ITP 2011 EN, §5.1, p. 37]
 
-## Pour choisir par où commencer (mon interprétation)
+## Ce que j'en retiens (interprétation)
+- Le choix dépend du contexte : modèle si tu veux un référentiel ou une certification de maturité, analytique si tu as des douleurs précises et des données.
+- En agile, les sources poussent vers de petites expériences, des rétrospectives et des métriques maniées avec prudence, plutôt que vers un modèle lourd.
+- Quelle que soit l'approche, IDEAL sert de squelette.
 
-| Ton contexte | Piste à privilégier |
-|---|---|
-| Pas de diagnostic, processus peu formalisé | Baseline (point 4) puis évaluation par modèle (point 2) |
-| Équipes Agile et CI/CD | Rétrospectives centrées test et petites expériences (points 3 et 4) |
-| Organisation multi-projets, besoin de comparer ou certifier | TMMi ou TPI NEXT, et cycle IDEAL (points 1 et 2) |
+## Par quoi je commencerais
+1. **Une baseline en auto-évaluation, puis 2 ou 3 métriques liées à tes problèmes réels** (DDP, fuites en production, temps de cycle). Impact fort, effort faible.
+2. **Une rétrospective dédiée au test, avec un plan priorisé par ROI/risque.** Impact moyen à fort, effort faible.
+3. **Un modèle (TMMi ou TPI NEXT) seulement si tu as besoin d'un benchmark ou d'une maturité visée.** Impact moyen, effort fort.
+
+**Indicateurs de validation :** une métrique cible rattachée à chaque action, la tendance de ces métriques après un cycle, et un bilan « Apprendre » par cycle IDEAL.
 
 ## Où creuser ensuite
-- Lis le §1.5.3 du CTAL-TM (amélioration basée sur l'analyse, par exemple analyse causale et métriques). Je ne l'ai vu qu'en extrait de recherche, donc je ne le cite pas ici.
-- Regarde les critères d'entrée et de sortie des niveaux de test pour la partie « qualification » au sens recette. Le CTFL 4.0.1 §5.1 et le CTAL-TM §1.4.2 y renvoient, mais je ne les ai pas lus en entier.
-- Pour une vue plus pointue sur TMMi, on peut aussi chercher dans les syllabus de spécialité.
+- `section CTAL-TM-3.0-fr 1.5.3` (approche analytique)
+- `section CTEL-ITP-2011-en 6` (processus IDEAL détaillé)
+- `section CTEL-ITP-2011-en 3.3` (TPI, TMMi)
+- `section CTAL-AT-2.0-en 3.4.1`
 
-**Confiance : 70/100.** La confiance documentaire de la recherche est de 100/100, avec plusieurs syllabus qui traitent du sujet. J'ai retiré 30 points parce que le sens de « qualification » est une hypothèse et que la source Expert date de 2011. Je n'ai pas fait de recherche Web.
+## Confiance : 75/100 (élevée)
+Calcul : base 91 × 0,6 = 55 ; 5 passages lus +20 ; 2 syllabus concordants +10 ; raisonnement sans source −10 → 75. L'hypothèse sur ton intention n'est pas vérifiée, et ITP date de 2011.
+
+## Questions à choix
+1. Quel est ton contexte ?
+   1. Agile/itératif
+   2. Séquentiel/V
+   3. Réglementé ou à validation formelle
+2. Que veux-tu faire ensuite ?
+   1. Approfondir l'approche analytique (§1.5.3)
+   2. Comparer TMMi et TPI NEXT
+   3. Capitaliser la piste ci-dessous
 
 ## À capitaliser ?
-1. **Méthode : cycle IDEAL avec priorisation des actions d'amélioration par ROI, risques et alignement.** Je la rattacherais au thème « amélioration du processus ».
-2. **Pattern : des petites expériences d'amélioration vues comme des hypothèses, avec des métriques qui ne servent pas à comparer les équipes** (CTAL-AT v2.0).
+Pas de doublon détecté (`idee doublons`).
 
-Je n'ai rien enregistré. Dis-moi si tu veux que je capitalise l'une de ces deux idées, ou que je précise ce que tu entends par « qualification ».
+```json
+{
+  "titre": "Choisir l'approche d'amélioration du processus de test",
+  "resume": "Choisir entre modèle de processus (TMMi, TPI Next), modèle de contenu et approche analytique selon le contexte, et combiner si besoin.",
+  "principe": "Le choix de l'approche d'amélioration dépend du contexte : benchmark ou maturité visée pour un modèle, problèmes ciblés avec métriques pour l'analytique.",
+  "theme": "maturite",
+  "references": [
+    {
+      "document": "CTEL-ITP-2011-en",
+      "page": 36,
+      "extrait": "Process models (e.g. TMMi, TPI Next) are best applied when:"
+    }
+  ]
+}
+```
+
+Ce JSON suit les champs que je connais de `idee modele`, mais je n'ai pas lancé cette commande pour le vérifier. La conversation principale devra le valider avant `idee ajouter`.
+
+Sources : syllabus locaux uniquement (aucune recherche Web).
 
 ## Commandes exécutées
 
-- `Skill {"skill": "qa-knowledge"}`
-- `python qa.py idee chercher "processus de test amélioration qualification" 2>&1 | head -40; python qa.py chercher "test process improvement" 2>&1 | head -40; python qa.py chercher "amélioration du proc`
-- `python qa.py lire 4579 --contexte 1 2>&1 | head -50; python qa.py lire 1536 --contexte 1 2>&1 | head -40; python qa.py lire 5854 --contexte 1 2>&1 | head -40; python qa.py lire 2389 2>&1 | head -30`
+- `Read {"file_path": "/tmp/claude-0/-home-user/da9346e2-ce5e-5882-830a-19be129b35c4/scratchpad/wt-G/.claude/skills/qa-knowledge`
+- `python qa.py idee chercher "amélioration processus de test qualification" ; python qa.py idee chercher "test process improvement"`
+- `python qa.py chercher "amélioration du processus de test"; python qa.py chercher "test process improvement"; python qa.py chercher "qualification validation recette acceptance"`
+- `python qa.py section CTAL-TM-3.0-fr 1.5.2 --max-caracteres 5000; echo ======; python qa.py section CTAL-AT-2.0-en 3.4 --max-caracteres 5000`
+- `python qa.py lire 5892 --contexte 1 --max-caracteres 3500; echo ======; python qa.py section CTEL-ITP-2011-en 5 --max-caracteres 4000`
+- `python qa.py section CTAL-TM-3.0-fr 1.5.1 --max-caracteres 3500; echo =====; python qa.py section CTAL-AT-2.0-en 3.4.2 --max-caracteres 3500; echo =====; python qa.py chercher "IDEAL initiating diagno`
+- `python qa.py confiance --help | head -30; python qa.py idee doublons --titre "Choisir l'approche d'amélioration du processus de test" --resume "Choisir entre modèle de processus, modèle de contenu et `
+- `python qa.py confiance --base 91 --lus 5 --concordants 2 --raisonnement 1; python qa.py themes | grep -i -E "process|amélio|ameli"`
+- `python qa.py idee doublons --titre "Choisir l'approche d'amélioration du processus de test" --resume "Choisir entre modèle de processus, modèle de contenu et approche analytique selon le contexte" --p`

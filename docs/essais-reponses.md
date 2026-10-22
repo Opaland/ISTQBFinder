@@ -3,8 +3,9 @@
 Questions posées en conditions réelles (`claude -p --agent …`) par `scripts/essais_agents.py`
 sur `eval/essais.json`. Réponses complètes et commandes exécutées :
 `eval/essais-resultats/<date>/<id>.md`. Le harnais vérifie automatiquement que chaque
-citation « §x, p. N » correspond à une page **lue** pendant la conversation ; le jugement
-de fond ci-dessous est humain.
+citation « §x, p. N » (ou « pp. N-M ») correspond à une page **lue** pendant la
+conversation ; une référence que l'agent déclare lui-même non lue dans « Confiance »,
+« Limites » ou « Traçabilité » n'est pas une citation. Le jugement de fond ci-dessous est humain.
 
 ## Campagne du 2026-10-22 (main après #17)
 
@@ -79,11 +80,53 @@ avec le fichier, cité comme « non ISTQB ») ou recherche Web justifiée.
 **Coût** : 11 essais (8 + 3 relances) ≈ 2,06 $, soit ≈ 0,19 $ par essai.
 Relancer : `python scripts/essais_agents.py M S3-reglemente C1-ambigu` (préfixe accepté).
 
+## Campagne du 2026-10-22 (ter) : citations déclarées non lues, sorties tronquées (#139, #140, #142)
+
+La relance sur `main` (a9ddcd7) donnait 3 échecs sur 16 :
+- **S1-rbt** : un faux positif du harnais (#139). Les références que Sylvie déclare elle-même « non lue » ou « non citée » dans « Confiance » ou « Traçabilité » étaient comptées comme des citations.
+- **S3-reglemente** : de vraies citations non lues. `section CTAL-TM-3.0-fr 1.3 | head -150` coupe la sortie avant §1.3.3 (p. 30-31), et le critère `non_couvert` manque.
+- **M3-web** : « CTAL-TAS §1.1.1, p. 16 » au lieu de CT-TAS-1.0-en, une section jamais affichée.
+
+Correctifs :
+- `verifier_citations()` ignore les phrases de bilan qui déclarent une référence non lue (#139).
+- Les citations « pp. N-M » sont contrôlées et ne fusionnent plus avec la référence voisine (#142). Avant, elles échappaient au contrôle.
+- Dans le skill, Thomas et Sylvie (#140) :
+  - jamais de `| head` sur `lire`, `section` ou `page` (`--max-caracteres` ou la sous-section précise) ;
+  - ne citer que les pages affichées, avec le sigle exact du document, et chaque référence nomme son document ;
+  - Sylvie ne reprend pas avec leur page les références de la grille de maturité, qu'elle n'a pas lues, et dit ce qu'aucun syllabus ne couvre.
+
+Relances ciblées : M3 vert dès le premier passage (7/7 citations lues). S1 et S3 sont restés rouges pendant deux passages : une page CTEL-ITP §3.3.2 recopiée de la grille, une référence `[§1.3.4, p. 32]` sans document, puis la fusion « pp. » de #142. Après les consignes complétées, ils sont verts (10/10 et 11/11).
+
+Campagne complète qui suit (fichiers de ce dossier) :
+
+| Essai | Agent | Tours | Coût | Confiance | Citations lues | Web | Critères | Verdict |
+|---|---|---|---|---|---|---|---|---|
+| T1-couverture | Thomas | 9 | 0,16 $ | 88 | 6/6 | 0 | — | réussi |
+| T2-rbt-agile | Thomas | 13 | 0,26 $ | 81 | 16/16 | 0 | — | réussi |
+| T3-playwright | Thomas | 11 | 0,14 $ | 75 | 6/6 | 1 | — | réussi |
+| T4-qualification | Thomas | 10 | 0,16 $ | 75 | 10/10 | 0 | — | réussi |
+| T5-priorisation | Thomas | 6 | 0,12 $ | 83 | 3/3 | 0 | — | réussi |
+| T6-lacunes | Thomas | 4 | 0,08 $ | 70 | — | 0 | — | réussi |
+| S1-rbt | Sylvie | 6 | 0,12 $ | 78 | 6/6 | 0 | — | réussi (avant : ÉCHEC, faux positif) |
+| S2-automatisation | Sylvie | 7 | 0,13 $ | 80 | 7/7 | 0 | — | réussi |
+| M1-rbt-agile | Thomas | 11 | 0,18 $ | 66 | 7/7 | 0 | 11/11 | réussi |
+| M2-sante | Thomas | 11 | 0,19 $ | 73 | 12/12 | 1 | 7/7 | réussi |
+| M3-web | Thomas | 9 | 0,14 $ | 83 | 5/5 | 0 | 6/6 | réussi (avant : 12/13, sigle faux) |
+| M4-embarque | Thomas | 11 | 0,17 $ | 66 | 8/8 | 0 | 7/7 | réussi |
+| M5-mobile | Thomas | 13 | 0,20 $ | 80 | 12/12 | 0 | 6/6 | réussi |
+| M6-api | Thomas | 14 | 0,19 $ | 81 | 9/9 | 0 | 7/7 | réussi |
+| S3-reglemente | Sylvie | 8 | 0,16 $ | 72 | 14/14 | 0 | 5/5 | réussi (avant : 5/7, `non_couvert` manquant) |
+| C1-ambigu | skill | 6 | 0,15 $ | 76 | 3/3 | 0 | 2/3 | **ÉCHEC** : options des questions à choix écrites en ligne → #144 |
+
+**Synthèse** : 15 essais sur 16 réussis. 124 citations sur 124 correspondent à une page lue (`pp.` compris). Les commandes `lire`/`section`/`page` tronquées par `| head` passent de 17 sur 88 à 3 sur 122, toutes dans T3 (`lire … | head`, aucune citation hors page affichée). Le seul échec, C1, est un défaut de format sans lien avec les citations (#144).
+
+**Coût** : campagne complète 2,57 $, plus 7 relances ciblées 1,09 $, soit 3,66 $.
+
 ## Relancer
 
 ```bash
 python qa.py actualiser                       # index à jour
-python scripts/essais_agents.py               # tous les essais (16, ≈ 2,80 $, ≈ 30 min)
+python scripts/essais_agents.py               # tous les essais (16, ≈ 2,60 $, ≈ 30 min)
 python scripts/essais_agents.py S1-rbt        # un seul
 python scripts/essais_agents.py M             # par préfixe : tous les essais M…
 ```

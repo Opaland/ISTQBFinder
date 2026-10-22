@@ -828,6 +828,26 @@
     }
    ],
    "controle": true
+  },
+  {
+   "requete": "motivation",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "3.1.6"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "motivation des testeurs",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "3.1.6"
+    }
+   ],
+   "controle": true
   }
  ]
 }

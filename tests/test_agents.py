@@ -114,3 +114,36 @@ def test_exemples_contiennent_un_extrait_reel_de_thomas_et_de_sylvie():
     assert "> **Thomas** :" in exemples and "> **Sylvie** :" in exemples
     assert "eval/essais-resultats/2026-10-22/" in exemples
     assert (RACINE / "eval" / "essais-resultats" / "2026-10-22" / "S1-rbt.md").exists()
+
+
+def test_gabarit_mise_en_place():
+    """#90 : une question « comment mettre en place » reçoit méthode, exemple, domaines."""
+    strategie = (SKILL.parent / "reference" / "strategie.md").read_text(encoding="utf-8")
+    gabarit = strategie.split("## Format « mise en place »", 1)[1].split("## Score de confiance", 1)[0]
+    for attendu in ("Méthode pas à pas", "Exemple de mise en œuvre", "fictif", "interprétation",
+                    "Adaptation par domaine", "Questions de cadrage", "Où creuser ensuite",
+                    "Confiance : NN/100"):
+        assert attendu in gabarit, attendu
+    for domaine in ("Santé / réglementé", "Web", "embarqué", "Mobile", "API"):
+        assert domaine.lower() in gabarit.lower(), domaine
+    # Les domaines sans syllabus dédié sont signalés honnêtement.
+    assert "Pas de syllabus santé" in gabarit and "Pas de syllabus web dédié" in gabarit
+    assert "M — mise en place" in strategie
+    for chemin in (SKILL, AGENTS / "thomas.md"):
+        texte = corps(chemin)
+        assert "mise en place" in texte and "interprétation" in texte, chemin.name
+    thomas = corps(AGENTS / "thomas.md")
+    assert "méthode pas à pas" in thomas and "adaptation par domaine" in thomas
+
+
+def test_gabarit_mise_en_place_renvoie_a_des_syllabus_presents():
+    """#90 : les codes cités dans le tableau des domaines existent dans le catalogue."""
+    import json
+    import re
+    strategie = (SKILL.parent / "reference" / "strategie.md").read_text(encoding="utf-8")
+    gabarit = strategie.split("## Format « mise en place »", 1)[1].split("## Score de confiance", 1)[0]
+    catalogue = json.loads((RACINE / "catalogue" / "istqb.json").read_text(encoding="utf-8"))
+    connus = set(re.findall(r'"code"\s*:\s*"([^"]+)"', json.dumps(catalogue)))
+    cites = set(re.findall(r"\b(CT(?:FL|AL|EL)?-[A-Za-z]+(?:-[A-Za-z]+)?)\b", gabarit))
+    assert cites, "aucun syllabus cité"
+    assert cites <= connus, cites - connus

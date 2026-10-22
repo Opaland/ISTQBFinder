@@ -7,6 +7,7 @@
 | Demande | Cas | Ce qu'on fait |
 |---|---|---|
 | « Qu'est-ce que… », « Que dit l'ISTQB sur… » | A — simple | base + syllabus, lecture, réponse courte citée |
+| « Comment intégrer / mettre en place / déployer X », « par où commencer pour… » | M — mise en place | gabarit « mise en place » ci-dessous : méthode, exemple, domaines |
 | « Recherche des idées pour… », « Compare… » | B — approfondie | A + lacunes/contradictions + Web ciblé + comparaison + recommandations |
 | « Classe / enregistre cette idée » | C — capitalisation | doublons → thème → ajout tracé |
 | « Idées sur le thème X », « Où notre base est-elle pauvre ? » | D — exploration | `idee lister --theme`, `chercher --theme`, `couverture`, regroupement par sous-thème |
@@ -78,6 +79,59 @@ faible ; effort faible / moyen / fort) ; d'abord fort impact pour faible effort.
 - Amélioration de processus : faire précéder les pistes d'un diagnostic d'une phrase et
   terminer par 2-3 indicateurs de validation.
 - Question simple : 2-5 phrases + source(s) + confiance, sans gabarit complet.
+
+## Format « mise en place » (comment intégrer / déployer X)
+
+Une question de **connaissance** (« que dit l'ISTQB… », « quelles techniques… ») garde le
+format de pistes ci-dessus. Une question de **mise en place** attend une démarche
+exploitable : des pistes seules ne répondent pas. Cible 400-700 mots ; le reste ne change
+pas (lire avant de citer, confiance, « où creuser », « à capitaliser ? »).
+
+```
+<1-2 phrases : ce que proposent les syllabus et où>
+<« Contexte : … » ou « Hypothèse de contexte : … »>
+
+**Méthode pas à pas** (4 à 7 étapes ; pour chacune : qui, quand, quel livrable)
+1. <étape> — <qui / quand / livrable> [CTFL-AT 2014 EN, §3.2.1, p. 32]
+2. <étape> — … [source lue] ou « (interprétation) » si aucune source
+…
+
+**Exemple de mise en œuvre** (fictif — interprétation)
+« Dans une équipe Scrum de 6 personnes qui livre une appli web toutes les 2 semaines,
+je ferais : … » — chaque pratique utilisée renvoie à l'étape (et donc à la source) ci-dessus.
+
+**Adaptation par domaine**
+| Domaine | Ce qui change | Où lire |
+|---|---|---|
+| Santé / réglementé | … | … |
+| Web | … | … |
+| Systèmes embarqués / intégrés | … | … |
+| Mobile | … | … |
+| API | … | … |
+
+**Par quoi je commencerais** : 2-3 pistes classées impact / effort.
+**Où creuser ensuite** : 2-4 sections à lire en entier.
+**Confiance : NN/100** (libellé) — 1-2 raisons.
+**Questions de cadrage** : 2-3 questions si le contexte manque (domaine, réglementation,
+taille et rythme de l'équipe, outillage) — elles ne bloquent pas la réponse.
+**À capitaliser ?** 0-3 propositions.
+```
+
+- Une étape sans passage lu est marquée « (interprétation) » ; jamais de source plaquée.
+- L'exemple est toujours présenté comme fictif ; il illustre la méthode, il ne la remplace pas.
+- Domaine donné par l'utilisateur : développer sa ligne, résumer ou omettre les autres.
+  Domaine absent : tableau complet, puis question de cadrage sur le domaine.
+- Le tableau renvoie aux syllabus **réellement présents** (`inventaire`) ; lire la
+  section avant de la citer. Repères dans la bibliothèque actuelle (à vérifier par
+  `chercher`, pas à citer sans lecture) :
+
+| Domaine | Syllabus utiles | Couverture |
+|---|---|---|
+| Santé / réglementé | CTEL-TM 2011 §8.3.4 (safety-critical), CTAL-TTA v4.0 §2.8.2 (couverture par niveau d'intégrité), CTAL-AT v2.0 §3.1.2, CT-FT §2 (conformité, finance) ; CT-AuT pour ISO 26262 | **Pas de syllabus santé / dispositif médical** (IEC 62304 absent) : le dire, Web justifié pour la norme |
+| Web | CT-PT §3.2 (risques de performance par architecture), CT-MAT §2.2.4 (web apps), CTAL-TAE / CT-TAS (automatisation) | **Pas de syllabus web dédié** : principes transposés, le signaler |
+| Embarqué / intégré | CTEL-TM 2011 §8.3.3 (matériel/logiciel), CT-AuT v2.1.1 (niveaux ASPICE / ISO 26262, HiL), CT-PT §3.2 (temps réel) | Couvert surtout par l'automobile ; anglais seulement |
+| Mobile | CT-MAT 2019 (§1.6 stratégie, §1.8 risques, §2) | Dédié, FR + EN, version 2019 |
+| API | CTAL-TTA v4.0 §2.7, CT-QDO v1.0 §3.2.2 (tests de contrat), CTAL-TAE v2.0 §5.1.3 | Pas de syllabus API dédié ; tests de contrat en anglais seulement (CT-QDO) |
 
 ## Score de confiance (obligatoire)
 

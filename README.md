@@ -77,7 +77,7 @@ La CLI reste utilisable directement (`python qa.py --help`) :
 |---|---|
 | Chercher dans les syllabus | `chercher <notions> [--doc CTAL-TM] [--theme rbt] [--section 1.3] [--langue fr]` |
 | Confiance d'une réponse | `confiance --base N --lus N --concordants N [--web 1] [--non-couvert 1] …` (calcul affiché) |
-| Lire avant de citer | `lire <passage> [--contexte 1]` · `section <doc> <num>` · `page <doc> <p[-q]>` · `plan <doc>` |
+| Lire avant de citer | `lire <passage> [--contexte 1]` · `section <doc> <num>` · `page <doc> <p[-q]>` (sorties bornées : `--max-caracteres`, défaut 15 000) · `plan <doc>` |
 | Base d'idées | `idee chercher …` · `idee lister [--theme] [--statut]` · `idee voir QA-20261022-7f3a` |
 | Capitaliser | `idee modele` · `idee doublons <<'JSON'` · `idee ajouter <<'JSON'` (JSON sur l'entrée standard) |
 | Faire évoluer | `idee modifier` · `idee statut … --motif` · `idee retour` · `idee lier` · `journal` |

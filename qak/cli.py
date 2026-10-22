@@ -245,24 +245,79 @@ def cmd_lire(a):
     _json(rows) if a.json else _afficher_passages(rows)
 
 
+MAX_CARACTERES = 15000   # sortie de `page` / `section` : ~4 000 tokens, lisible en une fois
+
+
+def _borner(passages: list[dict], maximum: int) -> tuple[list[dict], list[dict]]:
+    """(affichés, restants) : des passages entiers jusqu'à `maximum` caractères (au moins un).
+    maximum <= 0 : pas de limite."""
+    if maximum <= 0:
+        return passages, []
+    total = 0
+    for i, p in enumerate(passages):
+        total += len(p["texte"])
+        if total > maximum and i:
+            return passages[:i], passages[i:]
+    return passages, []
+
+
+def _reste_a_lire(doc_id: str, affiches: list[dict], restants: list[dict]) -> list[str]:
+    """Commandes qui affichent la suite : la fin de la sous-section coupée (`page`), puis
+    chaque sous-section restante (`section`), dans l'ordre du document."""
+    lignes, vues = [], set()
+    coupee = affiches[-1]["section_num"] if affiches else None
+    for p in restants:
+        num = p["section_num"]
+        if num in vues:
+            continue
+        vues.add(num)
+        pages = [q["page"] for q in restants if q["section_num"] == num]
+        etendue = f"{min(pages)}" if min(pages) == max(pages) else f"{min(pages)}-{max(pages)}"
+        titre = f"§{num} {p['section_titre']}".strip() if num or p["section_titre"] else "hors section"
+        if num == coupee or not num:
+            lignes.append(f"  - suite de {titre} : `page {doc_id} {etendue}`")
+        else:
+            lignes.append(f"  - {titre} (p. {etendue}) : `section {doc_id} {num}`")
+    return lignes
+
+
+def _afficher_borne(r: dict, maximum: int, json_: bool, par_pages: bool = False) -> None:
+    affiches, restants = _borner(r["passages"], maximum)
+    doc_id = r["document"]["doc_id"]
+    reste = _reste_a_lire(doc_id, affiches, restants) if restants else []
+    if restants and par_pages:
+        pages = [p["page"] for p in restants]
+        reste.insert(0, f"  - pages restantes : `page {doc_id} {min(pages)}-{max(pages)}`"
+                        if min(pages) != max(pages) else f"  - page restante : `page {doc_id} {min(pages)}`")
+    if json_:
+        return _json({**r, "passages": affiches, "tronque": bool(restants),
+                      "reste_a_lire": [l.strip(" -") for l in reste]})
+    _afficher_passages(affiches, r["document"])
+    if restants:
+        affiche = sum(len(p["texte"]) for p in affiches)
+        total = affiche + sum(len(p["texte"]) for p in restants)
+        _ecrire(f"\n✂ Sortie tronquée : {affiche} caractères affichés sur {total} "
+                f"({len(affiches)}/{len(affiches) + len(restants)} passages). Ne citer que ce qui précède. "
+                "Reste à lire :")
+        for ligne in reste:
+            _ecrire(ligne)
+        _ecrire("  (ou relancer avec --max-caracteres 0 pour tout afficher)")
+
+
 def cmd_page(a):
     debut, _, fin = a.pages.partition("-")
     r = recherche.lire_pages(a.doc, int(debut), int(fin) if fin else None)
-    if a.json:
-        return _json(r)
-    if not r["passages"]:
+    if not r["passages"] and not a.json:
         return _ecrire(f"Aucun texte indexé pour ces pages de {r['document']['doc_id']} "
                        f"({r['document']['nb_pages']} pages ; pages vides : {r['document']['pages_vides'] or 'aucune'}).")
-    _afficher_passages(r["passages"], r["document"])
+    _afficher_borne(r, a.max_caracteres, a.json, par_pages=True)
 
 
 def cmd_section(a):
     r = recherche.lire_section(a.doc, a.numero)
-    if a.json:
-        return _json(r)
-    if not r["passages"]:
+    if not r["passages"] and not a.json:
         return _ecrire(f"Section {a.numero} introuvable dans {r['document']['doc_id']} : voir `plan {a.doc}`.")
-    _afficher_passages(r["passages"], r["document"])
+    _afficher_borne(r, a.max_caracteres, a.json)
 
 
 def cmd_plan(a):
@@ -544,11 +599,15 @@ def analyseur() -> argparse.ArgumentParser:
     x.add_argument("doc")
     x.add_argument("pages")
     x.add_argument("--json", action="store_true")
+    x.add_argument("--max-caracteres", type=int, default=MAX_CARACTERES,
+                   help=f"borne de la sortie (défaut {MAX_CARACTERES} ; 0 = sans limite) : la fin indique quoi lire ensuite")
     x.set_defaults(f=cmd_page)
     x = sp.add_parser("section", help="lire une section entière (sous-sections incluses)")
     x.add_argument("doc")
     x.add_argument("numero")
     x.add_argument("--json", action="store_true")
+    x.add_argument("--max-caracteres", type=int, default=MAX_CARACTERES,
+                   help=f"borne de la sortie (défaut {MAX_CARACTERES} ; 0 = sans limite) : la fin indique quoi lire ensuite")
     x.set_defaults(f=cmd_section)
     x = sp.add_parser("plan", help="plan (sections) d'un document")
     x.add_argument("doc")

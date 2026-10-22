@@ -144,3 +144,24 @@ def test_imports_paralleles_sans_perte_dans_le_manifeste(racine_isolee):
     assert len(docs) == 6 and len({e["doc_id"] for e in docs.values()}) == 6
     assert not list((racine_isolee / "bibliotheque").glob("*.tmp"))
     assert len(bibliotheque.inventaire()) == 6
+
+
+def test_passage_en_wal_attend_le_verrou(tmp_path):
+    """#122 : `PRAGMA journal_mode=WAL` échouait aussitôt (« database is locked ») quand un
+    autre processus écrivait dans une base encore en mode rollback, malgré le délai d'attente."""
+    import sqlite3
+    import threading
+    import time
+
+    chemin = tmp_path / "b.db"
+    a = sqlite3.connect(chemin, isolation_level=None, check_same_thread=False)
+    a.execute("CREATE TABLE t(x)")
+    a.execute("BEGIN IMMEDIATE")
+    a.execute("INSERT INTO t VALUES (1)")
+    threading.Timer(0.5, lambda: a.execute("COMMIT")).start()
+    debut = time.monotonic()
+    cx = bibliotheque.ouvrir_sqlite(chemin)
+    assert time.monotonic() - debut >= 0.4
+    assert cx.execute("PRAGMA journal_mode").fetchone()[0] == "wal"
+    cx.close()
+    a.close()

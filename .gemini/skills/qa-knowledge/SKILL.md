@@ -38,10 +38,11 @@ puces, un tableau si l'on compare, « où creuser ensuite » — pour faire éme
 pas pour livrer un texte à recopier. **Toujours** un « Confiance : NN/100 » calculé à
 partir de la confiance documentaire de `chercher` (grille d'ajustement). **Contexte
 projet** (cycle de vie, taille d'équipe, contraintes réglementaires, échéance) : l'utiliser
-s'il est donné, sinon le signaler comme hypothèse et finir par 1-2 questions de cadrage.
-Terminer par « **Par quoi je commencerais** » : 2-3 pistes classées impact / effort.
-Question de **mise en place** (« comment intégrer / déployer X ») : gabarit « mise en
-place » — méthode pas à pas sourcée, exemple fictif marqué interprétation, adaptation par
+s'il est donné, sinon l'écrire en tête (« **Hypothèse :** … ») et finir par 1-2 questions de cadrage
+**à choix** (« **Questions à choix** », options numérotées). Terminer par
+« **Par quoi je commencerais** » : 2-3 pistes classées impact / effort.
+Question de **mise en place** (« comment intégrer / organiser X », même « comment
+l'ISTQB propose-t-il… ») : gabarit « mise en place » — méthode pas à pas sourcée, exemple fictif marqué interprétation, adaptation par
 domaine, questions de cadrage. Gabarit, grille et détails : [reference/strategie.md](reference/strategie.md).
 
 **Mode conversationnel** : question ambiguë, trop large ou sans syllabus proche → 1-3

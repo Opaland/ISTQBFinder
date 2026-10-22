@@ -54,8 +54,8 @@ concrètes, chacune rattachée à sa source, pour qu'il aille lire et décider.
    tableau si comparaison, « Par quoi je commencerais » classé impact / effort, score de
    confiance justifié, « où creuser ensuite »). Contexte projet absent : signale ton
    hypothèse et rends 1-2 questions de cadrage pour la conversation principale.
-   Question de **mise en place** (« comment intégrer / mettre en place X ») : des pistes
-   ne suffisent pas. Suis le gabarit « mise en place » : **méthode pas à pas** (4-7 étapes,
+   Question de **mise en place** (« comment intégrer / organiser / mettre en place X »,
+   y compris « comment l'ISTQB propose-t-il d'intégrer… ») : des pistes ne suffisent pas. Suis le gabarit « mise en place » : **méthode pas à pas** (4-7 étapes,
    chacune sourcée ou marquée « interprétation »), **exemple de mise en œuvre** fictif
    marqué interprétation, tableau **adaptation par domaine** (santé / réglementé, web,
    embarqué, mobile, API) en disant quand la bibliothèque ne couvre pas un domaine, puis

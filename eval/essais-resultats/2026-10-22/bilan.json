@@ -915,5 +915,139 @@
   },
   "criteres_ko": [],
   "echec": []
+ },
+ {
+  "id": "T7-gherkin",
+  "agent": "thomas",
+  "question": "Je veux rédiger mes critères d'acceptation en Gherkin, j'ai besoin d'aide.",
+  "tours": 11,
+  "cout_usd": 0.161,
+  "commandes_qa": [
+   "python qa.py idee chercher Gherkin critères d'acceptation; python qa.py idee chercher acceptance criteria BDD",
+   "python qa.py chercher Gherkin; python qa.py chercher \"Given/When/Then\"; python qa.py chercher \"critères d'acceptation\"; python qa.py chercher \"behavior-driven development\"",
+   "python qa.py idee chercher \"Gherkin critères acceptation\"; python qa.py idee chercher \"acceptance criteria BDD\"",
+   "python qa.py section CT-AcT-2019-en 2.2.2 --max-caracteres 6000",
+   "python qa.py lire 5546 --contexte 1 --max-caracteres 5000; python qa.py lire 1546 --contexte 1 --max-caracteres 4000",
+   "python qa.py lire 1649 --contexte 1; python qa.py lire 1546 --contexte 1; python qa.py lire 4838 --contexte 1",
+   "python qa.py section CT-AcT-2019-en 2.1 --max-caracteres 5000; python qa.py lire 32 --contexte 1",
+   "python qa.py confiance --help | head -30; python qa.py idee doublons --titre \"Rédiger des scénarios Gherkin atomiques et déclaratifs\" --resume \"Écrire les critères d'acceptation en Given/When/Then, un comportement par scénario, actions sémantiques\" --principe \"Gherkin déclaratif, isolé, atomique\" --theme agile",
+   "python qa.py confiance --base 100 --lus 5 --concordants 3 --raisonnement 1; python qa.py idee modele; python qa.py idee doublons --titre \"Rédiger des scénarios Gherkin atomiques et déclaratifs\" --resume \"Écrire les critères d'acceptation en Given/When/Then, un comportement par scénario, actions sémantiques\" --principe \"Gherkin déclaratif, isolé, atomique\" --theme exigences"
+  ],
+  "web": [],
+  "citations": [
+   {
+    "citation": "CT-ACT §2.1, p. 16",
+    "lue": true
+   },
+   {
+    "citation": "CT-ACT §2.1, p. 15",
+    "lue": true
+   },
+   {
+    "citation": "CT-ACT §2.2.2, pp. 16-17",
+    "lue": true
+   },
+   {
+    "citation": "CT-ACT §2.2.2, p. 17",
+    "lue": true
+   },
+   {
+    "citation": "CT-ACT §1.2.3, p. 14",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-ATT §2.1.2, p. 15",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-AT §4.1.3, p. 33",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-AT §4.1.3, p. 34",
+    "lue": true
+   },
+   {
+    "citation": "CTFL §4.5.3, p. 46",
+    "lue": true
+   }
+  ],
+  "citations_non_lues": [],
+  "confiance": 90,
+  "criteres": {
+   "mentions:Given|[ÉE]tant donn": true,
+   "mentions:CT-AcT|CTFL": true,
+   "questions_choix": true,
+   "confiance": true
+  },
+  "criteres_ko": [],
+  "echec": []
+ },
+ {
+  "id": "M7-shift-left",
+  "agent": "thomas",
+  "question": "Je veux mettre en place une démarche shift left testing, comment faire ? Qu'est-ce que cela impose ?",
+  "tours": 8,
+  "cout_usd": 0.14,
+  "commandes_qa": [
+   "python qa.py idee chercher shift left testing 2>&1 | head -40; python qa.py chercher \"shift left\" 2>&1 | head -60",
+   "python qa.py section CTFL-4.0.1-en 2.1.5 --max-caracteres 3500; python qa.py section CTAL-AT-2.0-en 4 --max-caracteres 5000; python qa.py section CT-TAS-1.0-en 3.1.3 --max-caracteres 5000",
+   "python qa.py chercher \"early testing static testing reviews requirements\" 2>&1 | head -30; python qa.py chercher \"shift left DevOps continuous testing pipeline\" 2>&1 | head -30",
+   "python qa.py section CTAL-AT-2.0-en 4.2 --max-caracteres 4500; python qa.py section CTAL-AT-2.0-en 4.1.3 --max-caracteres 2500; python qa.py section CTFL-4.0.1-en 3.1 --max-caracteres 3000",
+   "python qa.py confiance --help 2>&1 | head -20; python qa.py idee doublons --titre \"Shift left : déplacer les activités qualité en amont\" --resume \"Démarche shift left : revue des specs, tests avant code, CI, analyse statique, non-fonctionnel tôt\" --principe \"Tester tôt sans négliger les tests tardifs; adhésion des parties prenantes\" --theme shift-left 2>&1 | head -8",
+   "python qa.py confiance --base 100 --lus 6 --concordants 3 --raisonnement 1 2>&1 | tail -5; python qa.py themes 2>&1 | grep -i -E \"shift|statique|agile|devops\" | head"
+  ],
+  "web": [],
+  "citations": [
+   {
+    "citation": "CTFL §2.1.5 Shift Left (p. 27",
+    "lue": true
+   },
+   {
+    "citation": "CTFL §3.1 Static Testing Basics (p. 33",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-AT §4.2 (p. 31-36",
+    "lue": true
+   },
+   {
+    "citation": "CT-TAS §3.1.3 (p. 24-25",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-AT §4.1.1, p. 32",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-AT §4.1.3, p. 33",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-AT §4.2, p. 36",
+    "lue": true
+   },
+   {
+    "citation": "CT-TAS §3.1.3, p. 24",
+    "lue": true
+   },
+   {
+    "citation": "CT-TAS §3.1.3, p. 25",
+    "lue": true
+   }
+  ],
+  "citations_non_lues": [],
+  "confiance": 90,
+  "criteres": {
+   "methode": true,
+   "etapes_sourcees": true,
+   "exemple": true,
+   "mentions:CTFL": true,
+   "mentions:2\\.1\\.5": true,
+   "questions_choix": true,
+   "confiance": true
+  },
+  "criteres_ko": [],
+  "echec": []
  }
 ]

@@ -137,6 +137,17 @@ qui exigent `questions_choix` :
 
 Coût : 0,82 $. Avec #144, les 16 essais de la campagne sont verts.
 
+## Questions réelles de l'utilisateur : shift left et Gherkin
+
+Deux questions posées telles quelles par l'utilisateur deviennent des essais versionnés :
+
+| Essai | Question | Tours | Coût | Confiance | Citations lues | Critères | Constat |
+|---|---|---|---|---|---|---|---|
+| M7-shift-left | « Je veux mettre en place une démarche shift left testing, comment faire ? Qu'est-ce que cela impose ? » | 8 | 0,14 $ | 90 | 9/9 | 7/7 | Ce que ça impose (CTFL §2.1.5 : coût initial, adhésion, ne pas négliger les tests tardifs), méthode en 7 étapes sourcées (CTFL, CTAL-AT v2.0, CT-TAS), exemple fictif, adaptation par domaine, questions à choix |
+| T7-gherkin | « Je veux rédiger mes critères d'acceptation en Gherkin, j'ai besoin d'aide. » | 11 | 0,16 $ | 90 | 9/9 | 4/4 | Formats de CTFL §4.5.2, règles d'écriture (CT-AcT §2.2.2, CTAL-ATT §2.1.2 signalé en retrait), Example Mapping (CTAL-AT §4.1.3), exemple Gherkin en français, propose de réécrire un critère de l'utilisateur |
+
+Premier passage de M7 en échec : une citation écrite « CTAL-TAS » au lieu de CT-TAS (6/7). La relance est verte ; le défaut récurrent est suivi dans #172.
+
 ## Relancer
 
 ```bash

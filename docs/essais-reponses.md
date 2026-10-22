@@ -122,6 +122,21 @@ Campagne complète qui suit (fichiers de ce dossier) :
 
 **Coût** : campagne complète 2,57 $, plus 7 relances ciblées 1,09 $, soit 3,66 $.
 
+## Questions à choix : une option par ligne (#144)
+
+La consigne (`reference/conversation.md`) impose désormais une question par puce et ses
+options numérotées une par ligne. L'exemple du §1 et le gabarit « mise en place » de
+`strategie.md`, qui titrait « Questions de cadrage », sont alignés. Relance des trois essais
+qui exigent `questions_choix` :
+
+| Essai | Avant | Après |
+|---|---|---|
+| C1-ambigu | ÉCHEC 2/3 (options en ligne) | réussi 3/3, 4/4 citations lues (0,27 $) |
+| S3-reglemente | réussi 5/5 | réussi 5/5, 12/12 citations lues (0,18 $) |
+| M1-rbt-agile | réussi 11/11 | 1er passage : ÉCHEC 10/11 (titre « Questions de cadrage », repris du gabarit) ; après correction du gabarit : réussi 11/11, 5/5 citations lues (0,17 $) |
+
+Coût : 0,82 $. Avec #144, les 16 essais de la campagne sont verts.
+
 ## Relancer
 
 ```bash

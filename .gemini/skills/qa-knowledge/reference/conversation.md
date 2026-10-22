@@ -12,7 +12,19 @@ Ne pas questionner une question claire : clarifier seulement quand le gain est r
 |---|---|
 | Session interactive Claude Code (conversation principale, ou `claude --agent thomas`) | outil **AskUserQuestion** : une question à la fois, 3 options au plus (« Autre » est ajouté par l'outil), multi-sélection si plusieurs choix se cumulent |
 | Sous-agent (`@agent-thomas`, `@agent-sylvie`) | AskUserQuestion est retiré à tout sous-agent par Claude Code : **rendre** les questions et leurs options dans le rapport, section « Questions à choix » ; la conversation principale les pose avec AskUserQuestion |
-| Non interactif (`claude -p`, essais automatiques), Copilot, Gemini | liste numérotée en texte |
+| Non interactif (`claude -p`, essais automatiques), Copilot, Gemini | texte, au format ci-dessous |
+
+Format texte (rapport de sous-agent, `-p`, Copilot, Gemini) : une question par puce, puis
+ses options en sous-liste numérotée, **une option par ligne**, jamais « 1. … · 2. … » sur une
+même ligne : ce format se transpose tel quel en AskUserQuestion.
+
+```text
+**Questions à choix**
+- Votre cycle de vie ?
+  1. agile / itératif
+  2. cascade / cycle en V
+  3. mixte
+```
 
 **Ne jamais bloquer** hors session interactive : poursuivre avec des hypothèses
 explicites (« Hypothèse : domaine web, équipe Scrum ») et finir par les questions à choix.
@@ -21,11 +33,12 @@ explicites (« Hypothèse : domaine web, équipe Scrum ») et finir par les ques
 
 Clarifier avant de chercher plus loin si la question est ambiguë, trop large, ou ne se
 rapproche d'aucun syllabus (`chercher` : confiance documentaire < 50, aucun titre de
-section correspondant). Une à trois questions à choix, par exemple :
+section correspondant). Une à trois questions à choix (thèmes ci-dessous ; à rédiger au
+format ci-dessus, 3 options au plus par question) :
 
-- **Angle** : définition · mise en place · audit de ma démarche (→ Sylvie) · comparaison
-- **Domaine** : santé / réglementé · web · embarqué / intégré · mobile · API · autre
-- **Niveau de détail** : synthèse courte · méthode détaillée · sections à lire
+- **Angle** : définition, mise en place, audit de ma démarche (→ Sylvie), comparaison
+- **Domaine** : santé / réglementé, web, embarqué / intégré, mobile, API, autre
+- **Niveau de détail** : synthèse courte, méthode détaillée, sections à lire
 
 ## 2. Plan de recherche (avant de rédiger)
 

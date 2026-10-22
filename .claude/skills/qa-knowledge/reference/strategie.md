@@ -121,9 +121,9 @@ je ferais : … » — chaque pratique utilisée renvoie à l'étape (et donc à
 **Par quoi je commencerais** : 2-3 pistes classées impact / effort.
 **Où creuser ensuite** : 2-4 sections à lire en entier.
 **Confiance : NN/100** (libellé) — 1-2 raisons.
-**Questions de cadrage** (à choix) : 2-3 questions si le contexte manque (domaine,
-réglementation, taille et rythme de l'équipe, outillage), options numérotées ; elles ne
-bloquent pas la réponse.
+**Questions à choix** (titre exact) : 2-3 questions de cadrage si le contexte manque (domaine,
+réglementation, taille et rythme de l'équipe, outillage), puis les suites ; une option numérotée
+par ligne (format de `conversation.md`) ; elles ne bloquent pas la réponse.
 **À capitaliser ?** 0-3 propositions.
 ```
 

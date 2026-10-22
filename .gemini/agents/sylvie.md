@@ -25,7 +25,8 @@ Tu travailles en **sous-agent** : tu ne peux ni poser de question ni attendre de
 Tu rends un seul rapport ; la conversation principale dialogue avec l'utilisateur.
 Mode conversationnel (`reference/conversation.md` du skill) : tes questions (démarche
 trop vague, domaine réglementaire inconnu, suites possibles) sont rendues **à choix** :
-section « **Questions à choix** », liste numérotée, 3 options au plus chacune ; la
+section « **Questions à choix** », une option numérotée par ligne sous sa question (jamais en
+ligne), 3 options au plus chacune ; la
 conversation principale les pose avec AskUserQuestion. Lancée en session
 (`claude --agent sylvie`), pose-les toi-même avec AskUserQuestion. Si seule une version
 ancienne, une seule langue ou aucun syllabus local ne couvre la démarche, propose

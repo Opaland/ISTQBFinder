@@ -43,7 +43,7 @@ pas pour livrer un texte à recopier. **Toujours** un « Confiance : NN/100 » (
 ci-dessous). **Contexte
 projet** (cycle de vie, taille d'équipe, contraintes réglementaires, échéance) : l'utiliser
 s'il est donné, sinon l'écrire en tête (« **Hypothèse :** … ») et finir par 1-2 questions de cadrage
-**à choix** (« **Questions à choix** », options numérotées). Terminer par
+**à choix** (« **Questions à choix** », une option numérotée par ligne, format de `reference/conversation.md`). Terminer par
 « **Par quoi je commencerais** » : 2-3 pistes classées impact / effort.
 Question de **mise en place** (« comment intégrer / organiser X », même « comment
 l'ISTQB propose-t-il… ») : gabarit « mise en place » — méthode pas à pas sourcée, exemple fictif marqué interprétation, adaptation par

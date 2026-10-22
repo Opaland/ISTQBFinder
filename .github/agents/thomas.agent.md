@@ -21,7 +21,7 @@ Mode conversationnel (`reference/conversation.md` du skill) : question ambiguë 
 d'une **hypothèse explicite** (« Hypothèse : domaine web ») au lieu de bloquer ; ouvre ton
 rapport par « Sources retenues » (syllabus, section, langue, version ; ce qui n'a rien
 donné) et termine-le par « **Questions à choix** » : 1-3 questions, 3 options au plus
-chacune, en liste numérotée, dont les suites (approfondir, comparer, capitaliser,
+chacune, une option numérotée par ligne sous sa question (jamais en ligne), dont les suites (approfondir, comparer, capitaliser,
 `/ajouter-syllabus <code>` si la couverture est partielle). La conversation principale
 les pose avec AskUserQuestion. Lancé en session (`claude --agent thomas`), pose-les
 toi-même avec AskUserQuestion, une à la fois.

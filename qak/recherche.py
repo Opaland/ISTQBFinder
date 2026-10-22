@@ -17,6 +17,7 @@ import sqlite3
 from dataclasses import dataclass
 
 from . import bibliotheque, taxonomie
+from .bibliotheque import TOKENISEUR
 from .textes import MOTS_GENERIQUES, normaliser, reperer_concepts
 
 CANDIDATS = 300  # passages BM25 reclassés par couverture
@@ -115,20 +116,9 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
         prefixe = f"{obligatoire.fts()} AND " if obligatoire else ""
         ou = prefixe + "(" + " OR ".join(g.fts() for g in gs) + ")" if gs else obligatoire.fts()
         candidats = executer(ou, CANDIDATS)
-        ids = [r["id"] for r in candidats]
-        trouves: dict[int, set[int]] = {i: set() for i in ids}
-        marque = ",".join("?" * len(ids))
-        for k, g in enumerate(gs):
-            for (rid,) in cx.execute(f"SELECT rowid FROM passages_fts WHERE passages_fts MATCH ? "
-                                     f"AND rowid IN ({marque})", [g.fts(), *ids]) if ids else []:
-                trouves[rid].add(k)
         # Notions nommées dans le TITRE de la section : une section dédiée à la notion passe
         # devant une section qui ne fait que l'évoquer (issue #4 : « Shift Left » §2.1.5).
-        en_titre: dict[int, set[int]] = {i: set() for i in ids}
-        for k, g in enumerate(gs):
-            for (rid,) in cx.execute(f"SELECT rowid FROM passages_fts WHERE passages_fts MATCH ? "
-                                     f"AND rowid IN ({marque})", [f"section_titre : {g.fts()}", *ids]) if ids else []:
-                en_titre[rid].add(k)
+        trouves, en_titre = _notions_des_candidats(candidats, gs)
         total = sum(g.poids for g in gs) or 1
 
         def couverture(r) -> float:
@@ -173,6 +163,30 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
     finally:
         if propre:
             cx.close()
+
+
+def _notions_des_candidats(candidats: list[sqlite3.Row], gs: list[Groupe]) -> tuple[dict, dict]:
+    """Pour chaque candidat : indices des groupes présents dans le passage, et dans le titre
+    de sa section. Calculé sur un index FTS5 en mémoire limité aux candidats, avec le même
+    tokeniseur que l'index principal (correspondance identique, porter compris) : un MATCH
+    sur passages_fts évaluait chaque groupe sur TOUT l'index avant de filtrer (issue #59)."""
+    trouves: dict[int, set[int]] = {r["id"]: set() for r in candidats}
+    en_titre: dict[int, set[int]] = {r["id"]: set() for r in candidats}
+    if not candidats or not gs:
+        return trouves, en_titre
+    mini = sqlite3.connect(":memory:")
+    try:
+        mini.execute(f"CREATE VIRTUAL TABLE c USING fts5(texte, section_titre, tokenize='{TOKENISEUR}')")
+        mini.executemany("INSERT INTO c(rowid, texte, section_titre) VALUES (?,?,?)",
+                         [(r["id"], r["texte"], r["section_titre"]) for r in candidats])
+        for k, g in enumerate(gs):
+            for (rid,) in mini.execute("SELECT rowid FROM c WHERE c MATCH ?", (g.fts(),)):
+                trouves[rid].add(k)
+            for (rid,) in mini.execute("SELECT rowid FROM c WHERE c MATCH ?", (f"section_titre : {g.fts()}",)):
+                en_titre[rid].add(k)
+    finally:
+        mini.close()
+    return trouves, en_titre
 
 
 def confiance_documentaire(resultats: list[dict]) -> dict:

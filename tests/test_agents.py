@@ -87,7 +87,10 @@ def test_capitalisation_par_entree_standard():
                    RACINE / "docs" / "exemples-conversations.md", AGENTS / "thomas.md"):
         texte = chemin.read_text(encoding="utf-8")
         assert "--fichier idee.json" not in texte and "--fichier <json>" not in texte, chemin.name
-    assert "idee doublons <<'JSON'" in (SKILL.parent / "reference" / "capitalisation.md").read_text(encoding="utf-8")
+    capitalisation = (SKILL.parent / "reference" / "capitalisation.md").read_text(encoding="utf-8")
+    assert "idee ajouter <<'JSON'" in capitalisation
+    # #128 : `idee doublons` en une ligne, sans JSON (heredoc JSON bloqué en `claude -p`).
+    assert "idee doublons <<" not in capitalisation and "idee doublons --titre" in capitalisation
 
 
 def test_web_obligatoire_pour_un_outil_absent_des_syllabus():

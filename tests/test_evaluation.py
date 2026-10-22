@@ -42,7 +42,7 @@ def test_evaluer_min_rappel_fait_echouer(capsys, racine_isolee):
 
 def test_evaluer_min_rappel_sous_le_seuil(capsys, bibliotheque_test, jeu, monkeypatch):
     vrai = evaluation.evaluer
-    monkeypatch.setattr(evaluation, "evaluer", lambda k, controle=None: vrai(k, controle, jeu=jeu))
+    monkeypatch.setattr(evaluation, "evaluer", lambda k, controle=None, semantique=False, eloigne=False: vrai(k, controle, jeu=jeu))
     assert main(["evaluer", "--min-rappel", "0.6"]) == 0  # 2/3
     capsys.readouterr()
     assert main(["evaluer", "--min-rappel", "0.7"]) == 2
@@ -55,3 +55,15 @@ def test_k_n_et_seuil_valides(args, capsys):
     with pytest.raises(SystemExit) as e:
         main(args)
     assert e.value.code == 2
+
+
+def test_jeu_eloigne_separe(bibliotheque_test, tmp_path):
+    # Issue #107 : les questions « loin du vocabulaire ISTQB » forment un jeu à part, exclu du
+    # contrôle et du réglage (elles mesurent une piste, pas le moteur livré).
+    chemin = tmp_path / "jeu2.json"
+    chemin.write_text(json.dumps({"cas": JEU["cas"] + [
+        {"requete": "risk level", "attendus": [{"code": "CTFL", "section": "2.1"}], "eloigne": True}]}),
+        encoding="utf-8")
+    assert evaluation.evaluer(5, jeu=chemin)["total"] == 3
+    assert evaluation.evaluer(5, controle=True, jeu=chemin)["total"] == 2
+    assert [d["requete"] for d in evaluation.evaluer(5, jeu=chemin, eloigne=True)["details"]] == ["risk level"]

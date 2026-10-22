@@ -44,7 +44,7 @@ python qa.py idee verifier-refs     # références des idées vers une version r
 | Document « illisible » (scan) | passer le PDF dans un OCR, réimporter le PDF texte |
 | Document « partiel » | `inventaire` liste les pages vides ; vérifier le PDF |
 | Aucune section détectée | la recherche fonctionne, mais sans § : citer la page uniquement |
-| Document à retirer | `retirer <doc_id>` puis déplacer le fichier hors de `sources/` |
+| Document à retirer | `retirer <doc_id>` puis déplacer le fichier hors de `sources/` ; document privé : `retirer <doc_id> --supprimer-fichier` (`corriger` fonctionne aussi sur les documents privés) |
 | Fichier de `sources/` modifié sur place (« MODIFIÉS SUR PLACE (à confirmer) ») | rien ne distingue un PDF corrigé d'un PDF altéré : le document est exclu des recherches. Vérifier le fichier, puis `importer bibliotheque/sources/<fichier> --remplacer --motif "…"` (ancienne empreinte gardée dans `historique_empreintes` du manifeste, remplacement journalisé) ; sinon restaurer le fichier d'origine (`git checkout`) |
 | Amélioration de l'extracteur | incrémenter `VERSION_EXTRACTEUR` (qak/extraction.py) : `actualiser` réextrait tout |
 | Index corrompu ou supprimé | `actualiser` le reconstruit depuis `sources/` + manifeste |

@@ -828,6 +828,223 @@
     }
    ],
    "controle": true
+  },
+  {
+   "requete": "motivation",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "3.1.6"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "motivation des testeurs",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "3.1.6"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "rapport d'avancement des tests parties prenantes",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "2.1.3"
+    },
+    {
+     "code": "CTFL",
+     "section": "5.3.2"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "comment estimer l'effort de test",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "2.2.1"
+    },
+    {
+     "code": "CTFL",
+     "section": "5.1.4"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "test en agile rôle du Test Manager",
+   "attendus": [
+    {
+     "code": "CT-ATLaS",
+     "section": "4.2"
+    },
+    {
+     "code": "CTAL-TM",
+     "section": "1.2.4"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "architecture en couches d'un framework d'automatisation",
+   "attendus": [
+    {
+     "code": "CTAL-TAE",
+     "section": "3.1.3"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "test automation framework layers",
+   "attendus": [
+    {
+     "code": "CTAL-TAE",
+     "section": "3.1.3"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "priorisasion des cas de test",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.1.5"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "analyse des valeurs limmites",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "4.2.2"
+    },
+    {
+     "code": "CTAL-TA",
+     "section": "3.1"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "tests exploratoirs",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "4.4.2"
+    },
+    {
+     "code": "CTAL-TA",
+     "section": "3.4"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "gestion des défuats",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.5"
+    },
+    {
+     "code": "CTAL-TM",
+     "section": "2.3"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "évaluation de l'utilisabilité",
+   "attendus": [
+    {
+     "code": "CT-UT",
+     "section": "1.2.1"
+    }
+   ],
+   "filtres": {
+    "langue": "fr"
+   },
+   "controle": true
+  },
+  {
+   "requete": "comment éviter que nos tests cassent à chaque changement d'écran",
+   "attendus": [
+    {
+     "code": "CTAL-TAE",
+     "section": "3.1"
+    },
+    {
+     "code": "CTAL-TAE",
+     "section": "4.3"
+    }
+   ],
+   "eloigne": true
+  },
+  {
+   "requete": "on teste trop tard, comment avancer le test",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "2.1.5"
+    },
+    {
+     "code": "CTAL-AT",
+     "section": "4"
+    }
+   ],
+   "eloigne": true
+  },
+  {
+   "requete": "qui décide quand on arrête de tester",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.1.3"
+    },
+    {
+     "code": "CTAL-TM",
+     "section": "1.1"
+    }
+   ],
+   "eloigne": true
+  },
+  {
+   "requete": "les développeurs ne lisent pas nos rapports de bugs",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.5"
+    },
+    {
+     "code": "CTAL-TM",
+     "section": "2.3"
+    }
+   ],
+   "eloigne": true
+  },
+  {
+   "requete": "combien de temps faut-il prévoir pour tester",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.1.4"
+    },
+    {
+     "code": "CTAL-TM",
+     "section": "2.2"
+    }
+   ],
+   "eloigne": true
   }
  ]
 }

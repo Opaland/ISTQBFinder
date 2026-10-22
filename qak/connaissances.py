@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS idee_themes (
 CREATE TABLE IF NOT EXISTS refs (
     idee_id TEXT NOT NULL, ordre INTEGER NOT NULL, type TEXT NOT NULL, titre TEXT, doc_id TEXT,
     version TEXT, pages TEXT, section TEXT, url TEXT, extrait TEXT, consulte_le TEXT, note TEXT,
-    PRIMARY KEY (idee_id, ordre)
+    empreinte TEXT, PRIMARY KEY (idee_id, ordre)
 );
 CREATE TABLE IF NOT EXISTS relations (
     source TEXT NOT NULL, cible TEXT NOT NULL, type TEXT NOT NULL, note TEXT, cree_le TEXT,
@@ -96,11 +96,9 @@ def _empreinte_fichier() -> str | None:
 
 def ouvrir() -> sqlite3.Connection:
     """Ouvre la base ; la reconstruit depuis le JSONL versionné s'il a changé."""
-    db = chemins.base_db()
-    db.parent.mkdir(parents=True, exist_ok=True)
-    cx = sqlite3.connect(db)
-    cx.row_factory = sqlite3.Row
+    cx = bibliotheque.ouvrir_sqlite(chemins.base_db())
     cx.executescript(SCHEMA)
+    _migrer(cx)
     try:
         if _action_miroir(cx):
             # Verrou d'écriture puis second contrôle : un autre processus peut être en
@@ -118,6 +116,19 @@ def ouvrir() -> sqlite3.Connection:
         cx.close()
         raise
     return cx
+
+
+CHAMPS_REF = ("type", "titre", "doc_id", "version", "pages", "section", "url", "extrait", "consulte_le", "note",
+              "empreinte")
+
+
+def _migrer(cx) -> None:
+    """Base créée par une version antérieure : colonnes ajoutées depuis (#35 : empreinte
+    SHA-256 du document lu, dans chaque référence ISTQB)."""
+    colonnes = {r[1] for r in cx.execute("PRAGMA table_info(refs)")}
+    if "empreinte" not in colonnes:
+        cx.execute("ALTER TABLE refs ADD COLUMN empreinte TEXT")
+        cx.commit()
 
 
 def _action_miroir(cx) -> str | None:
@@ -145,7 +156,7 @@ def avertissements() -> list[str]:
 
 def _lire_jsonl() -> list[dict]:
     p = chemins.connaissances_jsonl()
-    brut = p.read_text(encoding="utf-8").splitlines()
+    brut = p.read_text(encoding="utf-8-sig").splitlines()
     try:
         journal.controler_conflits(p, brut, "Garder pour chaque idée la version voulue (une seule ligne par "
                                             "identifiant) ; la base sera recontrôlée et l'écart journalisé.")
@@ -277,10 +288,9 @@ def _inserer(cx, idee: dict, relations: bool = False, nouvelle: bool = False) ->
             cx.execute("INSERT OR IGNORE INTO idee_themes VALUES (?,?,0)", (idee["id"], t))
     cx.execute("DELETE FROM refs WHERE idee_id=?", (idee["id"],))
     for i, r in enumerate(idee.get("references", [])):
-        cx.execute("INSERT INTO refs VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
-                   (idee["id"], i, r.get("type"), r.get("titre"), r.get("doc_id"), r.get("version"),
-                    r.get("pages"), r.get("section"), r.get("url"), r.get("extrait"), r.get("consulte_le"),
-                    r.get("note")))
+        cx.execute(f"INSERT INTO refs(idee_id, ordre, {', '.join(CHAMPS_REF)}) "
+                   f"VALUES (?,?,{','.join('?' * len(CHAMPS_REF))})",
+                   (idee["id"], i, *(r.get(c) for c in CHAMPS_REF)))
     cx.execute("DELETE FROM retours WHERE idee_id=?", (idee["id"],))
     for i, r in enumerate(idee.get("retours", [])):
         cx.execute("INSERT INTO retours VALUES (?,?,?,?,?,?)",
@@ -403,10 +413,12 @@ def _document_reference(cx, doc: str, extrait: str | None):
     return candidats[0] if candidats else None
 
 
-def _verifier_reference_istqb(ref: dict) -> list[str]:
+def _verifier_reference_istqb(ref: dict, relecture: bool = False) -> list[str]:
     """Contrôle une référence ISTQB contre la bibliothèque indexée : document présent,
     pages existantes, section du plan présente sur les pages citées, extrait recopié
-    mot pour mot (suite contiguë) des pages ou de la section citées."""
+    mot pour mot (suite contiguë) des pages ou de la section citées.
+    À l'écriture, l'empreinte SHA-256 du document lu est enregistrée dans la référence ;
+    en `relecture` (`verifier-refs`), elle est comparée à celle du document actuel (#35)."""
     problemes = []
     if not chemins.index_db().exists():
         return ["bibliothèque non indexée : référence ISTQB non vérifiable"]
@@ -416,6 +428,22 @@ def _verifier_reference_istqb(ref: dict) -> list[str]:
         d = _document_reference(cx, doc, ref.get("extrait")) if doc else None
         if not d:
             return [f"document « {doc} » absent de la bibliothèque : référence non vérifiable"]
+        if d["statut_version"] == "a_confirmer":
+            raise ErreurValidation(
+                f"{d['doc_id']} : fichier modifié sur place, en attente de confirmation : ne pas le citer avant "
+                f"`importer <fichier> --remplacer --motif \"…\"` (voir `inventaire`).")
+        if d["doc_id"] in bibliotheque.controle_index(cx)["perimes"]:
+            raise ErreurValidation(f"{d['doc_id']} : index périmé (fichier source disparu ou modifié depuis "
+                                   "l'indexation) : lancer `python qa.py actualiser` avant de citer ce document.")
+        if relecture:
+            if ref.get("empreinte") and ref["empreinte"] != d["sha256"]:
+                problemes.append(f"{d['doc_id']} : référence lue dans un contenu différent du fichier actuel "
+                                 "(empreinte changée) : relire le passage et mettre la référence à jour")
+            elif not ref.get("empreinte"):
+                problemes.append(f"{d['doc_id']} : référence sans empreinte (enregistrée avant #35) : relire le "
+                                 "passage pour la ré-enregistrer")
+        else:
+            ref["empreinte"] = d["sha256"]
         ref["doc_id"] = d["doc_id"]
         ref.setdefault("version", d["version"])
         ref.setdefault("titre", d["titre"])
@@ -536,6 +564,47 @@ def valider(donnees: dict, partiel: bool = False) -> tuple[dict, list[str]]:
 
 MOTIF_MIN = 10
 
+# Dépôt public : ce qui ressemble à une donnée personnelle ou confidentielle bloque
+# l'enregistrement (sauf --forcer --motif). Les noms de clients, de personnes ou de projets
+# ne sont pas détectables : la règle d'anonymisation du skill les couvre.
+_ESPACE = r"[ \u00a0\u202f]"
+MOTIFS_SENSIBLES = {
+    "adresse e-mail": re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+"),
+    "montant": re.compile(
+        rf"(?<![\w.,])\d+(?:[.,{_ESPACE[1:-1]}]\d+)*{_ESPACE}?(?:[kKM]{_ESPACE}?)?(?:€|\$|£|euros?\b|EUR\b|USD\b|dollars?\b)"
+        rf"|[€$£]{_ESPACE}?\d+(?:[.,]\d+)*{_ESPACE}?[kKM]?\b"),
+    "numéro de téléphone": re.compile(
+        rf"(?<![\w+])(?:\+\d{{2,3}}{_ESPACE}?(?:\(0\))?{_ESPACE}?\d|0\d)(?:[{_ESPACE[1:-1]}.-]?\d{{2}}){{4}}(?!\d)"),
+}
+
+
+def _textes_libres(d: dict) -> list[tuple[str, str]]:
+    out = [(c, d[c]) for c in (*CHAMPS_TEXTE, "provenance") if isinstance(d.get(c), str)]
+    for i, r in enumerate(d.get("references", [])):
+        out += [(f"references[{i}].{k}", v) for k, v in r.items() if isinstance(v, str) and k != "url"]
+    for i, r in enumerate(d.get("retours", [])):
+        out += [(f"retours[{i}].{k}", v) for k, v in r.items() if isinstance(v, str)]
+    return out
+
+
+def _controler_confidentialite(d: dict, forcer: bool, motif: str | None) -> tuple[list[str], list[str]]:
+    """Renvoie (avertissements, types forcés). Lève si une donnée sensible est trouvée sans
+    `--forcer --motif` ; avertit sur les références « interne »."""
+    trouves = [(nature, champ, m.group().strip()) for champ, texte in _textes_libres(d)
+               for nature, rx in MOTIFS_SENSIBLES.items() for m in rx.finditer(texte)]
+    avert = [f"référence « interne » ({r.get('titre', 'sans titre')}) : le dépôt est public, vérifier qu'elle "
+             "ne révèle ni client, ni personne, ni projet, ni montant" for r in d.get("references", [])
+             if r.get("type") == "interne"]
+    if trouves and not (forcer and (motif or "").strip()):
+        detail = "; ".join(f"{n} « {v} » ({c})" for n, c, v in trouves)
+        raise ErreurValidation(
+            f"Donnée personnelle ou confidentielle probable : {detail}. Le dépôt est PUBLIC : anonymiser "
+            "(ni client, ni personne, ni montant, ni projet nommé). Si c'est voulu : --forcer --motif \"…\".")
+    if trouves:
+        avert.append("donnée sensible conservée sur décision explicite (--forcer) : "
+                     + ", ".join(sorted({n for n, _, _ in trouves})))
+    return avert, sorted({n for n, _, _ in trouves})
+
 
 def _exiger_source(idee: dict) -> None:
     """« documentée » / « pratiquée » affirment une source : sans référence, c'est faux."""
@@ -639,6 +708,8 @@ def ajouter(donnees: dict, forcer: bool = False, motif: str | None = None) -> di
     """Crée une idée après validation et contrôle des doublons.
     Un doublon probable bloque, sauf `forcer` avec un motif (journalisé)."""
     idee, avert = valider(donnees)
+    avert_conf, forces = _controler_confidentialite(idee, forcer, motif)
+    avert += avert_conf
     cx = ouvrir()
     try:
         # Verrou d'écriture AVANT de lire les doublons et le dernier identifiant : deux
@@ -658,13 +729,15 @@ def ajouter(donnees: dict, forcer: bool = False, motif: str | None = None) -> di
         idee.setdefault("provenance", "saisie conversationnelle")
         _inserer(cx, idee, nouvelle=True)
         _exporter(cx)
-        journal.noter("idee_creee", idee["id"], {"titre": idee["titre"], "doublons_signales": sim}, motif)
+        journal.noter("idee_creee", idee["id"], {"titre": idee["titre"], "doublons_signales": sim,
+                                                 **({"donnees_sensibles_forcees": forces} if forces else {})}, motif)
         return {"etat": "cree", "id": idee["id"], "doublons": sim, "avertissements": avert}
     finally:
         cx.close()
 
 
-def modifier(idee_id: str, donnees: dict, remplacer_listes: bool = False, motif: str | None = None) -> dict:
+def modifier(idee_id: str, donnees: dict, remplacer_listes: bool = False, motif: str | None = None,
+             forcer: bool = False) -> dict:
     """Met à jour une idée. Par défaut les références et thèmes secondaires sont AJOUTÉS
     (rien n'est perdu) ; `remplacer_listes` les remplace."""
     cx = ouvrir()
@@ -673,6 +746,8 @@ def modifier(idee_id: str, donnees: dict, remplacer_listes: bool = False, motif:
         if "statut" in donnees:
             raise ErreurValidation("Changer le statut passe par `idee statut` (motif et contrôles dédiés).")
         maj, avert = valider(donnees, partiel=True)
+        avert_conf, forces = _controler_confidentialite(maj, forcer, motif)
+        avert += avert_conf
         apres = dict(avant)
         for k, v in maj.items():
             if k in ("references", "themes_secondaires") and not remplacer_listes:
@@ -689,7 +764,8 @@ def modifier(idee_id: str, donnees: dict, remplacer_listes: bool = False, motif:
             return {"etat": "inchange", "id": idee_id, "avertissements": avert}
         _inserer(cx, apres)
         _exporter(cx)
-        journal.noter("idee_modifiee", idee_id, changes, motif)
+        journal.noter("idee_modifiee", idee_id, {**changes, **({"donnees_sensibles_forcees": forces} if forces else {})},
+                      motif)
         return {"etat": "modifie", "id": idee_id, "champs": sorted(changes), "avertissements": avert}
     finally:
         cx.close()
@@ -721,12 +797,14 @@ def changer_statut(idee_id: str, statut: str, motif: str | None) -> dict:
 
 
 def ajouter_retour(idee_id: str, contexte: str, resultat: str, enseignement: str | None = None,
-                   quand: str | None = None) -> dict:
+                   quand: str | None = None, forcer: bool = False, motif: str | None = None) -> dict:
+    retour = {k: v for k, v in {"date": quand or date.today().isoformat(), "contexte": contexte,
+                                "resultat": resultat, "enseignement": enseignement}.items() if v}
+    _controler_confidentialite({"retours": [retour]}, forcer, motif)
     cx = ouvrir()
     try:
         idee = _charger(cx, idee_id)
-        idee["retours"].append({k: v for k, v in {"date": quand or date.today().isoformat(), "contexte": contexte,
-                                                  "resultat": resultat, "enseignement": enseignement}.items() if v})
+        idee["retours"].append(retour)
         idee["maj_le"] = datetime.now().isoformat(timespec="seconds")
         _inserer(cx, idee)
         _exporter(cx)
@@ -894,7 +972,7 @@ def verifier_references() -> list[dict]:
             if ref.get("type") != "istqb":
                 continue
             try:
-                problemes = _verifier_reference_istqb(dict(ref))
+                problemes = _verifier_reference_istqb(dict(ref), relecture=True)
             except ErreurValidation as exc:
                 problemes = [str(exc)]
             out.append({"idee": idee["id"], "doc_id": ref.get("doc_id"), "pages": ref.get("pages"),

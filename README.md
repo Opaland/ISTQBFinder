@@ -1,7 +1,7 @@
 # ISTQBFinder — QA Knowledge Agent
 
-Assistant de connaissances QA **utilisé en conversation** dans Claude Code (référence) ou
-GitHub Copilot (voir « Où l'utiliser »).
+Assistant de connaissances QA **utilisé en conversation** dans Claude Code (référence),
+GitHub Copilot ou Gemini CLI (voir « Où l'utiliser »).
 Il cherche dans une bibliothèque locale de syllabus ISTQB (FR et EN, pages et sections
 citées), dans une base d'idées QA capitalisées au fil du temps, et sur le Web seulement
 quand c'est justifié. Il ne « s'entraîne » pas : il enrichit une mémoire documentaire
@@ -17,6 +17,7 @@ Pas de serveur, pas d'interface graphique, pas de clé d'API. Python ≥ 3.10 + 
 | **Appli de bureau Claude, onglet Code** (dossier du dépôt ouvert) | oui | même fonctionnement que la ligne de commande |
 | **VS Code + GitHub Copilot Chat** (mode agent) | oui, non essayé en réel | skills lus dans `.claude/skills/`, agents `.github/agents/` générés, consignes `AGENTS.md` — voir [Utiliser avec GitHub Copilot](#utiliser-avec-github-copilot) |
 | **GitHub Copilot CLI** (`copilot`) | oui, chargement vérifié | idem ; réponses non essayées faute de compte Copilot |
+| **Gemini CLI** (`gemini`) | oui, chargement vérifié | skills `.gemini/skills/`, sous-agents `@thomas` / `@sylvie`, commandes `/thomas` / `/sylvie`, tous générés — voir [Utiliser avec Gemini CLI](#utiliser-avec-gemini-cli) |
 | **claude.ai** (conversation Web ou appli, onglet Chat) | **non** | voir ci-dessous |
 
 Pourquoi pas claude.ai : le skill n'est pas autonome. Il pilote la CLI `python qa.py`
@@ -32,10 +33,15 @@ istqb.org depuis la machine. Un paquet dédié à claude.ai (consultation seule)
 
 ```bash
 git clone https://github.com/Opaland/ISTQBFinder && cd ISTQBFinder
-pip install -r requirements.txt
-python qa.py actualiser      # indexe les 42 PDF fournis dans bibliotheque/sources/ (≈ 3 min, une fois)
-python qa.py inventaire
+./installer.sh               # Windows : powershell -ExecutionPolicy Bypass -File installer.ps1
 ```
+
+Le script (relançable) vérifie Python ≥ 3.10, crée le venv `.venv`, installe les
+dépendances, indexe les 42 PDF fournis (≈ 3 min la première fois) puis affiche un
+diagnostic OK/KO (`python qa.py diagnostic`). Option `--assistant claude|copilot|gemini|tous`.
+Procédure pas à pas, par assistant (Claude Code, GitHub Copilot, Gemini CLI) :
+**[docs/installation.md](docs/installation.md)**. Lancer ensuite l'assistant venv activé
+(`source .venv/bin/activate`).
 
 Ajouter d'autres documents : `python qa.py importer chemin/vers/fichiers/` ; nouvelles
 versions officielles : `python qa.py catalogue --verifier` puis `telecharger <code>`.
@@ -75,7 +81,8 @@ La CLI reste utilisable directement (`python qa.py --help`) :
 | Besoin | Commande |
 |---|---|
 | Chercher dans les syllabus | `chercher <notions> [--doc CTAL-TM] [--theme rbt] [--section 1.3] [--langue fr]` |
-| Lire avant de citer | `lire <passage> [--contexte 1]` · `section <doc> <num>` · `page <doc> <p[-q]>` · `plan <doc>` |
+| Confiance d'une réponse | `confiance --base N --lus N --concordants N [--web 1] [--non-couvert 1] …` (calcul affiché) |
+| Lire avant de citer | `lire <passage> [--contexte 1]` · `section <doc> <num>` · `page <doc> <p[-q]>` (sorties bornées : `--max-caracteres`, défaut 15 000) · `plan <doc>` |
 | Base d'idées | `idee chercher …` · `idee lister [--theme] [--statut]` · `idee voir QA-20261022-7f3a` |
 | Capitaliser | `idee modele` · `idee doublons <<'JSON'` · `idee ajouter <<'JSON'` (JSON sur l'entrée standard) |
 | Faire évoluer | `idee modifier` · `idee statut … --motif` · `idee retour` · `idee lier` · `journal` |
@@ -83,6 +90,7 @@ La CLI reste utilisable directement (`python qa.py --help`) :
 | Syllabus manquants | `manquants [--langue fr]` · skills `/bibliotheque` (maintenance) et `/ajouter-syllabus` |
 | Bibliothèque | `catalogue [--verifier]` · `telecharger` · `importer` · `actualiser` · `inventaire` · `corriger` · `retirer` |
 | Qualité de la recherche | `evaluer --jeu controle` |
+| Contrôle de l'installation | `diagnostic [--assistant claude\|copilot\|gemini\|tous]` |
 
 ## Utiliser avec GitHub Copilot
 
@@ -135,6 +143,54 @@ Documentation consultée (2026-10-22) :
 [Copilot CLI — instructions](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions) ·
 [Copilot CLI — outils autorisés](https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/allowing-tools).
 
+## Utiliser avec Gemini CLI
+
+Prérequis : l'installation ci-dessus, puis [Gemini CLI](https://geminicli.com/docs/)
+(`npm install -g @google/gemini-cli`, Node.js 20+), lancé avec `gemini` à la racine du dépôt.
+Au premier lancement, **faire confiance au dossier** : sinon Gemini ignore les réglages,
+les sous-agents et les commandes du projet. Les skills sont activés par défaut
+(`skills.enabled`, plus de préversion à activer en 0.65).
+
+| Élément | Fichier lu par Gemini (généré) | Source unique |
+|---|---|---|
+| Consignes | `AGENTS.md`, via `context.fileName` de `.gemini/settings.json` | `AGENTS.md` |
+| Skills | `.gemini/skills/<skill>/` (copie, liens `reference/` conservés) | `.claude/skills/` |
+| Thomas, Sylvie en sous-agents | `.gemini/agents/thomas.md`, `sylvie.md` → `@thomas <question>` | `.claude/agents/*.md` |
+| Thomas, Sylvie en commandes | `.gemini/commands/thomas.toml`, `sylvie.toml` → `/thomas <question>` | `.claude/agents/*.md` |
+| Lecture seule pré-approuvée | `tools.allowed` de `.gemini/settings.json` | `.claude/settings.json` (`allow`) |
+
+- **Sous-agent ou commande** : `@thomas` délègue à un sous-agent qui rend un rapport ;
+  `/thomas` fait jouer Thomas dans la conversation principale (il peut alors poser lui-même
+  les questions de cadrage).
+- Gemini ne lit pas `.claude/` : d'où les copies générées. Elles sont dans `.gemini/skills/`
+  et non dans `.agents/skills/`, que Copilot lit aussi (les skills y apparaîtraient en double).
+- Contrôle sans compte : `gemini skills list` ; dans une session, `/skills list` et
+  `/commands list`.
+
+Limites connues :
+
+- **Non essayé en réel** côté réponses : aucune clé Gemini ni compte Google dans
+  l'environnement de développement ; aucune question n'a été posée à Thomas ni à Sylvie.
+  Vérifié avec Gemini CLI 0.65.0 : `gemini skills list` voit les trois skills et `AGENTS.md`
+  est chargé (journal `--debug`). Les sous-agents et les commandes ont été chargés par les
+  chargeurs mêmes de Gemini CLI 0.65.0 (`loadAgentsFromDirectory`, `FileCommandLoader`,
+  appelés depuis Node) : aucune erreur, `{{args}}` remplacé.
+- `tools.allowed` est signalé **obsolète** par Gemini CLI 0.65 (« Migrate to Policy Engine »),
+  mais le niveau « Workspace » du moteur de règles est documenté comme non fonctionnel :
+  c'est donc la seule pré-approbation versionnable à ce jour. Une règle n'autorise qu'un
+  préfixe de commande ; les commandes enchaînées (`&&`, `;`) sont vérifiées une à une.
+- Depuis le 18 juin 2026, Google remplace Gemini CLI par Antigravity CLI pour les comptes
+  gratuits et Google One (bandeau de la documentation) : non vérifié avec Antigravity.
+
+Documentation consultée (2026-10-22) :
+[Skills](https://geminicli.com/docs/cli/skills/) ·
+[Commandes personnalisées](https://geminicli.com/docs/cli/custom-commands/) ·
+[Sous-agents](https://geminicli.com/docs/core/subagents/) ·
+[Configuration](https://geminicli.com/docs/reference/configuration/) ·
+[Outils](https://geminicli.com/docs/reference/tools/) ·
+[Commande shell](https://geminicli.com/docs/tools/shell/) ·
+[Policy Engine](https://geminicli.com/docs/reference/policy-engine/).
+
 ## Ce qui est versionné
 
 | Versionné (Git) | Non versionné (reconstructible) |
@@ -142,8 +198,11 @@ Documentation consultée (2026-10-22) :
 | `connaissances/connaissances.jsonl` — les idées | `connaissances/base.db` — reconstruite depuis le JSONL |
 | `connaissances/journal.jsonl` — l'historique | `bibliotheque/index.db` — reconstruit par `actualiser` |
 | `bibliotheque/manifeste.json` — métadonnées des documents | |
-| `bibliotheque/sources/` — les PDF (≈ 33 Mo) | |
+| `bibliotheque/sources/` — les PDF (≈ 33 Mo) | `bibliotheque/prive/` — documents internes (`importer --prive`) |
 | `referentiel/` (taxonomie, thésaurus), `catalogue/`, `eval/` | |
+
+Le dépôt est **public** : anonymiser toute idée (ni client, ni personne, ni projet, ni
+montant) et importer les documents internes avec `importer --prive`, jamais dans `sources/`.
 
 Après une session de capitalisation : commiter `connaissances/` (et
 `referentiel/taxonomie.json` si un thème a été ajouté). Sur un autre poste, un `git pull`
@@ -205,4 +264,5 @@ source est citée. Les PDF de `bibliotheque/sources/` sont versionnés à ce
 titre, source citée dans `bibliotheque/manifeste.json` (page officielle istqb.org ou
 traduction fournie par l'utilisateur). La licence MIT du dépôt couvre le code et la
 documentation, **pas** les syllabus, qui restent la propriété de l'ISTQB® et de leurs
-traducteurs.
+traducteurs : exclusion explicite dans `LICENSE`, liste des documents avec ayant droit,
+traducteur (CFTL pour les traductions françaises) et source dans [`NOTICE.md`](NOTICE.md).

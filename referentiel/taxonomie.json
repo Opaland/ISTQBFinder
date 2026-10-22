@@ -1,6 +1,6 @@
 {
  "description": "Taxonomie QA hiérarchique. Point de départ, pas une liste fermée : ajouter un sous-thème avec `theme ajouter` (contrôle des redondances). Ne jamais supprimer un thème utilisé : le marquer statut=obsolete avec remplace_par pour conserver l'historique.",
- "version": 1,
+ "version": 2,
  "themes": [
   {
    "code": "strategie",
@@ -291,17 +291,45 @@
     "tests fonctionnels",
     "functional suitability",
     "aptitude fonctionnelle",
-    "system testing",
-    "test système",
-    "integration testing",
-    "tests d'intégration",
-    "regression testing",
-    "tests de régression",
-    "mobile",
-    "game testing"
+    "functional completeness",
+    "complétude fonctionnelle",
+    "functional correctness",
+    "exactitude fonctionnelle",
+    "functional appropriateness",
+    "pertinence fonctionnelle"
    ],
    "statut": "actif",
    "cree_le": "2026-10-21"
+  },
+  {
+   "code": "niveaux-types",
+   "parent": null,
+   "libelle": "Niveaux et types de test",
+   "mots_cles": [
+    "test levels",
+    "niveaux de test",
+    "component testing",
+    "test de composants",
+    "unit testing",
+    "tests unitaires",
+    "integration testing",
+    "tests d'intégration",
+    "system testing",
+    "test système",
+    "acceptance testing",
+    "test types",
+    "types de test",
+    "confirmation testing",
+    "tests de confirmation",
+    "regression testing",
+    "tests de régression",
+    "maintenance testing",
+    "tests de maintenance",
+    "impact analysis",
+    "analyse d'impact"
+   ],
+   "statut": "actif",
+   "cree_le": "2026-10-22"
   },
   {
    "code": "non-fonctionnel",
@@ -502,7 +530,6 @@
     "shift left",
     "early testing",
     "tests au plus tôt",
-    "static analysis",
     "tdd",
     "test-driven development",
     "prévention des défauts",
@@ -634,19 +661,40 @@
     "réglementé",
     "safety-critical",
     "sûreté de fonctionnement",
-    "compliance",
-    "conformité",
+    "regulatory compliance",
+    "conformité réglementaire",
     "audit",
     "iso 26262",
     "automotive spice",
     "do-178c",
     "iec 62304",
-    "gxp",
-    "finance",
-    "gambling"
+    "gxp"
    ],
    "statut": "actif",
    "cree_le": "2026-10-21"
+  },
+  {
+   "code": "domaines-metier",
+   "parent": null,
+   "libelle": "Domaines métier spécifiques",
+   "mots_cles": [
+    "mobile application testing",
+    "test d'applications mobiles",
+    "mobile",
+    "game testing",
+    "test de jeux vidéo",
+    "automotive software",
+    "logiciel automobile",
+    "financial systems",
+    "systèmes financiers",
+    "finance",
+    "gambling",
+    "jeux d'argent",
+    "domain-specific",
+    "spécifique au domaine"
+   ],
+   "statut": "actif",
+   "cree_le": "2026-10-22"
   },
   {
    "code": "organisation",

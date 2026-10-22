@@ -147,7 +147,8 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
                               "score": round(-r["score"], 2), "couverture": round(c, 2),
                               "partiel": c < 1 and bool(gs),
                               "groupes_trouves": [gs[k].libelle for k in sorted(trouves[r["id"]])],
-                              "notion_en_titre": bool(en_titre[r["id"]])})
+                              "notion_en_titre": bool(en_titre[r["id"]]),
+                              "couverture_titre": round(titre(r), 2)})
             if len(resultats) >= n:
                 break
         ignores = mots_ignores(requete)
@@ -160,7 +161,7 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
             avert.append("Aucun passage ne couvre toutes les notions : résultats partiels.")
         avert += _diagnostic_filtres(cx, docs, langue, niveau, toutes_versions)
         return {"requete_fts": ou, "groupes": [g.libelle for g in gs], "resultats": resultats,
-                "confiance": confiance_documentaire(resultats),
+                "couverture_lexicale": couverture_lexicale(resultats),
                 "avertissements": avert}
     finally:
         if propre:
@@ -193,32 +194,48 @@ def _notions_des_candidats(candidats: list[sqlite3.Row], gs: list[Groupe]) -> tu
 
 def _sans_resultat(libelles: list[str], avertissement: str) -> dict:
     """Retour anticipé (requête vide, bibliothèque vide) : même forme qu'un résultat normal,
-    clé « confiance » comprise (issue #53 : la CLI la lit toujours)."""
-    return {"requete_fts": "", "groupes": libelles, "resultats": [], "confiance": confiance_documentaire([]),
+    clé « couverture_lexicale » comprise (issue #53 : la CLI la lit toujours)."""
+    return {"requete_fts": "", "groupes": libelles, "resultats": [], "couverture_lexicale": couverture_lexicale([]),
             "avertissements": [avertissement]}
 
 
-def confiance_documentaire(resultats: list[dict]) -> dict:
-    """Indice 0-100 de la solidité du socle documentaire trouvé (pas de la réponse finale :
-    l'agent l'ajuste selon ce qu'il a réellement lu, voir le skill). Composantes :
-    couverture du meilleur passage (40), nombre de syllabus couvrant TOUTES les notions
-    (25), part de résultats complets dans les 5 premiers (20), section dont le titre
-    nomme la notion (15)."""
+ANNEE_RECENTE = 2017  # syllabus publiés avant : « anciens » (cohérent avec la grille du skill)
+
+
+def libelle(score: int) -> str:
+    return "élevée" if score >= 75 else "moyenne" if score >= 50 else "faible" if score >= 25 else "très faible"
+
+
+def couverture_lexicale(resultats: list[dict]) -> dict:
+    """Indice 0-100 du socle documentaire trouvé par la recherche. Ce n'est PAS une confiance
+    (issue #18) : il dit si les notions de la question figurent dans des passages pertinents,
+    pas si la réponse est juste — `qa.py confiance` en part, avec ce qui a été réellement lu.
+    Présence lexicale (55) : couverture du meilleur passage (25), syllabus couvrant TOUTES
+    les notions (15), part de résultats complets dans les 5 premiers (15).
+    Pertinence (45) : part des notions nommées par le TITRE de section des 5 premiers (30 ;
+    des sujets dispersés — sections qui ne font qu'évoquer la notion — la font chuter),
+    part des 5 premiers issus d'un syllabus publié depuis ANNEE_RECENTE (15)."""
     if not resultats:
         return {"score": 0, "libelle": "nulle", "raisons": ["aucun passage trouvé"]}
     top = resultats[:5]
     complets = {r["doc_id"].rsplit("-", 2)[0] for r in resultats if not r["partiel"]}  # par code
-    a = 40 * top[0]["couverture"]
-    b = {0: 0, 1: 10, 2: 20}.get(len(complets), 25)
-    c = 20 * sum(not r["partiel"] for r in top) / len(top)
-    d = 15 if any(r.get("notion_en_titre") for r in top) else 0
-    score = round(a + b + c + d)
-    libelle = "élevée" if score >= 75 else "moyenne" if score >= 50 else "faible" if score >= 25 else "très faible"
+    nb_complets = sum(not r["partiel"] for r in top)
+    titres = sum(r.get("couverture_titre", 0) for r in top) / len(top)
+    recents = sum(int((r.get("date_publication") or "0")[:4] or 0) >= ANNEE_RECENTE for r in top)
+    a = 25 * top[0]["couverture"]
+    b = {0: 0, 1: 5, 2: 10}.get(len(complets), 15)
+    c = 15 * nb_complets / len(top)
+    d = 30 * titres
+    e = 15 * recents / len(top)
+    score = round(a + b + c + d + e)
+    en_titre = sum(bool(r.get("notion_en_titre")) for r in top)
     raisons = [f"meilleur passage : {round(100 * top[0]['couverture'])} % des notions",
                f"{len(complets)} syllabus couvrent toutes les notions",
-               f"{sum(not r['partiel'] for r in top)}/{len(top)} premiers résultats complets"]
-    raisons.append("une section est consacrée à la notion" if d else "aucune section consacrée à la notion")
-    return {"score": score, "libelle": libelle, "raisons": raisons}
+               f"{nb_complets}/{len(top)} premiers résultats complets",
+               f"{en_titre}/{len(top)} premières sections nomment une notion dans leur titre"
+               + (" (sujets dispersés)" if en_titre * 5 < 2 * len(top) else ""),
+               f"{recents}/{len(top)} premiers résultats issus d'un syllabus publié depuis {ANNEE_RECENTE}"]
+    return {"score": score, "libelle": libelle(score), "raisons": raisons}
 
 
 def _diagnostic_filtres(cx, docs, langue, niveau, toutes_versions) -> list[str]:

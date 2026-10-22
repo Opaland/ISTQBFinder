@@ -1,9 +1,10 @@
 # ISTQBFinder — consignes communes aux assistants
 
-Consignes lues par GitHub Copilot (VS Code, Copilot CLI) et importées par `CLAUDE.md`
-pour Claude Code. Assistant de connaissances QA **conversationnel** pour un Test
-Manager / QA Lead : syllabus ISTQB locaux (FR/EN), base d'idées QA capitalisées, Web
-seulement si justifié. Français partout (réponses, messages, commits, commentaires).
+Consignes lues par GitHub Copilot (VS Code, Copilot CLI) et Gemini CLI
+(`context.fileName` de `.gemini/settings.json`), importées par `CLAUDE.md` pour Claude Code.
+Assistant de connaissances QA **conversationnel** pour un Test Manager / QA Lead :
+syllabus ISTQB locaux (FR/EN), base d'idées QA capitalisées, Web seulement si justifié.
+Français partout (réponses, messages, commits, commentaires).
 
 ## Où est la méthode
 
@@ -15,7 +16,8 @@ seulement si justifié. Français partout (réponses, messages, commits, comment
   Sylvie, auditrice). Pour une question QA, lis d'abord
   `.claude/skills/qa-knowledge/SKILL.md` et applique-le.
 - Fichiers **générés** par `python scripts/generer_integrations.py` (ne jamais les modifier
-  à la main ; modifier la source puis relancer le script) : `.github/agents/*.agent.md`.
+  à la main ; modifier la source puis relancer le script) : `.github/agents/*.agent.md`,
+  tout le dossier `.gemini/` (skills copiés, sous-agents, commandes `/thomas` et `/sylvie`, réglages).
 
 ## Répondre à une question QA (règles impératives)
 
@@ -40,6 +42,12 @@ seulement si justifié. Français partout (réponses, messages, commits, comment
 - **Un correctif = une PR** : une branche partie de `main` à jour, un seul sujet, et
   `Closes #n` dans la description. Jamais de commit direct sur `main`.
 - Une PR n'est fusionnée que si la CI est verte ; la fusion ferme l'issue.
+- Après toute modification de `.claude/skills/` ou `.claude/agents/` (ou des permissions
+  `allow` de `.claude/settings.json`) : `python scripts/generer_integrations.py`, et commiter
+  les fichiers régénérés dans la même PR (sinon `tests/test_integrations.py` échoue).
+- Juste avant de fusionner : fusionner `main` à jour dans la branche, relancer
+  `python scripts/generer_integrations.py` si `.claude/` ou le générateur ont bougé, et
+  attendre la CI verte sur **ce** commit (deux PR vertes séparément peuvent casser `main`).
 - Avant de pousser : `python -m pytest tests/ -q -rs` vert, et `python qa.py evaluer
   --jeu controle` si le moteur de recherche est touché (chiffres dans la PR).
 
@@ -57,5 +65,6 @@ seulement si justifié. Français partout (réponses, messages, commits, comment
   `autouse` de `tests/conftest.py` isole chaque test dans un dossier temporaire.
 - Base d'idées : `connaissances/connaissances.jsonl` est la source versionnée ; ne
   capitaliser qu'avec l'accord de l'utilisateur ; proposer un commit après une session.
+- **Dépôt public** : n'enregistre rien qui nomme un client, une personne, un projet ou un montant (anonymiser) ; un document interne s'importe avec `importer --prive` (`bibliotheque/prive/`, jamais versionné).
 - Les PDF de `bibliotheque/sources/` sont © ISTQB (copie autorisée avec citation) : ne
   pas les modifier ; ils ne relèvent pas de la licence MIT.

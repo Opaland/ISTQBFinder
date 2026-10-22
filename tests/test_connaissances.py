@@ -477,3 +477,71 @@ def test_journal_fusionne_sans_conflit_par_git(tmp_path):
     r = git("merge", "-q", "poste-b", "-m", "fusion")
     assert r.returncode == 0, r.stdout + r.stderr
     assert jnl.read_text(encoding="utf-8").splitlines() == ['{"n": 0}', '{"n": "a"}', '{"n": "b"}']
+
+
+def test_donnees_sensibles_bloquees_sauf_forcer_avec_motif():
+    """#39 : dépôt public — « budget 120 k€, contact jean.dupont@client.fr » était enregistré."""
+    sensible = {**IDEE, "resume": "Client Airbus, projet A350, budget 120 k€, contact jean.dupont@client.fr."}
+    with pytest.raises(ErreurValidation, match=r"(?s)adresse e-mail « jean\.dupont@client\.fr ».*montant « 120 k€ ».*PUBLIC"):
+        connaissances.ajouter(sensible)
+    with pytest.raises(ErreurValidation, match="confidentielle"):
+        connaissances.ajouter(sensible, forcer=True)  # --forcer sans motif
+    assert not chemins.connaissances_jsonl().exists() or "dupont" not in chemins.connaissances_jsonl().read_text(
+        encoding="utf-8")
+    q1 = connaissances.ajouter(dict(IDEE))["id"]
+    with pytest.raises(ErreurValidation, match="téléphone"):
+        connaissances.modifier(q1, {"limites": "Appeler le référent au 06 12 34 56 78."})
+    with pytest.raises(ErreurValidation, match="téléphone"):
+        connaissances.ajouter_retour(q1, "Projet interne", "Voir avec le +33 6 12 34 56 78")
+    r = connaissances.modifier(q1, {"limites": "Coût indicatif 15 000 € par campagne."}, forcer=True,
+                               motif="ordre de grandeur public, issu d'un article")
+    assert any("--forcer" in w for w in r["avertissements"])
+    e = journal.lire(q1)[-1]
+    assert e["details"]["donnees_sensibles_forcees"] == ["montant"] and e["motif"]
+
+
+def test_pas_de_faux_positif_sur_les_nombres_courants():
+    texte = ("ISO/IEC/IEEE 29119-3 version 4.0.1, CTAL-TM p. 29-30, le 2026-10-22, sessions de 90 min, "
+             "80 % de couverture, 10 000 tests, release 3.2, niveau TMMi 2.")
+    connaissances.ajouter({**IDEE, "principe": texte})
+
+
+def test_reference_interne_avertit():
+    r = connaissances.ajouter({**IDEE, "references": [{"type": "interne", "titre": "Bilan de campagne"}]})
+    assert any("interne" in w and "public" in w for w in r["avertissements"])
+
+
+def test_empreinte_du_document_lu_enregistree_et_controlee(bibliotheque_test):
+    """#35 : la référence mémorise l'empreinte du PDF lu ; un fichier modifié sur place ne
+    peut pas être cité, et après remplacement `verifier-refs` demande une relecture."""
+    from qak import bibliotheque
+    entree = next(iter(bibliotheque.lire_manifeste()["documents"].values()))
+    q1 = connaissances.ajouter(_ref_ctfl(pages="6", extrait=EXTRAIT_P6))["id"]
+    ref = connaissances.voir(q1)["references"][0]
+    assert ref["empreinte"] == entree["sha256"]
+    assert json.loads(chemins.connaissances_jsonl().read_text(encoding="utf-8"))["references"][0]["empreinte"] \
+        == entree["sha256"]
+    assert connaissances.verifier_references()[0]["problemes"] == []
+    f = chemins.sources() / entree["fichier"]
+    with open(f, "ab") as fh:
+        fh.write(b"\n% altere\n")
+    bibliotheque.actualiser()
+    with pytest.raises(ErreurValidation, match="modifié sur place"):
+        connaissances.valider(_ref_ctfl(doc_id=bibliotheque_test, pages="6", extrait=EXTRAIT_P6))
+    assert "modifié sur place" in connaissances.verifier_references()[0]["problemes"][0]
+    bibliotheque.importer(f, remplacer=True, motif="PDF ré-exporté, contenu vérifié")
+    assert "contenu différent" in connaissances.verifier_references()[0]["problemes"][0]
+
+
+def test_migration_base_sans_colonne_empreinte():
+    import sqlite3
+    q1 = connaissances.ajouter({**IDEE, "references": [{"type": "web", "url": "https://exemple.org/a"}]})["id"]
+    cx = sqlite3.connect(chemins.base_db())  # base créée par une version antérieure
+    cx.executescript("ALTER TABLE refs RENAME TO refs_v; CREATE TABLE refs (idee_id TEXT NOT NULL, ordre INTEGER "
+                     "NOT NULL, type TEXT NOT NULL, titre TEXT, doc_id TEXT, version TEXT, pages TEXT, section TEXT, "
+                     "url TEXT, extrait TEXT, consulte_le TEXT, note TEXT, PRIMARY KEY (idee_id, ordre)); "
+                     "INSERT INTO refs SELECT idee_id, ordre, type, titre, doc_id, version, pages, section, url, "
+                     "extrait, consulte_le, note FROM refs_v; DROP TABLE refs_v;")
+    cx.close()
+    connaissances.modifier(q1, {"references": [{"type": "web", "url": "https://exemple.org/b"}]})
+    assert len(connaissances.voir(q1)["references"]) == 2

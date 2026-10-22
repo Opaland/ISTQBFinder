@@ -66,6 +66,7 @@ ancienne, une seule langue ou aucun syllabus local ne couvre la démarche, propo
   dans la bibliothèque → toute conformité ISO est non vérifiable ici).
 - Si une piste mérite d'être conservée (ex. la liste de contrôle RBT), rends-la en JSON
   prêt à l'emploi (champs de `python qa.py idee modele`) sans l'enregistrer.
+  **Dépôt public** : n'enregistre rien qui nomme un client, une personne, un projet ou un montant (anonymiser) ; un document interne s'importe avec `importer --prive` (`bibliotheque/prive/`, jamais versionné).
 - **Traçabilité** (bloc final) : date de l'avis ; pour chaque document lu, `doc_id`,
   version et date de publication ; sections et pages lues ; requêtes `chercher` lancées.
 - **En pied** : la même mention « Avis indicatif… » qu'en tête.

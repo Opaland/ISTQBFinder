@@ -17,7 +17,17 @@ python qa.py evaluer --jeu controle   # qualité de la recherche (avant/après t
 python qa.py inventaire               # état de la bibliothèque
 ```
 
-## Règles
+## Règles de développement
+
+- **Un problème = une issue** GitHub (constat, scénario reproductible, impact attendu),
+  qu'il vienne d'une revue, d'un test ou de l'usage.
+- **Un correctif = une PR** : une branche partie de `main` à jour, un seul sujet, et
+  `Closes #n` dans la description. Jamais de commit direct sur `main`.
+- Une PR n'est fusionnée que si la CI est verte ; la fusion ferme l'issue.
+- Avant de pousser : `python -m pytest tests/ -q -rs` vert, et `python qa.py evaluer
+  --jeu controle` si le moteur de recherche est touché (chiffres dans la PR).
+
+## Règles métier
 
 - Ne jamais citer une page, une section ou un passage non lu via `lire`/`section`/`page`.
 - Une référence ISTQB n'est enregistrée que vérifiée par l'outil (page, extrait) ;

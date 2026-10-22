@@ -89,6 +89,16 @@ def sigle_court(cible: tuple) -> bool:
     return len(cible) == 1 and len(cible[0]) <= 2 and cible[0].isalpha()
 
 
+def termes_thesaurus() -> frozenset:
+    """Tous les termes du thésaurus, normalisés (« tmmi », « api », « partition d equivalence »)."""
+    return _termes_thesaurus(str(chemins.thesaurus()))
+
+
+@lru_cache(maxsize=4)
+def _termes_thesaurus(chemin: str) -> frozenset:
+    return frozenset(normaliser(t) for _, termes in _thesaurus(chemin)[0] for t in termes)
+
+
 def reperer_concepts(texte: str) -> tuple[list[tuple[str, tuple]], list[str]]:
     """Repère les concepts du thésaurus dans `texte` (pluriels tolérés, expressions
     longues prioritaires ; sigles de 2 lettres seulement en MAJUSCULES). Renvoie

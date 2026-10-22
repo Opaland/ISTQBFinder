@@ -44,7 +44,7 @@ Une idée = une ligne de `connaissances.jsonl` (source versionnée) et une ligne
   `experimentee` exigent un motif ; `experimentee` exige un retour d'expérience ;
 - `idee modifier` ajoute aux listes (références, thèmes) au lieu de les remplacer ;
 - référence ISTQB : document connu, page existante, extrait présent, version remplacée signalée ;
-- chaque écriture ajoute une ligne à `journal.jsonl` (horodatage, action, cible, détails avant/après, motif).
+- chaque écriture ajoute une ligne à `journal.jsonl` (horodatage avec fuseau horaire, auteur = `git config user.name` ou utilisateur système, action, cible, détails avant/après, motif) ; `journal --details` les affiche. Fusion Git en `merge=union` (`.gitattributes`) : pas de conflit quand deux postes ajoutent des entrées ; un marqueur `<<<<<<<` resté dans un JSONL est signalé avec le fichier et la ligne.
 
 ### Tables SQLite (`base.db`)
 

@@ -6,6 +6,7 @@ Sorties en texte français compact ; `--json` sur les commandes de lecture pour 
 traitement automatique."""
 import argparse
 import json
+import re
 import sys
 import sqlite3
 from pathlib import Path
@@ -101,24 +102,34 @@ def cmd_catalogue(a):
 def cmd_telecharger(a):
     if not (a.codes or a.tous or a.niveau):
         raise ErreurValidation("Préciser des codes (ex. CTFL CTAL-TM), --niveau ou --tous.")
+    rc = 0
     for d in catalogue.documents(None if a.tous or a.niveau else a.codes, a.niveau):
         r = catalogue.telecharger(d)
         _ecrire(f"{d['code']:10} {r['etat']:8} {r.get('doc_id', '')} — {r['message']}")
         for n in r.get("versions", []):
             _ecrire(f"           version : {n}")
+        rc = 2 if r["etat"] == "echec" else rc
+    return rc
 
 
 def cmd_importer(a):
     meta = {"code": a.code, "titre": a.titre, "niveau": a.niveau, "domaine": a.domaine, "version": a.version,
             "langue": a.langue, "date_publication": a.date, "source_officielle": a.source, "type": a.type}
+    rc = 0
     for f in a.fichiers:
         p = Path(f)
         fichiers = sorted(x for x in p.iterdir() if x.suffix.lower() in bibliotheque.EXTENSIONS) if p.is_dir() else [p]
+        if not fichiers:
+            _ecrire(f"{p} : aucun fichier PDF / .txt / .md")
+            rc = 2
         for x in fichiers:
             if not x.exists():
                 _ecrire(f"{x} : introuvable")
+                rc = 2
                 continue
             r = bibliotheque.importer(x, meta)
+            if r["etat"] == "echec":
+                rc = 2
             _ecrire(f"{x.name} → {r['etat']} {r.get('doc_id', '')} — {r['message']}")
             if r.get("meta"):
                 m = r["meta"]
@@ -126,6 +137,7 @@ def cmd_importer(a):
                         f"langue={m['langue']} date={m['date_publication']} — corriger avec `corriger` si faux")
             for n in r.get("versions", []):
                 _ecrire(f"    version : {n}")
+    return rc
 
 
 def cmd_actualiser(a):
@@ -138,6 +150,7 @@ def cmd_actualiser(a):
             _ecrire(f"{titre} :")
             for x in r[cle]:
                 _ecrire(f"  - {x}")
+    return 2 if r["echecs"] else 0
 
 
 def cmd_inventaire(a):
@@ -196,10 +209,14 @@ def cmd_manquants(a):
 
 
 def cmd_corriger(a):
+    if not any(getattr(a, k) for k in ("code", "titre", "niveau", "domaine", "version", "langue", "date", "source",
+                                       "type")):
+        raise ErreurValidation("Rien à corriger : préciser au moins un champ (--version, --date AAAA-MM-JJ, "
+                               "--langue fr|en, --niveau…).")
     champs = {"code": a.code, "titre": a.titre, "niveau": a.niveau, "domaine": a.domaine, "version": a.version,
               "langue": a.langue, "date_publication": a.date, "source_officielle": a.source, "type": a.type}
     e = bibliotheque.modifier_metadonnees(a.doc_id, **champs)
-    _ecrire(f"{a.doc_id} mis à jour (champs forcés : {', '.join(e['champs_forces'])}). "
+    _ecrire(f"{e['doc_id']} mis à jour (champs forcés : {', '.join(e['champs_forces'])}). "
             "L'identifiant reste inchangé ; relancer `inventaire` pour vérifier les versions.")
 
 
@@ -245,6 +262,14 @@ def _afficher_passages(rows: list[dict], doc: dict | None = None):
 def cmd_lire(a):
     rows = recherche.lire_passage(a.passage, a.contexte)
     _json(rows) if a.json else _afficher_passages(rows)
+
+
+def _plage_pages(texte: str) -> tuple[int, int | None]:
+    m = re.fullmatch(r"\s*(\d+)\s*(?:-\s*(\d+)\s*)?", texte)
+    if not m or int(m[1]) < 1 or (m[2] and int(m[2]) < int(m[1])):
+        raise ErreurValidation(f"Pages attendues : un numéro ou une plage croissante (ex. 31 ou 31-33), "
+                               f"reçu : « {texte} ».")
+    return int(m[1]), int(m[2]) if m[2] else None
 
 
 MAX_CARACTERES = 15000   # sortie de `page` / `section` : ~4 000 tokens, lisible en une fois
@@ -307,8 +332,7 @@ def _afficher_borne(r: dict, maximum: int, json_: bool, par_pages: bool = False)
 
 
 def cmd_page(a):
-    debut, _, fin = a.pages.partition("-")
-    r = recherche.lire_pages(a.doc, int(debut), int(fin) if fin else None)
+    r = recherche.lire_pages(a.doc, *_plage_pages(a.pages))
     if not r["passages"] and not a.json:
         return _ecrire(f"Aucun texte indexé pour ces pages de {r['document']['doc_id']} "
                        f"({r['document']['nb_pages']} pages ; pages vides : {r['document']['pages_vides'] or 'aucune'}).")
@@ -396,6 +420,8 @@ def cmd_idee(a):
         _afficher_doublons(r["doublons"])
         for w in r["avertissements"]:
             _ecrire(f"  ⚠ {w}")
+        if r["etat"] == "refuse":
+            return 2
     elif act == "doublons":
         d, _ = connaissances.valider(_lire_donnees(a.fichier), partiel=True)
         sim = connaissances.doublons(d)
@@ -507,6 +533,19 @@ def cmd_evaluer(a):
 
 # ---------------------------------------------------------------- analyseur
 
+NIVEAUX = ["fondation", "avance", "expert", "specialiste"]
+
+
+def _date_iso(v: str) -> str:
+    from datetime import date
+    try:
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", v):
+            return date.fromisoformat(v).isoformat()
+    except ValueError:
+        pass
+    raise argparse.ArgumentTypeError(f"date AAAA-MM-JJ attendue (reçu : {v})")
+
+
 def _entier_positif(v: str) -> int:
     try:
         n = int(v)
@@ -532,17 +571,21 @@ def analyseur() -> argparse.ArgumentParser:
     sp = p.add_subparsers(dest="commande", required=True)
 
     def meta(x):
-        for opt in ("code", "titre", "niveau", "domaine", "version", "langue", "date", "source", "type"):
+        for opt in ("code", "titre", "domaine", "version", "source"):
             x.add_argument(f"--{opt}")
+        x.add_argument("--niveau", choices=NIVEAUX)
+        x.add_argument("--langue", choices=["fr", "en"])
+        x.add_argument("--type", choices=["syllabus", "bok", "glossaire", "notes", "examen", "document"])
+        x.add_argument("--date", type=_date_iso, help="date de publication AAAA-MM-JJ")
 
     x = sp.add_parser("catalogue", help="syllabus officiels ISTQB et présence locale")
     x.add_argument("--verifier", action="store_true", help="interroger istqb.org (nouvelles versions)")
-    x.add_argument("--niveau", choices=["fondation", "avance", "expert", "specialiste"])
+    x.add_argument("--niveau", choices=NIVEAUX)
     x.set_defaults(f=cmd_catalogue)
     x = sp.add_parser("telecharger", help="télécharger des syllabus officiels (istqb.org) et les indexer")
     x.add_argument("codes", nargs="*")
     x.add_argument("--tous", action="store_true")
-    x.add_argument("--niveau", choices=["fondation", "avance", "expert", "specialiste"])
+    x.add_argument("--niveau", choices=NIVEAUX)
     x.set_defaults(f=cmd_telecharger)
     x = sp.add_parser("importer", help="importer des PDF / .txt / .md (fichiers ou dossiers)")
     x.add_argument("fichiers", nargs="+")
@@ -571,7 +614,7 @@ def analyseur() -> argparse.ArgumentParser:
     x.add_argument("requete", nargs="+")
     x.add_argument("-n", type=_entier_positif, default=8)
     x.add_argument("--doc", action="append", help="code ou doc_id (répétable)")
-    x.add_argument("--niveau", choices=["fondation", "avance", "expert", "specialiste"])
+    x.add_argument("--niveau", choices=NIVEAUX)
     x.add_argument("--langue", choices=["fr", "en"])
     x.add_argument("--section", help="numéro de section, sous-sections incluses (ex. 4.2)")
     x.add_argument("--theme", help="code de thème de la taxonomie")
@@ -662,10 +705,10 @@ def main(argv=None) -> int:
         if hasattr(flux, "reconfigure"):
             flux.reconfigure(encoding="utf-8")
     a = analyseur().parse_args(argv)
-    if a.commande == "idee":
-        _normaliser_idee(a)
     try:
-        a.f(a)
+        if a.commande == "idee":
+            _normaliser_idee(a)
+        rc = a.f(a)
     except BrokenPipeError:  # sortie tronquée (`| head`) : pas une erreur
         sys.stderr.close()
         return 0
@@ -686,7 +729,7 @@ def main(argv=None) -> int:
         for w in connaissances.avertissements():
             if not sys.stderr.closed:
                 sys.stderr.write(f"⚠ {w}\n")
-    return 0
+    return rc if isinstance(rc, int) else 0
 
 
 def _normaliser_idee(a) -> None:
@@ -700,8 +743,8 @@ def _normaliser_idee(a) -> None:
     elif a.action == "lier" and not a.cible and a.requete:
         a.cible = a.requete[0]
     elif a.action == "lister" and (a.id or a.requete):
-        raise SystemExit("Erreur : `idee lister` ne prend pas de texte : utiliser --theme <code> / --statut, "
+        raise ErreurValidation("`idee lister` ne prend pas de texte : utiliser --theme <code> / --statut, "
                          "ou `idee chercher <texte>`.")
     besoin_id = {"modifier", "statut", "retour", "lier", "retirer", "voir"}
     if a.action in besoin_id and not a.id:
-        raise SystemExit(f"Erreur : `idee {a.action}` attend un identifiant (QA-xxxx).")
+        raise ErreurValidation(f"`idee {a.action}` attend un identifiant (QA-xxxx).")

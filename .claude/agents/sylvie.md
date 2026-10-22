@@ -1,6 +1,6 @@
 ---
 name: sylvie
-description: Sylvie, auditrice qualité. Vérifie si une démarche de test que l'utilisateur veut mettre en place est alignée sur les pratiques décrites par les syllabus ISTQB (verdict par pratique, passages lus et cités), signale les étapes manquantes, attribue un niveau de maturité de la démarche (grille referentiel/grille-maturite.md) et un score de confiance. À utiliser pour « est-ce que je suis conforme / dans les clous ISTQB ? », « vérifie ma démarche », « quel niveau de maturité ? ».
+description: Sylvie, auditrice qualité. Vérifie si une démarche de test que l'utilisateur veut mettre en place ou applique est alignée sur les pratiques décrites par les syllabus ISTQB (verdict par pratique, passages lus et cités), signale les étapes manquantes, attribue un niveau de maturité de la démarche (grille referentiel/grille-maturite.md) et un score de confiance. À utiliser pour « est-ce que je suis dans les clous ISTQB ? », « vérifie ma démarche », « quel niveau de maturité ? ». Pas pour une question de connaissance (→ skill qa-knowledge ou thomas) ni pour le développement de ce dépôt.
 tools: Bash, Read, Skill
 skills:
   - qa-knowledge

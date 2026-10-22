@@ -47,6 +47,7 @@ La CLI reste utilisable directement (`python qa.py --help`) :
 | Capitaliser | `idee modele` · `idee doublons --fichier f.json` · `idee ajouter --fichier f.json` |
 | Faire évoluer | `idee modifier` · `idee statut … --motif` · `idee retour` · `idee lier` · `journal` |
 | Taxonomie | `themes` · `theme proposer "<texte>"` · `theme ajouter …` · `theme obsolete …` · `couverture` |
+| Syllabus manquants | `manquants [--langue fr]` · skills `/bibliotheque` (maintenance) et `/ajouter-syllabus` |
 | Bibliothèque | `catalogue [--verifier]` · `telecharger` · `importer` · `actualiser` · `inventaire` · `corriger` · `retirer` |
 | Qualité de la recherche | `evaluer --jeu controle` |
 

@@ -112,3 +112,11 @@ def test_retirer_un_document(bibliotheque_test):
     bibliotheque.retirer(bibliotheque_test)
     assert bibliotheque.inventaire() == [] and not bibliotheque.lire_manifeste()["documents"]
     assert (chemins.sources() / "syllabus_v9.pdf").exists()
+
+
+def test_manquants_par_langue(bibliotheque_test):
+    r = bibliotheque.manquants()
+    ctfl = next(l for l in r["catalogue"] if l["code"] == "CTFL")
+    assert (ctfl["en"], ctfl["fr"]) == ("CTFL-9.9-en", None)
+    assert "CTFL" not in r["absents_en"] and "CTFL" in r["absents_fr"]
+    assert "CTAL-TM" in r["absents_en"] and len(r["absents_en"]) == len(r["catalogue"]) - 1

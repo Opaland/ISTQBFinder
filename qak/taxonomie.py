@@ -14,7 +14,7 @@ STATUTS = ("actif", "obsolete")
 
 
 def charger() -> dict:
-    return json.loads(chemins.taxonomie().read_text(encoding="utf-8"))
+    return json.loads(chemins.taxonomie().read_text(encoding="utf-8-sig"))
 
 
 def _ecrire(t: dict) -> None:

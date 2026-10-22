@@ -34,10 +34,12 @@ from pathlib import Path
 
 RACINE = Path(__file__).resolve().parent.parent
 OUTILS = ["Bash(python qa.py:*)", "Bash(python3 qa.py:*)", "Read", "Skill", "WebSearch", "WebFetch"]
-# Une citation = « §x.y … p. N » ; elle se rattache au dernier code de syllabus nommé avant
-# elle (« **CTFL v4.0.1** … (§4.2.1, p. 40) » comme « [CTAL-TM v3.0, §1.3, p. 29] »).
+# Une citation = « §x.y … p. N » ou « … pp. N-M » ; elle se rattache au dernier code de
+# syllabus nommé avant elle (« **CTFL v4.0.1** … (§4.2.1, p. 40) » comme « [CTAL-TM v3.0,
+# §1.3, p. 29] »). Entre « § » et la page, ni « § » ni « ; » : sinon deux références
+# voisines fusionnent et la page de la seconde est prêtée à la première (#142).
 RE_JETON = re.compile(r"(?P<code>\b(?:CTFL(?:-AT)?|CTAL-[A-Za-z]+|CTEL-[A-Za-z]+|CT-[A-Za-z]+)\b)"
-                      r"|(?P<ref>§\s?[\d.]+[^\n\]\)]{0,40}?\bp\.\s?(?P<p1>\d+)(?:\s?[-–]\s?(?P<p2>\d+))?)")
+                      r"|(?P<ref>§\s?[\d.]+[^\n\]\)§;]{0,40}?\bpp?\.\s?(?P<p1>\d+)(?:\s?[-–]\s?(?P<p2>\d+))?)")
 RE_CONFIANCE = re.compile(r"[Cc]onfiance\s*:?\s*\**\s*(\d{1,3})\s*/\s*100")
 RE_ETAPE = re.compile(r"^\s*(?:[-*]\s*)?(?:\*\*)?(?:[ÉE]tape\s*)?\d+\s*[.)—:-]", re.M)
 RE_NON_COUVERT = re.compile(r"pas de syllabus|aucun syllabus|ne couvre pas|non couvert|absente? de la biblioth|"

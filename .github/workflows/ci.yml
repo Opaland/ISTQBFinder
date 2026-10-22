@@ -30,3 +30,30 @@ jobs:
           python qa.py actualiser
           python qa.py inventaire
           python qa.py evaluer --jeu controle --min-rappel 0.80
+
+  # Issue #73 : installation depuis un clone propre, comme un utilisateur (venv,
+  # dépendances, indexation, diagnostic OK/KO dont la recherche témoin).
+  installation-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'   # version minimale annoncée
+      - name: installer.sh (première installation)
+        run: ./installer.sh --assistant tous
+      - name: installer.sh, relancé (idempotence)
+        run: ./installer.sh
+      - name: Rien de versionné n'a changé
+        run: git status --porcelain && test -z "$(git status --porcelain)"
+
+  installation-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: installer.ps1 (Windows PowerShell 5.1)
+        shell: powershell
+        run: .\installer.ps1 -Assistant tous

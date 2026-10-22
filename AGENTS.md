@@ -42,6 +42,9 @@ Français partout (réponses, messages, commits, commentaires).
 - **Un correctif = une PR** : une branche partie de `main` à jour, un seul sujet, et
   `Closes #n` dans la description. Jamais de commit direct sur `main`.
 - Une PR n'est fusionnée que si la CI est verte ; la fusion ferme l'issue.
+- Après toute modification de `.claude/skills/` ou `.claude/agents/` (ou des permissions
+  `allow` de `.claude/settings.json`) : `python scripts/generer_integrations.py`, et commiter
+  les fichiers régénérés dans la même PR (sinon `tests/test_integrations.py` échoue).
 - Avant de pousser : `python -m pytest tests/ -q -rs` vert, et `python qa.py evaluer
   --jeu controle` si le moteur de recherche est touché (chiffres dans la PR).
 

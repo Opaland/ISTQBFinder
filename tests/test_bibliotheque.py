@@ -122,6 +122,86 @@ def test_manquants_par_langue(bibliotheque_test):
     assert "CTAL-TM" in r["absents_en"] and len(r["absents_en"]) == len(r["catalogue"]) - 1
 
 
+def test_index_perime_detecte_avant_actualiser(capsys, monkeypatch, bibliotheque_test):
+    """#36 : après suppression d'un PDF (git pull), `chercher` avertit, `verifier-refs` et
+    `idee ajouter` refusent la référence, sans attendre `actualiser`."""
+    import io
+    from qak import connaissances
+    from qak.cli import main
+    assert bibliotheque.controle_index()["messages"] == []
+    idee = {"titre": "Matrice des risques produit", "resume": "Probabilité × impact.",
+            "probleme": "Effort uniforme.", "principe": "Calculer le niveau de risque.", "theme_principal": "rbt",
+            "references": [{"type": "istqb", "doc_id": bibliotheque_test, "pages": "6"}]}
+    assert connaissances.ajouter(dict(idee), forcer=True, motif="t")["etat"] != "refuse"
+    entree = next(iter(bibliotheque.lire_manifeste()["documents"].values()))
+    (chemins.sources() / entree["fichier"]).unlink()
+    assert main(["chercher", "valeurs", "limites"]) == 0
+    assert "Index périmé" in capsys.readouterr().out
+    assert any(r["problemes"] for r in connaissances.verifier_references())
+    monkeypatch.setattr("sys.stdin", io.StringIO(json.dumps({**idee, "titre": "Autre matrice des risques"})))
+    assert main(["idee", "ajouter"]) == 2
+    assert "index périmé" in capsys.readouterr().err
+    bibliotheque.actualiser()
+    assert bibliotheque.controle_index()["messages"] == []
+
+
+def test_contenu_modifie_ou_nouveau_fichier_signales(bibliotheque_test, tmp_path):
+    import os
+    import time
+    entree = next(iter(bibliotheque.lire_manifeste()["documents"].values()))
+    f = chemins.sources() / entree["fichier"]
+    with open(f, "ab") as fh:
+        fh.write(b"\n% altere\n")
+    futur = time.time() + 5
+    os.utime(f, (futur, futur))
+    (chemins.sources() / "nouveau.md").write_text("# 1 Note\nTexte.", encoding="utf-8")
+    c = bibliotheque.controle_index()
+    assert c["perimes"] == {bibliotheque_test}
+    assert any("modifié" in m for m in c["messages"]) and any("nouveau.md" in m for m in c["messages"])
+
+
+def test_copie_d_un_source_nommee_sans_masquer_l_original(bibliotheque_test):
+    entree = next(iter(bibliotheque.lire_manifeste()["documents"].values()))
+    shutil = __import__("shutil")
+    shutil.copy2(chemins.sources() / entree["fichier"], chemins.sources() / "a_copie.pdf")
+    r = bibliotheque.actualiser()
+    assert r["doublons"] == [f"a_copie.pdf : contenu identique à {entree['fichier']}"]
+    assert r["inchanges"] == 1 and not r["absents"]
+
+
+def test_pdf_modifie_sur_place_a_confirmer_puis_remplacement_journalise(capsys, bibliotheque_test):
+    """#35 : un PDF altéré dans sources/ n'est plus accepté silencieusement comme nouvelle version."""
+    from qak import journal
+    from qak.cli import main
+    entree = next(iter(bibliotheque.lire_manifeste()["documents"].values()))
+    ancien, f = entree["sha256"], chemins.sources() / entree["fichier"]
+    with open(f, "ab") as fh:
+        fh.write(b"\n% altere\n")
+    r = bibliotheque.actualiser()
+    assert r["a_confirmer"] and not r["absents"] and not r["reindexes"]
+    manif = bibliotheque.lire_manifeste()["documents"]
+    assert list(manif) == [ancien] and manif[ancien]["a_confirmer"] == bibliotheque.empreinte(f)
+    doc = bibliotheque.inventaire()[0]
+    assert (doc["statut_version"], doc["statut_extraction"]) == ("a_confirmer", "a_confirmer")
+    assert not recherche.chercher("valeurs limites")["resultats"]          # exclu des recherches
+    assert bibliotheque.actualiser()["a_confirmer"]                         # stable d'une fois sur l'autre
+    assert main(["inventaire"]) == 0 and "à confirmer" in capsys.readouterr().out
+    # Réimport sans confirmation : refusé ; --remplacer sans motif : refusé.
+    assert bibliotheque.importer(f)["etat"] == "refuse"
+    assert main(["importer", str(f), "--remplacer"]) == 2
+    assert "--motif" in capsys.readouterr().err
+    assert main(["importer", str(f), "--remplacer", "--motif", "PDF ré-exporté, contenu vérifié"]) == 0
+    manif = bibliotheque.lire_manifeste()["documents"]
+    nouvelle = bibliotheque.empreinte(f)
+    assert list(manif) == [nouvelle] and manif[nouvelle]["doc_id"] == bibliotheque_test
+    assert manif[nouvelle]["historique_empreintes"][0]["sha256"] == ancien
+    assert "a_confirmer" not in manif[nouvelle]
+    assert bibliotheque.inventaire()[0]["statut_version"] == "courant"
+    assert recherche.chercher("valeurs limites")["resultats"]
+    note = [e for e in journal.lire() if e["action"] == "document_remplace"][-1]
+    assert note["cible"] == bibliotheque_test and note["motif"] == "PDF ré-exporté, contenu vérifié"
+
+
 def test_imports_paralleles_sans_perte_dans_le_manifeste(racine_isolee):
     """#54 : 6 imports lancés en même temps (processus distincts) → 6 entrées au manifeste,
     aucun fichier temporaire laissé derrière l'écriture atomique."""
@@ -165,3 +245,12 @@ def test_passage_en_wal_attend_le_verrou(tmp_path):
     assert cx.execute("PRAGMA journal_mode").fetchone()[0] == "wal"
     cx.close()
     a.close()
+
+
+def test_document_a_confirmer_perime_sans_avertir_d_actualiser(bibliotheque_test):
+    entree = next(iter(bibliotheque.lire_manifeste()["documents"].values()))
+    with open(chemins.sources() / entree["fichier"], "ab") as fh:
+        fh.write(b"\n% altere\n")
+    bibliotheque.actualiser()
+    c = bibliotheque.controle_index()
+    assert c["perimes"] == {bibliotheque_test} and c["messages"] == []

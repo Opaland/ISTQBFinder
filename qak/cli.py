@@ -51,7 +51,9 @@ def _ref_page(r: dict) -> str:
 
 def _ref_doc(r: dict) -> str:
     etat = "" if r.get("statut_version", "courant") == "courant" else f" [{r['statut_version'].upper()}]"
-    return f"{r['doc_id']} · {r.get('titre', '')} · v{r.get('version') or '?'} ({r.get('date_publication') or 'date ?'}){etat}"
+    retrait = catalogue.statut_officiel(r.get("code"))
+    return (f"{r['doc_id']} · {r.get('titre', '')} · v{r.get('version') or '?'} ({r.get('date_publication') or 'date ?'})"
+            f"{etat}" + (f" ⚠ {retrait}" if retrait else ""))
 
 
 def lire_entree_standard() -> str:
@@ -90,6 +92,8 @@ def cmd_catalogue(a):
     for d in docs:
         ligne = f"  {d['code']:10} {d['niveau']:11} {d['titre'][:58]:58} v{d['version_constatee']:10}"
         ligne += f" local : {', '.join(presents.get(d['code'], [])) or '—'}"
+        if catalogue.statut_officiel(d["code"]):
+            ligne += f" ⚠ {catalogue.statut_officiel(d['code'])}"
         if a.verifier:
             v = catalogue.verifier(d)
             ligne += f" | {v['etat']}" + (f" ⚠ NOUVEAU FICHIER : {v['fichier']}" if v["nouveau_fichier"] else "")
@@ -127,8 +131,8 @@ def cmd_importer(a):
                 _ecrire(f"{x} : introuvable")
                 rc = 2
                 continue
-            r = bibliotheque.importer(x, meta)
-            if r["etat"] == "echec":
+            r = bibliotheque.importer(x, meta, remplacer=a.remplacer, motif=a.motif)
+            if r["etat"] in ("echec", "refuse"):
                 rc = 2
             _ecrire(f"{x.name} → {r['etat']} {r.get('doc_id', '')} — {r['message']}")
             if r.get("meta"):
@@ -143,7 +147,7 @@ def cmd_importer(a):
 def cmd_actualiser(a):
     r = bibliotheque.actualiser(forcer=a.forcer)
     _ecrire(f"Inchangés : {r['inchanges']} · importés : {len(r['importes'])} · réindexés : {len(r['reindexes'])}")
-    for cle, titre in (("importes", "Importés"), ("modifies", "Modifiés sur place"), ("reindexes", "Réindexés"), ("doublons", "Doublons ignorés"),
+    for cle, titre in (("importes", "Importés"), ("a_confirmer", "MODIFIÉS SUR PLACE (à confirmer)"), ("reindexes", "Réindexés"), ("doublons", "Doublons ignorés"),
                        ("absents", "Sources disparues (passages retirés de l'index)"), ("echecs", "ÉCHECS"),
                        ("versions", "Versions remplacées")):
         if r[cle]:
@@ -162,10 +166,12 @@ def cmd_inventaire(a):
     alertes = []
     _ecrire(f"{'document':24} {'type':8} {'niveau':11} {'date':10} {'pages':>5} {'passages':>8}  extraction / version")
     for d in docs:
-        ver = "" if d["statut_version"] == "courant" else f" → remplacé par {d['remplace_par']}" \
-            if d["statut_version"] == "remplace" else " (source absente)"
+        ver = {"courant": "", "remplace": f" → remplacé par {d['remplace_par']}",
+               "a_confirmer": " (modifié sur place : à confirmer)"}.get(d["statut_version"], " (source absente)")
+        retrait = catalogue.statut_officiel(d["code"])
         _ecrire(f"{d['doc_id']:24} {d['type'] or '?':8} {d['niveau'] or '?':11} {d['date_publication'] or '?':10} "
-                f"{d['nb_pages'] or 0:>5} {d['nb_passages']:>8}  {d['statut_extraction']}{ver}")
+                f"{d['nb_pages'] or 0:>5} {d['nb_passages']:>8}  {d['statut_extraction']}{ver}"
+                + (f" ⚠ {retrait}" if retrait else ""))
         if d["statut_extraction"] != "ok" or not d["code"] or not d["nb_titres"]:
             alertes.append(f"{d['doc_id']} : {d['statut_extraction']} — {d['message_extraction']}"
                            + ("" if d["code"] else " — code ISTQB non reconnu")
@@ -180,6 +186,9 @@ def cmd_inventaire(a):
                  if not any(d["code"] in v for v in langues.values())]
     if manquants:
         _ecrire(f"Absents du catalogue officiel : {', '.join(manquants)}")
+    perime = bibliotheque.avertissement_index()
+    if perime:
+        alertes.insert(0, perime)
     if alertes:
         _ecrire("\nÀ surveiller :")
         for x in alertes:
@@ -196,7 +205,8 @@ def cmd_manquants(a):
             continue
         _ecrire(f"{l['code']:10} {l['niveau']:11} {l['en'] or '— MANQUANT':22} {l['fr'] or '— manquant':22} "
                 f"{l['titre'][:45]}" + (f"  [remplacés : {', '.join(l['remplaces'])}]" if l["remplaces"] else "")
-                + (f"  ⚠ {', '.join(l['a_surveiller'])}" if l["a_surveiller"] else ""))
+                + (f"  ⚠ {', '.join(l['a_surveiller'])}" if l["a_surveiller"] else "")
+                + (f"  ⚠ {catalogue.statut_officiel(l['code'])}" if l["statut_officiel"] else ""))
     _ecrire(f"\nCatalogue officiel : {len(r['catalogue'])} syllabus · manquants en anglais : "
             f"{len(r['absents_en'])} · sans traduction française locale : {len(r['absents_fr'])}")
     if r["absents_en"]:
@@ -230,6 +240,9 @@ def cmd_chercher(a):
     r = recherche.chercher(" ".join(a.requete), n=a.n, docs=a.doc, niveau=a.niveau, langue=a.langue,
                            section=a.section, theme=a.theme, toutes_versions=a.toutes_versions,
                            inclure_sommaires=a.sommaires, par_doc=a.par_doc)
+    perime = bibliotheque.avertissement_index()
+    if perime:
+        r["avertissements"] = [perime, *r.get("avertissements", [])]
     if a.json:
         return _json(r)
     _ecrire(f"Notions : {', '.join(r['groupes']) or '—'}" + (f" · thème : {a.theme}" if a.theme else ""))
@@ -590,6 +603,9 @@ def analyseur() -> argparse.ArgumentParser:
     x = sp.add_parser("importer", help="importer des PDF / .txt / .md (fichiers ou dossiers)")
     x.add_argument("fichiers", nargs="+")
     meta(x)
+    x.add_argument("--remplacer", action="store_true",
+                   help="confirmer le nouveau contenu d'un fichier modifié sur place (avec --motif, journalisé)")
+    x.add_argument("--motif", help="raison du remplacement (obligatoire avec --remplacer)")
     x.set_defaults(f=cmd_importer)
     x = sp.add_parser("actualiser", help="réindexation incrémentale de bibliotheque/sources/")
     x.add_argument("--forcer", action="store_true", help="tout réextraire")

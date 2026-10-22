@@ -80,6 +80,10 @@ ailleurs ; jamais bloquant (`claude -p` : hypothèses explicites, questions en f
 - Ne cite **que** ce que tu as lu via `lire`/`section`/`page`. Jamais de numéro de page,
   de section ou de passage inventé. Format : `[CTAL-TM v3.0 FR, §1.3.2, p. 29]`
   (page physique du PDF ; préciser « imprimée » si l'outil l'affiche).
+- **Contrôle avant d'envoyer** : pour chaque `[référence]` de la réponse, retrouve le
+  `lire`/`section`/`page` qui a affiché **cette page de ce document**. Un extrait de
+  `chercher` ne compte pas. Introuvable → lis le passage maintenant, ou retire la
+  référence (au besoin « à lire : §x » sans page, dans « Où creuser »).
 - Distingue toujours : **ISTQB** (passage lu) · **Web** (URL + date) · **base capitalisée**
   (id `QA-xxxx`, avec son statut — une idée en base n'est pas validée pour autant) ·
   **ton raisonnement** (signalé comme interprétation / hypothèse).

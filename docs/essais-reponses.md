@@ -54,6 +54,13 @@ questions ouvertes sans hypothèse ni options. Corrigé dans cette PR (détectio
 dans `strategie.md`, `SKILL.md`, `thomas.md` ; hypothèse en tête et questions de cadrage
 **à choix**), puis relancé.
 
+**Citations non lues (#127)** : M5 (CTAL-TAE §4.2.1 EN) et S3 (CTFL §2.2.3) citaient une
+page vue seulement en extrait de recherche. Correctif : « contrôle avant d'envoyer »
+(chaque référence doit avoir son `lire`/`section`/`page`, sinon lue ou retirée) dans le
+skill, Thomas et Sylvie ; `essais_agents.py` marque désormais l'essai **en échec** (code
+retour 1) dès qu'une citation n'a pas été lue. Relance : M5 10/10 citations lues (0,20 $),
+S3 5/5 (0,16 $), tous critères satisfaits ; les fichiers M5 et S3 sont ceux de la relance.
+
 ### Couverture de la bibliothèque par domaine
 
 | Domaine | Couvert par | Non couvert (dit par l'assistant) |

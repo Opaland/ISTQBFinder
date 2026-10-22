@@ -44,6 +44,9 @@ ancienne, une seule langue ou aucun syllabus local ne couvre la démarche, propo
    conditions que le syllabus décrit (ex. pour le RBT : identification des risques avec
    les parties prenantes, évaluation probabilité × impact, atténuation par le choix des
    techniques et de la profondeur, priorisation, suivi des risques). Jamais de mémoire.
+   Avant de rendre ton avis, passe chaque source du tableau au **contrôle avant
+   d'envoyer** du skill : une page vue seulement en extrait de `chercher` est lue
+   (`page <doc> <p>`) ou retirée.
 4. **Verdict par pratique** selon `referentiel/grille-maturite.md` (lis-la avec `Read`) :
    Aligné, Partiellement aligné, Écart, Hors ISTQB, Non vérifiable.
 5. **Manques** : les étapes de la liste de contrôle absentes de la démarche.

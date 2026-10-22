@@ -536,6 +536,47 @@ def valider(donnees: dict, partiel: bool = False) -> tuple[dict, list[str]]:
 
 MOTIF_MIN = 10
 
+# Dépôt public : ce qui ressemble à une donnée personnelle ou confidentielle bloque
+# l'enregistrement (sauf --forcer --motif). Les noms de clients, de personnes ou de projets
+# ne sont pas détectables : la règle d'anonymisation du skill les couvre.
+_ESPACE = r"[ \u00a0\u202f]"
+MOTIFS_SENSIBLES = {
+    "adresse e-mail": re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+"),
+    "montant": re.compile(
+        rf"(?<![\w.,])\d+(?:[.,{_ESPACE[1:-1]}]\d+)*{_ESPACE}?(?:[kKM]{_ESPACE}?)?(?:€|\$|£|euros?\b|EUR\b|USD\b|dollars?\b)"
+        rf"|[€$£]{_ESPACE}?\d+(?:[.,]\d+)*{_ESPACE}?[kKM]?\b"),
+    "numéro de téléphone": re.compile(
+        rf"(?<![\w+])(?:\+\d{{2,3}}{_ESPACE}?(?:\(0\))?{_ESPACE}?\d|0\d)(?:[{_ESPACE[1:-1]}.-]?\d{{2}}){{4}}(?!\d)"),
+}
+
+
+def _textes_libres(d: dict) -> list[tuple[str, str]]:
+    out = [(c, d[c]) for c in (*CHAMPS_TEXTE, "provenance") if isinstance(d.get(c), str)]
+    for i, r in enumerate(d.get("references", [])):
+        out += [(f"references[{i}].{k}", v) for k, v in r.items() if isinstance(v, str) and k != "url"]
+    for i, r in enumerate(d.get("retours", [])):
+        out += [(f"retours[{i}].{k}", v) for k, v in r.items() if isinstance(v, str)]
+    return out
+
+
+def _controler_confidentialite(d: dict, forcer: bool, motif: str | None) -> tuple[list[str], list[str]]:
+    """Renvoie (avertissements, types forcés). Lève si une donnée sensible est trouvée sans
+    `--forcer --motif` ; avertit sur les références « interne »."""
+    trouves = [(nature, champ, m.group().strip()) for champ, texte in _textes_libres(d)
+               for nature, rx in MOTIFS_SENSIBLES.items() for m in rx.finditer(texte)]
+    avert = [f"référence « interne » ({r.get('titre', 'sans titre')}) : le dépôt est public, vérifier qu'elle "
+             "ne révèle ni client, ni personne, ni projet, ni montant" for r in d.get("references", [])
+             if r.get("type") == "interne"]
+    if trouves and not (forcer and (motif or "").strip()):
+        detail = "; ".join(f"{n} « {v} » ({c})" for n, c, v in trouves)
+        raise ErreurValidation(
+            f"Donnée personnelle ou confidentielle probable : {detail}. Le dépôt est PUBLIC : anonymiser "
+            "(ni client, ni personne, ni montant, ni projet nommé). Si c'est voulu : --forcer --motif \"…\".")
+    if trouves:
+        avert.append("donnée sensible conservée sur décision explicite (--forcer) : "
+                     + ", ".join(sorted({n for n, _, _ in trouves})))
+    return avert, sorted({n for n, _, _ in trouves})
+
 
 def _exiger_source(idee: dict) -> None:
     """« documentée » / « pratiquée » affirment une source : sans référence, c'est faux."""
@@ -639,6 +680,8 @@ def ajouter(donnees: dict, forcer: bool = False, motif: str | None = None) -> di
     """Crée une idée après validation et contrôle des doublons.
     Un doublon probable bloque, sauf `forcer` avec un motif (journalisé)."""
     idee, avert = valider(donnees)
+    avert_conf, forces = _controler_confidentialite(idee, forcer, motif)
+    avert += avert_conf
     cx = ouvrir()
     try:
         # Verrou d'écriture AVANT de lire les doublons et le dernier identifiant : deux
@@ -658,13 +701,15 @@ def ajouter(donnees: dict, forcer: bool = False, motif: str | None = None) -> di
         idee.setdefault("provenance", "saisie conversationnelle")
         _inserer(cx, idee, nouvelle=True)
         _exporter(cx)
-        journal.noter("idee_creee", idee["id"], {"titre": idee["titre"], "doublons_signales": sim}, motif)
+        journal.noter("idee_creee", idee["id"], {"titre": idee["titre"], "doublons_signales": sim,
+                                                 **({"donnees_sensibles_forcees": forces} if forces else {})}, motif)
         return {"etat": "cree", "id": idee["id"], "doublons": sim, "avertissements": avert}
     finally:
         cx.close()
 
 
-def modifier(idee_id: str, donnees: dict, remplacer_listes: bool = False, motif: str | None = None) -> dict:
+def modifier(idee_id: str, donnees: dict, remplacer_listes: bool = False, motif: str | None = None,
+             forcer: bool = False) -> dict:
     """Met à jour une idée. Par défaut les références et thèmes secondaires sont AJOUTÉS
     (rien n'est perdu) ; `remplacer_listes` les remplace."""
     cx = ouvrir()
@@ -673,6 +718,8 @@ def modifier(idee_id: str, donnees: dict, remplacer_listes: bool = False, motif:
         if "statut" in donnees:
             raise ErreurValidation("Changer le statut passe par `idee statut` (motif et contrôles dédiés).")
         maj, avert = valider(donnees, partiel=True)
+        avert_conf, forces = _controler_confidentialite(maj, forcer, motif)
+        avert += avert_conf
         apres = dict(avant)
         for k, v in maj.items():
             if k in ("references", "themes_secondaires") and not remplacer_listes:
@@ -689,7 +736,8 @@ def modifier(idee_id: str, donnees: dict, remplacer_listes: bool = False, motif:
             return {"etat": "inchange", "id": idee_id, "avertissements": avert}
         _inserer(cx, apres)
         _exporter(cx)
-        journal.noter("idee_modifiee", idee_id, changes, motif)
+        journal.noter("idee_modifiee", idee_id, {**changes, **({"donnees_sensibles_forcees": forces} if forces else {})},
+                      motif)
         return {"etat": "modifie", "id": idee_id, "champs": sorted(changes), "avertissements": avert}
     finally:
         cx.close()
@@ -721,12 +769,14 @@ def changer_statut(idee_id: str, statut: str, motif: str | None) -> dict:
 
 
 def ajouter_retour(idee_id: str, contexte: str, resultat: str, enseignement: str | None = None,
-                   quand: str | None = None) -> dict:
+                   quand: str | None = None, forcer: bool = False, motif: str | None = None) -> dict:
+    retour = {k: v for k, v in {"date": quand or date.today().isoformat(), "contexte": contexte,
+                                "resultat": resultat, "enseignement": enseignement}.items() if v}
+    _controler_confidentialite({"retours": [retour]}, forcer, motif)
     cx = ouvrir()
     try:
         idee = _charger(cx, idee_id)
-        idee["retours"].append({k: v for k, v in {"date": quand or date.today().isoformat(), "contexte": contexte,
-                                                  "resultat": resultat, "enseignement": enseignement}.items() if v})
+        idee["retours"].append(retour)
         idee["maj_le"] = datetime.now().isoformat(timespec="seconds")
         _inserer(cx, idee)
         _exporter(cx)

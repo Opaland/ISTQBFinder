@@ -174,3 +174,75 @@ Thèmes pauvres en idées mais documentés dans les syllabus (pistes d'explorati
    limites ; les éléments Web ne sont jamais présentés comme ISTQB.
 4. Proposition de capitalisation : une comparaison (`priorisation`) liée aux idées
    existantes par `idee lier … --type complementaire|contradictoire`.
+
+---
+
+## 7. Extraits réels de Thomas et de Sylvie (essais du 2026-10-22)
+
+Extraits **raccourcis mais non retouchés** des essais de bout en bout
+(`python scripts/essais_agents.py`, rapport : [essais-reponses.md](essais-reponses.md)).
+Les réponses complètes, avec les commandes exécutées, sont dans
+`eval/essais-resultats/2026-10-22/`. Ces essais sont antérieurs aux corrections
+qu'ils ont motivées : les défauts sont signalés sous chaque extrait.
+
+### Thomas — comparaison (T5, 4 tours, 3/3 citations lues)
+
+> **Utilisateur** : Compare les techniques de priorisation des tests décrites par l'ISTQB.
+
+> **Thomas** : Il y a deux niveaux dans les syllabus. Le Foundation donne trois
+> **stratégies de priorisation des cas de test**. L'Advanced Test Management détaille la
+> plus utilisée, la priorisation par les risques […]
+>
+> **Pistes par syllabus**
+> - **CTFL v4.0.1 (EN) — §5.1.5 Test Case Prioritization**
+>   - Trois stratégies : par les risques, par la couverture, par les exigences [CTFL v4.0.1 EN, §5.1.5, p. 50].
+>   - […]
+> - **CTAL-TM v3.0 (EN) — §1.3.4 Quality Risk Mitigation Through Appropriate Testing**
+>   - Deux ordonnancements. En *depth-first*, on exécute par niveau de risque décroissant.
+>     En *breadth-first*, on affecte au moins un test par risque en priorité maximale, puis
+>     on trie le reste par niveau de risque [CTAL-TM v3.0 EN, §1.3.4, p. 31].
+>   - […]
+>
+> | Approche | Principe | Quand l'utiliser | Source |
+> |---|---|---|---|
+> | Par les risques | Les tests qui couvrent les risques majeurs passent en premier | Quand il existe une analyse de risque | CTFL §5.1.5 |
+> | Risque breadth-first | Au moins un test par risque d'abord | Quand les parties prenantes veulent une vue globale de la qualité au plus tôt | CTAL-TM §1.3.4 |
+> | […] | | | |
+>
+> **Confiance : 90/100** (élevée) — […] J'ai retiré 10 points parce que je n'ai lu ni le
+> CTAL-TA ni le CTAL-TTA […]
+
+Défauts relevés depuis : ajustement « −10 non lus » absent de la grille (#18), pas de
+contexte projet ni de « Par quoi je commencerais » (#31), « Dis-moi si tu veux que je
+capitalise » impossible pour un sous-agent (#23).
+
+### Sylvie — vérification d'une démarche (S1, 9 tours, 9/10 citations lues)
+
+> **Utilisateur** : […] un atelier en début de release avec le PO pour lister les
+> fonctionnalités risquées, on teste ces fonctionnalités en premier et plus en profondeur,
+> et on ne fait que du smoke test sur le reste. Est-ce que je suis aligné ISTQB ? Quel est
+> le niveau de maturité de ma démarche ?
+
+> **Sylvie** : Ta démarche va dans le bon sens, mais elle est incomplète. Elle couvre
+> l'identification des risques et la priorisation. L'évaluation structurée, l'atténuation
+> proportionnée au niveau de risque et le suivi ne sont pas décrits. Je la place au
+> niveau 1 de maturité.
+>
+> | Pratique | Verdict | Ce que dit l'ISTQB | Source |
+> |---|---|---|---|
+> | P1 – Atelier avec le PO | **Partiellement conforme** | Les ateliers sur les risques sont une technique reconnue d'identification. Il faut impliquer « l'échantillon le plus large possible de parties prenantes » […] Le PO seul ne suffit donc pas. | CTAL-TM 3.0 fr, §1.3.2, p. 29-30 |
+> | P1 – « Lister » les fonctionnalités risquées | **Partiellement conforme** | Après l'identification vient l'évaluation […] Une simple liste ne donne pas de niveau de risque. | CTAL-TM 3.0 fr, §1.3.3, p. 30-31 ; CTFL 4.0.1 en, §5.2.3, p. 52-53 |
+> | […] | | | |
+>
+> **Ce qui manque** : évaluation probabilité × impact […] ; suivi des risques pendant la
+> release […] ; rapport en termes de risque résiduel […]
+>
+> **Niveau de maturité : 1 — Initial** […] **Pour passer au niveau 2** : 1. Évaluer chaque
+> risque (probabilité × impact) avec un barème partagé. 2. Relier chaque niveau de risque
+> à une profondeur de test précise. […]
+>
+> **Confiance : 82/100** […]
+
+Défauts relevés depuis : verdicts « Conforme » (vocabulaire de conformité) et absence de
+distinction intention / en place (#30), confiance non reproductible avec la grille (#18),
+« dis-le-moi et je réviserai » impossible pour un sous-agent (#23).

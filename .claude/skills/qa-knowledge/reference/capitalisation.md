@@ -40,7 +40,9 @@ JSON
 
 ## Références
 
-- `istqb` : `doc_id` (ou code), `pages` et/ou `section`, `extrait` recommandé. L'outil
+- `istqb` : `doc_id` (ou code), `pages` et/ou `section`, `extrait` recommandé. Un code
+  présent en plusieurs langues (CTAL-TM EN et FR) est départagé par la langue de l'extrait ;
+  sans extrait, donner le `doc_id` exact (ex. `CTAL-TM-3.0-fr`). L'outil
   refuse une page inexistante (ou mal écrite : « 31 », « 31-33 », « 4, 6 »), une section
   absente des pages citées, et un extrait qui n'est pas recopié **mot pour mot** (suite
   continue d'au moins 6 mots significatifs, sans reformulation ni « … ») ; il signale
@@ -53,9 +55,12 @@ JSON
 
 - `maturite` : `hypothese` (non étayée) · `documentee` (source fiable) · `pratiquee`
   (répandue dans l'industrie) · `eprouvee` (validée dans NOTRE contexte, avec retour).
+  `documentee` et `pratiquee` sont **refusées sans au moins une référence**.
 - `statut` à la création : `a_explorer` ou `a_evaluer`. `validee`, `abandonnee`,
   `experimentee` : `idee statut QA-xxxx <statut> --motif "…"`, sur décision de
-  l'utilisateur ; `experimentee` exige un retour (`idee retour QA-xxxx --contexte … --resultat …`).
+  l'utilisateur, motif d'au moins 10 caractères (« ok » refusé) ; `validee` exige au
+  moins une référence ou un retour d'expérience ; `experimentee` exige un retour
+  (`idee retour QA-xxxx --contexte … --resultat …`).
 
 ## Traçabilité
 

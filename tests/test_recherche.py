@@ -102,3 +102,13 @@ def test_notions_des_candidats_identiques_au_match_sur_l_index(bibliotheque_test
             assert any(trouves.values())
     finally:
         cx.close()
+
+
+def test_faute_de_frappe_corrigee_et_signalee(bibliotheque_test):
+    # Issue #106 : un mot inconnu de l'index et du thésaurus, proche d'un mot connu, est corrigé.
+    r = recherche.chercher("equivalnce partitioning")
+    assert r["resultats"] and r["resultats"][0]["section_num"].startswith("1.2")
+    assert any("« equivalnce » compris comme « equivalence »" in a for a in r["avertissements"])
+    # Un mot connu n'est jamais « corrigé » ; un mot sans voisin proche reste tel quel.
+    assert not recherche.chercher("equivalence partitioning")["avertissements"]
+    assert not any("Faute" in a for a in recherche.chercher("blockchain quantique")["avertissements"])

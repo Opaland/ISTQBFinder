@@ -774,6 +774,71 @@
     }
    ],
    "controle": true
+  },
+  {
+   "requete": "priorisasion des cas de test",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.1.5"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "analyse des valeurs limmites",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "4.2.2"
+    },
+    {
+     "code": "CTAL-TA",
+     "section": "3.1"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "tests exploratoirs",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "4.4.2"
+    },
+    {
+     "code": "CTAL-TA",
+     "section": "3.4"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "gestion des défuats",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.5"
+    },
+    {
+     "code": "CTAL-TM",
+     "section": "2.3"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "évaluation de l'utilisabilité",
+   "attendus": [
+    {
+     "code": "CT-UT",
+     "section": "1.2.1"
+    }
+   ],
+   "filtres": {
+    "langue": "fr"
+   },
+   "controle": true
   }
  ]
 }

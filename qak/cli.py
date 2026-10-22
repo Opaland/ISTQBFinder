@@ -51,7 +51,9 @@ def _ref_page(r: dict) -> str:
 
 def _ref_doc(r: dict) -> str:
     etat = "" if r.get("statut_version", "courant") == "courant" else f" [{r['statut_version'].upper()}]"
-    return f"{r['doc_id']} · {r.get('titre', '')} · v{r.get('version') or '?'} ({r.get('date_publication') or 'date ?'}){etat}"
+    retrait = catalogue.statut_officiel(r.get("code"))
+    return (f"{r['doc_id']} · {r.get('titre', '')} · v{r.get('version') or '?'} ({r.get('date_publication') or 'date ?'})"
+            f"{etat}" + (f" ⚠ {retrait}" if retrait else ""))
 
 
 def lire_entree_standard() -> str:
@@ -90,6 +92,8 @@ def cmd_catalogue(a):
     for d in docs:
         ligne = f"  {d['code']:10} {d['niveau']:11} {d['titre'][:58]:58} v{d['version_constatee']:10}"
         ligne += f" local : {', '.join(presents.get(d['code'], [])) or '—'}"
+        if catalogue.statut_officiel(d["code"]):
+            ligne += f" ⚠ {catalogue.statut_officiel(d['code'])}"
         if a.verifier:
             v = catalogue.verifier(d)
             ligne += f" | {v['etat']}" + (f" ⚠ NOUVEAU FICHIER : {v['fichier']}" if v["nouveau_fichier"] else "")
@@ -164,8 +168,10 @@ def cmd_inventaire(a):
     for d in docs:
         ver = {"courant": "", "remplace": f" → remplacé par {d['remplace_par']}",
                "a_confirmer": " (modifié sur place : à confirmer)"}.get(d["statut_version"], " (source absente)")
+        retrait = catalogue.statut_officiel(d["code"])
         _ecrire(f"{d['doc_id']:24} {d['type'] or '?':8} {d['niveau'] or '?':11} {d['date_publication'] or '?':10} "
-                f"{d['nb_pages'] or 0:>5} {d['nb_passages']:>8}  {d['statut_extraction']}{ver}")
+                f"{d['nb_pages'] or 0:>5} {d['nb_passages']:>8}  {d['statut_extraction']}{ver}"
+                + (f" ⚠ {retrait}" if retrait else ""))
         if d["statut_extraction"] != "ok" or not d["code"] or not d["nb_titres"]:
             alertes.append(f"{d['doc_id']} : {d['statut_extraction']} — {d['message_extraction']}"
                            + ("" if d["code"] else " — code ISTQB non reconnu")
@@ -199,7 +205,8 @@ def cmd_manquants(a):
             continue
         _ecrire(f"{l['code']:10} {l['niveau']:11} {l['en'] or '— MANQUANT':22} {l['fr'] or '— manquant':22} "
                 f"{l['titre'][:45]}" + (f"  [remplacés : {', '.join(l['remplaces'])}]" if l["remplaces"] else "")
-                + (f"  ⚠ {', '.join(l['a_surveiller'])}" if l["a_surveiller"] else ""))
+                + (f"  ⚠ {', '.join(l['a_surveiller'])}" if l["a_surveiller"] else "")
+                + (f"  ⚠ {catalogue.statut_officiel(l['code'])}" if l["statut_officiel"] else ""))
     _ecrire(f"\nCatalogue officiel : {len(r['catalogue'])} syllabus · manquants en anglais : "
             f"{len(r['absents_en'])} · sans traduction française locale : {len(r['absents_fr'])}")
     if r["absents_en"]:

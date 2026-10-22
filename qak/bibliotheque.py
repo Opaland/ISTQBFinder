@@ -615,6 +615,12 @@ def _actualiser(forcer: bool) -> dict:
                 cx.execute("DELETE FROM passages WHERE doc_id=?", (entree["doc_id"],))
                 cx.execute("UPDATE documents SET statut_extraction='absent', message_extraction="
                            "'fichier source introuvable dans bibliotheque/sources/' WHERE sha256=?", (sha,))
+        # Métadonnées corrigées dans le manifeste versionné (niveau du catalogue, `corriger`
+        # sur un autre poste) : reportées dans l'index sans réextraction.
+        champs = ("titre", "code", "type", "niveau", "domaine", "version", "langue", "date_publication")
+        for sha, entree in manif["documents"].items():
+            cx.execute(f"UPDATE documents SET {', '.join(f'{c}=?' for c in champs)} WHERE sha256=?",
+                       (*[entree.get(c) for c in champs], sha))
         rapport["versions"] = calculer_versions(cx)
         maintenant = datetime.now().isoformat(timespec="seconds")
         cx.executemany("UPDATE documents SET controle_le=? WHERE sha256=?", [(maintenant, s) for s in presents])
@@ -755,6 +761,7 @@ def manquants(cx: sqlite3.Connection | None = None) -> dict:
         lignes.append({
             "code": e["code"], "titre": e["titre"], "niveau": e["niveau"],
             "version_officielle": e["version_constatee"], "en": par_langue["en"], "fr": par_langue["fr"],
+            "statut_officiel": e.get("statut_officiel"), "successeur": e.get("successeur"),
             "remplaces": [d["doc_id"] for d in siens if d["statut_version"] == "remplace"],
             "a_surveiller": [f"{d['doc_id']} ({d['statut_extraction']})" for d in siens
                              if d["statut_extraction"] not in ("ok",)],

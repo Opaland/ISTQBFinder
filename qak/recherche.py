@@ -154,15 +154,35 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
                          "syllabus), élargir les filtres, ou justifier une recherche Web.")
         elif all(r["partiel"] for r in resultats) and len(gs) > 1:
             avert.append("Aucun passage ne couvre toutes les notions : résultats partiels.")
-        manquants = [d for d in (docs or []) if not cx.execute(
-            "SELECT 1 FROM documents WHERE doc_id=? COLLATE NOCASE OR code=? COLLATE NOCASE", (d, d)).fetchone()]
-        if manquants:
-            avert.append(f"Document(s) absent(s) de la bibliothèque : {', '.join(manquants)}.")
+        avert += _diagnostic_filtres(cx, docs, langue, niveau, toutes_versions)
         return {"requete_fts": ou, "groupes": [g.libelle for g in gs], "resultats": resultats,
                 "avertissements": avert}
     finally:
         if propre:
             cx.close()
+
+
+def _diagnostic_filtres(cx, docs, langue, niveau, toutes_versions) -> list[str]:
+    """Explique quand un filtre écarte un document demandé : « absent » et « exclu par
+    --langue » ne doivent jamais se confondre (sinon on affirme à tort qu'un syllabus
+    manque à la bibliothèque)."""
+    out = []
+    for d in docs or []:
+        lignes = cx.execute("SELECT doc_id, langue, niveau, statut_version FROM documents "
+                            "WHERE (doc_id=? COLLATE NOCASE OR code=? COLLATE NOCASE) AND statut_version!='absent'",
+                            (d, d)).fetchall()
+        if not lignes:
+            out.append(f"{d} : absent de la bibliothèque (voir `inventaire` et `catalogue`).")
+            continue
+        langues = sorted({r["langue"] for r in lignes})
+        if langue and langue not in langues:
+            out.append(f"{d} existe, mais seulement en : {', '.join(langues)} — retirer `--langue {langue}` "
+                       "pour le chercher.")
+        if niveau and all(r["niveau"] != niveau for r in lignes):
+            out.append(f"{d} est de niveau « {lignes[0]['niveau']} » : exclu par `--niveau {niveau}`.")
+        if not toutes_versions and all(r["statut_version"] == "remplace" for r in lignes):
+            out.append(f"{d} : seules des versions remplacées sont présentes — ajouter `--toutes-versions`.")
+    return out
 
 
 def lire_passage(pid: int, contexte: int = 0, cx: sqlite3.Connection | None = None) -> list[dict]:

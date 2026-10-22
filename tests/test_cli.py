@@ -48,6 +48,27 @@ def test_chercher_sans_notion_ni_bibliotheque_ne_plante_pas(capsys, racine_isole
     assert "Bibliothèque vide" in json.loads(capsys.readouterr().out)["avertissements"][0]
 
 
+def test_lecture_pendant_une_ecriture_et_base_occupee(capsys, monkeypatch, bibliotheque_test):
+    # Issue #52 : `chercher` pendant `actualiser` → « database is locked », traceback, rc=1.
+    from qak import bibliotheque, chemins
+    ecrivain = bibliotheque.connecter()
+    try:
+        assert ecrivain.execute("PRAGMA journal_mode").fetchone()[0] == "wal"
+        ecrivain.execute("BEGIN IMMEDIATE")  # un autre processus est en train d'écrire
+        ecrivain.execute("UPDATE documents SET titre=titre")
+        assert main(["chercher", "valeurs", "limites"]) == 0  # la lecture n'est pas bloquée
+        assert "CTFL-9.9-en" in capsys.readouterr().out
+        # Deux écritures : la seconde attend, puis abandonne avec un message français (rc=2).
+        monkeypatch.setattr(bibliotheque, "ATTENTE_VERROU", 0.2)
+        assert main(["corriger", bibliotheque_test, "--version", "9.9"]) == 2
+        err = capsys.readouterr().err
+        assert "base est occupée" in err and "Traceback" not in err
+    finally:
+        ecrivain.rollback()
+        ecrivain.close()
+    assert chemins.index_db().exists()
+
+
 def test_section_et_page_bornees_indiquent_la_suite(capsys, racine_isolee):
     # Issue #22 : sortie bornée par --max-caracteres, terminée par ce qui reste à lire.
     assert main(["importer", str(FIXTURES / "syllabus_v9.pdf")]) == 0

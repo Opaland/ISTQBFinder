@@ -7,6 +7,7 @@ traitement automatique."""
 import argparse
 import json
 import sys
+import sqlite3
 from pathlib import Path
 
 from . import bibliotheque, catalogue, connaissances, journal, recherche, taxonomie
@@ -681,6 +682,14 @@ def main(argv=None) -> int:
     except (ErreurValidation, KeyError, ValueError, PermissionError, FileNotFoundError) as exc:
         msg = exc.args[0] if exc.args else str(exc)
         sys.stderr.write(f"Erreur : {msg}\n")
+        return 2
+    except sqlite3.OperationalError as exc:
+        if "locked" in str(exc) or "busy" in str(exc):
+            sys.stderr.write("Erreur : la base est occupée par une autre commande (`actualiser`, import…) "
+                             "depuis plus de 30 s. Relancer quand elle sera terminée.\n")
+        else:
+            sys.stderr.write(f"Erreur : base SQLite inutilisable ({exc}). Reconstruire l'index : "
+                             "`python qa.py actualiser --forcer`.\n")
         return 2
     finally:
         # Base reconstruite depuis un JSONL modifié hors de l'outil : prévenir l'utilisateur.

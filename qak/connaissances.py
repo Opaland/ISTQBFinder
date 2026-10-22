@@ -96,10 +96,7 @@ def _empreinte_fichier() -> str | None:
 
 def ouvrir() -> sqlite3.Connection:
     """Ouvre la base ; la reconstruit depuis le JSONL versionné s'il a changé."""
-    db = chemins.base_db()
-    db.parent.mkdir(parents=True, exist_ok=True)
-    cx = sqlite3.connect(db)
-    cx.row_factory = sqlite3.Row
+    cx = bibliotheque.ouvrir_sqlite(chemins.base_db())
     cx.executescript(SCHEMA)
     try:
         if _action_miroir(cx):

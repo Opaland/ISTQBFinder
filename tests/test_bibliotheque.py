@@ -120,3 +120,27 @@ def test_manquants_par_langue(bibliotheque_test):
     assert (ctfl["en"], ctfl["fr"]) == ("CTFL-9.9-en", None)
     assert "CTFL" not in r["absents_en"] and "CTFL" in r["absents_fr"]
     assert "CTAL-TM" in r["absents_en"] and len(r["absents_en"]) == len(r["catalogue"]) - 1
+
+
+def test_imports_paralleles_sans_perte_dans_le_manifeste(racine_isolee):
+    """#54 : 6 imports lancés en même temps (processus distincts) → 6 entrées au manifeste,
+    aucun fichier temporaire laissé derrière l'écriture atomique."""
+    import os
+    import subprocess
+    import sys
+    from pathlib import Path
+    fichiers = []
+    for i in range(6):
+        f = racine_isolee / f"conc{i}.md"
+        f.write_text(f"# Note {i}\n\n## 1 Sujet {i}\nTexte de la note {i} sur le test logiciel, "
+                     "assez long pour être indexé.\n", encoding="utf-8")
+        fichiers.append(f)
+    qa = Path(__file__).resolve().parent.parent / "qa.py"
+    env = {**os.environ, "QAK_RACINE": str(racine_isolee)}
+    procs = [subprocess.Popen([sys.executable, str(qa), "importer", str(f)], env=env,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE) for f in fichiers]
+    assert all(p.wait(timeout=120) == 0 for p in procs)
+    docs = bibliotheque.lire_manifeste()["documents"]
+    assert len(docs) == 6 and len({e["doc_id"] for e in docs.values()}) == 6
+    assert not list((racine_isolee / "bibliotheque").glob("*.tmp"))
+    assert len(bibliotheque.inventaire()) == 6

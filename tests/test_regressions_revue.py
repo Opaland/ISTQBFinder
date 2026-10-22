@@ -66,9 +66,15 @@ def test_5_fichier_modifie_sur_place_garde_son_identite(racine_isolee):
     doc_id = bibliotheque.importer(f, {"code": "CTAL-TM", "version": "4.0"}, copier=False)["doc_id"]
     f.write_text("# 1 Gestion\nVersion corrigée du texte de gestion des tests.", encoding="utf-8")
     r = bibliotheque.actualiser()
-    assert r["modifies"] and not r["importes"] and not r["absents"]
+    # #35 : modification sur place = « à confirmer » (exclu des recherches), pas un import silencieux.
+    assert r["a_confirmer"] and not r["importes"] and not r["absents"]
+    assert bibliotheque.inventaire()[0]["statut_version"] == "a_confirmer"
+    assert not recherche.chercher("gestion")["resultats"]
+    r = bibliotheque.importer(f, remplacer=True, motif="texte corrigé, relu")
+    assert r["etat"] == "remplace"
     docs = bibliotheque.inventaire()
-    assert [(d["doc_id"], d["code"], d["version"]) for d in docs] == [(doc_id, "CTAL-TM", "4.0")]
+    assert [(d["doc_id"], d["code"], d["version"], d["statut_version"]) for d in docs] == \
+        [(doc_id, "CTAL-TM", "4.0", "courant")]
     assert recherche.chercher("corrigée")["resultats"]
 
 

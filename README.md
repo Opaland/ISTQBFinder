@@ -8,6 +8,23 @@ persistante, vérifiable et versionnée avec Git.
 
 Pas de serveur, pas d'interface graphique, pas de clé d'API. Python ≥ 3.10 + `pypdf`.
 
+## Où l'utiliser
+
+| Environnement | Pris en charge | Remarque |
+|---|---|---|
+| **Claude Code en ligne de commande** (`claude`, lancé à la racine du dépôt) | oui | skills, agents Thomas et Sylvie, permissions de `.claude/settings.json` |
+| **Appli de bureau Claude, onglet Code** (dossier du dépôt ouvert) | oui | même fonctionnement que la ligne de commande |
+| **claude.ai** (conversation Web ou appli, onglet Chat) | **non** | voir ci-dessous |
+
+Pourquoi pas claude.ai : le skill n'est pas autonome. Il pilote la CLI `python qa.py`
+(code `qak/`) et lit les données à la racine du dépôt — `bibliotheque/` (PDF et index,
+plus de 30 Mo), `referentiel/`, `connaissances/` — qu'un skill importé sur claude.ai
+n'emporte pas. Ses en-têtes sont propres à Claude Code (`allowed-tools`
+`Bash(python qa.py …)`, `argument-hint`), les agents `.claude/agents/` (Thomas, Sylvie)
+n'y existent pas, et `telecharger` / `catalogue --verifier` supposent un accès réseau à
+istqb.org depuis la machine. Un paquet dédié à claude.ai (consultation seule) reste une
+évolution possible, non décidée.
+
 ## Installation
 
 ```bash
@@ -56,7 +73,7 @@ La CLI reste utilisable directement (`python qa.py --help`) :
 |---|---|
 | Chercher dans les syllabus | `chercher <notions> [--doc CTAL-TM] [--theme rbt] [--section 1.3] [--langue fr]` |
 | Lire avant de citer | `lire <passage> [--contexte 1]` · `section <doc> <num>` · `page <doc> <p[-q]>` · `plan <doc>` |
-| Base d'idées | `idee chercher …` · `idee lister [--theme] [--statut]` · `idee voir QA-0001` |
+| Base d'idées | `idee chercher …` · `idee lister [--theme] [--statut]` · `idee voir QA-20261022-7f3a` |
 | Capitaliser | `idee modele` · `idee doublons <<'JSON'` · `idee ajouter <<'JSON'` (JSON sur l'entrée standard) |
 | Faire évoluer | `idee modifier` · `idee statut … --motif` · `idee retour` · `idee lier` · `journal` |
 | Taxonomie | `themes` · `theme proposer "<texte>"` · `theme ajouter …` · `theme obsolete …` · `couverture` |

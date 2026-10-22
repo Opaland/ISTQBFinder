@@ -34,6 +34,14 @@ def normaliser(s: str) -> str:
     return re.sub(r"[^a-z0-9]+", " ", s).strip()
 
 
+def motif_sous_sections(numero: str) -> str:
+    """Motif LIKE des sous-sections de `numero` (« 4.2 » → « 4.2.% »), jokers % et _
+    échappés : à employer avec `LIKE ? ESCAPE '\\'`. Sans échappement, une section « % »
+    désignait tout le document."""
+    n = numero.rstrip(".").replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    return n + ".%"
+
+
 def racine(mot: str) -> str:
     """Racinisation minimale FR/EN (pluriels) : suffisante pour comparer des titres."""
     for suf in ("ies", "es", "s", "x"):
@@ -63,6 +71,16 @@ def _thesaurus(chemin: str) -> tuple:
 def thesaurus() -> tuple:
     """Tuple de (id_concept, termes)."""
     return _thesaurus(str(chemins.thesaurus()))[0]
+
+
+def termes_thesaurus() -> frozenset:
+    """Tous les termes du thésaurus, normalisés (« tmmi », « api », « partition d equivalence »)."""
+    return _termes_thesaurus(str(chemins.thesaurus()))
+
+
+@lru_cache(maxsize=4)
+def _termes_thesaurus(chemin: str) -> frozenset:
+    return frozenset(normaliser(t) for _, termes in _thesaurus(chemin)[0] for t in termes)
 
 
 def reperer_concepts(texte: str) -> tuple[list[tuple[str, tuple]], list[str]]:

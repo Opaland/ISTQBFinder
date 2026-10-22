@@ -11,11 +11,13 @@ import hashlib
 import json
 import os
 import re
+import secrets
 import sqlite3
 from datetime import date, datetime
 
 from . import bibliotheque, chemins, journal, taxonomie
-from .textes import jaccard, normaliser, recouvrement, signature
+from .textes import (MOTS_VIDES, jaccard, mots, motif_sous_sections, normaliser, recouvrement, signature,
+                     termes_thesaurus)
 
 STATUTS = {
     "a_explorer": "à explorer — piste repérée, pas encore étudiée",
@@ -211,25 +213,92 @@ def _charger(cx, idee_id: str) -> dict:
 
 # ---------------------------------------------------------------- validation
 
+FORMAT_PAGES = re.compile(r"\d+(\s*[-–]\s*\d+)?(\s*,\s*\d+(\s*[-–]\s*\d+)?)*")
+FORMAT_SECTION = re.compile(r"\d+(\.\d+)*")
+MOTS_EXTRAIT_MIN = 6
+
+
 def _pages(texte: str) -> set[int]:
-    """« 31 », « 31-33 », « 4, 6 » → ensemble de pages."""
+    """« 31 », « 31-33 », « 4, 6 » → ensemble de pages. Tout autre format (« -5 »,
+    « p. 4 », « 0 », plage inversée) est refusé plutôt qu'interprété."""
+    texte = texte.strip()
+    if not FORMAT_PAGES.fullmatch(texte):
+        raise ErreurValidation(f"Pages « {texte} » : format attendu « 31 », « 31-33 » ou « 4, 6 ».")
     pages = set()
     for a, b in re.findall(r"(\d+)\s*(?:[-–]\s*(\d+))?", texte):
-        pages |= set(range(int(a), int(b or a) + 1)) if int(b or a) - int(a) < 200 else {int(a)}
+        a, b = int(a), int(b or a)
+        if a < 1 or b < a:
+            raise ErreurValidation(f"Pages « {texte} » : numéros de page à partir de 1, plages croissantes.")
+        pages |= set(range(a, b + 1)) if b - a < 200 else {a}
     return pages
+
+
+def _compacter(texte: str) -> str:
+    """Texte normalisé sans aucun espace : recolle les fragments que les PDF découpent
+    (« êtr e », « perme ttant », coupures de fin de ligne) sans tolérer le moindre
+    changement d'ordre, de mot ni de négation."""
+    return normaliser(texte).replace(" ", "")
+
+
+def _verifier_extrait(extrait: str, texte_source: str, lieu: str) -> None:
+    """L'extrait doit être une suite CONTIGUË du texte cité (après normalisation) et
+    compter au moins MOTS_EXTRAIT_MIN mots significatifs : un sac de mots à 70 %
+    acceptait des citations inversées, inventées ou en vrac (#28)."""
+    significatifs = mots(extrait)
+    if len(significatifs) < MOTS_EXTRAIT_MIN:
+        raise ErreurValidation(
+            f"Extrait trop court ({len(significatifs)} mot(s) significatif(s), minimum {MOTS_EXTRAIT_MIN}) : "
+            "recopier une phrase entière du passage lu.")
+    if _compacter(extrait) not in _compacter(texte_source):
+        raise ErreurValidation(
+            f"L'extrait cité n'apparaît pas mot pour mot {lieu} : recopier une suite continue du passage "
+            "lu (`lire` / `page`), sans reformuler ni couper au milieu.")
+
+
+MARQUEURS_LANGUE = {
+    "fr": {"le", "la", "les", "des", "est", "et", "pour", "une", "dans", "du", "sont", "qui", "par", "au"},
+    "en": {"the", "and", "of", "is", "to", "for", "in", "with", "are", "be", "which", "by", "that"},
+}
+
+
+def _langue_extrait(extrait: str | None) -> str | None:
+    """Langue d'un extrait d'après ses mots-outils ; None si rien ne la départage."""
+    toks = normaliser(extrait or "").split()
+    fr, en = (sum(t in MARQUEURS_LANGUE[l] for t in toks) for l in ("fr", "en"))
+    return None if fr == en else "fr" if fr > en else "en"
+
+
+def _document_reference(cx, doc: str, extrait: str | None):
+    """Document désigné par `doc` : identifiant exact, sinon code ISTQB. Un code peut
+    désigner plusieurs documents courants (EN et FR, syllabus et BoK) : on départage par
+    la langue de l'extrait, sinon on exige l'identifiant exact plutôt que de choisir au
+    hasard (une vraie citation FR était vérifiée contre la version EN, #37)."""
+    exact = cx.execute("SELECT * FROM documents WHERE doc_id=? COLLATE NOCASE", (doc,)).fetchone()
+    if exact:
+        return exact
+    docs = cx.execute("SELECT * FROM documents WHERE code=? COLLATE NOCASE ORDER BY doc_id", (doc,)).fetchall()
+    candidats = [x for x in docs if x["statut_version"] == "courant"] or docs
+    if len(candidats) > 1:
+        langue = _langue_extrait(extrait)
+        candidats = [x for x in candidats if x["langue"] == langue] or candidats
+    if len(candidats) > 1:
+        raise ErreurValidation(
+            f"Code « {doc} » ambigu ({', '.join(x['doc_id'] for x in candidats)}) : préciser le doc_id exact"
+            + (" (la langue de l'extrait ne suffit pas à départager)." if extrait else "."))
+    return candidats[0] if candidats else None
 
 
 def _verifier_reference_istqb(ref: dict) -> list[str]:
     """Contrôle une référence ISTQB contre la bibliothèque indexée : document présent,
-    pages existantes, extrait réellement présent sur les pages citées."""
+    pages existantes, section du plan présente sur les pages citées, extrait recopié
+    mot pour mot (suite contiguë) des pages ou de la section citées."""
     problemes = []
     if not chemins.index_db().exists():
         return ["bibliothèque non indexée : référence ISTQB non vérifiable"]
     cx = bibliotheque.connecter()
     try:
         doc = ref.get("doc_id")
-        d = cx.execute("SELECT * FROM documents WHERE doc_id=? COLLATE NOCASE OR code=? COLLATE NOCASE "
-                       "ORDER BY statut_version='courant' DESC", (doc, doc)).fetchone() if doc else None
+        d = _document_reference(cx, doc, ref.get("extrait")) if doc else None
         if not d:
             return [f"document « {doc} » absent de la bibliothèque : référence non vérifiable"]
         ref["doc_id"] = d["doc_id"]
@@ -239,32 +308,37 @@ def _verifier_reference_istqb(ref: dict) -> list[str]:
             problemes.append(f"{d['doc_id']} : fichier source absent de la bibliothèque (référence non relisible)")
         elif d["statut_version"] == "remplace":
             problemes.append(f"{d['doc_id']} est une version remplacée (par {d['remplace_par']})")
-        pages = _pages(str(ref.get("pages") or ""))
+        pages = _pages(str(ref["pages"])) if str(ref.get("pages") or "").strip() else set()
         section = str(ref.get("section") or "").strip().rstrip(".")
         if not pages and not section:
             raise ErreurValidation(f"Référence ISTQB {d['doc_id']} sans page ni section : impossible à vérifier.")
+        if section and not FORMAT_SECTION.fullmatch(section):
+            raise ErreurValidation(f"Section « {section} » : numéro attendu (ex. 3.1.2), voir `plan {d['doc_id']}`.")
         for p in sorted(pages):
-            if not 1 <= p <= (d["nb_pages"] or 0):
+            if p > (d["nb_pages"] or 0):
                 raise ErreurValidation(f"Page {p} inexistante dans {d['doc_id']} ({d['nb_pages']} pages).")
-        if section and not cx.execute("SELECT 1 FROM sections WHERE doc_id=? AND (numero=? OR numero LIKE ?)",
-                                      (d["doc_id"], section, section + ".%")).fetchone():
+        dans_section = "(section_num=? OR section_num LIKE ? ESCAPE '\\')"
+        if section and not cx.execute(f"SELECT 1 FROM sections WHERE doc_id=? AND (numero=? OR numero LIKE ? ESCAPE '\\')",
+                                      (d["doc_id"], section, motif_sous_sections(section))).fetchone():
             raise ErreurValidation(f"Section {section} absente du plan de {d['doc_id']} (voir `plan {d['doc_id']}`).")
+        place = f" AND page IN ({', '.join('?' * len(pages))})"
+        if section and pages and d["statut_version"] != "absent" and not cx.execute(
+                f"SELECT 1 FROM passages WHERE doc_id=? AND {dans_section}{place}",
+                (d["doc_id"], section, motif_sous_sections(section), *sorted(pages))).fetchone():
+            raise ErreurValidation(
+                f"La section {section} de {d['doc_id']} ne figure pas aux pages {ref.get('pages')} : "
+                f"vérifier la page ou la section (`section {d['doc_id']} {section}`).")
         if ref.get("extrait") and d["statut_version"] != "absent":
             sql, params = "SELECT texte FROM passages WHERE doc_id=?", [d["doc_id"]]
             if pages:  # exactement les pages citées
-                sql += f" AND page IN ({', '.join('?' * len(pages))})"
+                sql += place
                 params += sorted(pages)
             else:      # sinon, la section citée et ses sous-sections
-                sql += " AND (section_num=? OR section_num LIKE ?)"
-                params += [section, section + ".%"]
-            texte_n = f" {normaliser(' '.join(x['texte'] for x in cx.execute(sql, params)))} "
-            mots_extrait = set(normaliser(ref["extrait"]).split())
-            trouves = sum(1 for m in mots_extrait if f" {m} " in texte_n)
-            if mots_extrait and trouves / len(mots_extrait) < 0.7:
-                lieu = f"aux pages {ref.get('pages')}" if pages else f"dans la section {section}"
-                raise ErreurValidation(
-                    f"L'extrait cité n'apparaît pas {lieu} de {d['doc_id']} "
-                    f"({trouves}/{len(mots_extrait)} mots retrouvés). Relire le passage (`lire`) et corriger.")
+                sql += f" AND {dans_section}"
+                params += [section, motif_sous_sections(section)]
+            texte = " ".join(x["texte"] for x in cx.execute(sql + " ORDER BY ordre", params))
+            lieu = f"aux pages {ref.get('pages')}" if pages else f"dans la section {section}"
+            _verifier_extrait(ref["extrait"], texte, f"{lieu} de {d['doc_id']}")
     finally:
         cx.close()
     return problemes
@@ -340,9 +414,20 @@ def valider(donnees: dict, partiel: bool = False) -> tuple[dict, list[str]]:
         refs.append(r)
     if "references" in d:
         d["references"] = refs
-    if not partiel and d["maturite"] in ("documentee", "pratiquee") and not refs:
-        avert.append("maturité « documentée/pratiquée » sans aucune référence : à étayer")
+    if not partiel:
+        _exiger_source(d)
     return d, avert
+
+
+MOTIF_MIN = 10
+
+
+def _exiger_source(idee: dict) -> None:
+    """« documentée » / « pratiquée » affirment une source : sans référence, c'est faux."""
+    if idee.get("maturite") in ("documentee", "pratiquee") and not idee.get("references"):
+        raise ErreurValidation(
+            f"Maturité « {idee['maturite']} » sans aucune référence : ajouter la source (syllabus, norme, "
+            "publication) dans `references`, ou garder « hypothese ».")
 
 
 # ---------------------------------------------------------------- déduplication
@@ -355,11 +440,50 @@ def _sig_contenu(i: dict) -> set:
     return signature(" ".join(str(i.get(c) or "") for c in ("titre", "resume", "probleme", "principe")))
 
 
+TERMES_BANALS = {"qa", "istqb", "test", "tests", "testeur", "testeurs", "tester"}
+
+
+def _termes_distinctifs(texte: str) -> set[str]:
+    """Noms propres et sigles d'un texte (Herzberg, TMMi, IDEAL) : un sigle (au moins deux
+    majuscules) partout ; un mot capitalisé seulement hors début de phrase et s'il n'apparaît
+    jamais en minuscules dans le texte (« Équipe … équipe » n'est pas un nom propre)."""
+    minuscules = set(re.findall(r"\b[^\W\d_]+\b", texte))
+    out = set()
+    for m in re.finditer(r"[^\W\d_]+", texte):
+        mot = m.group()
+        if len(mot) < 3:
+            continue
+        avant = texte[:m.start()].rstrip()
+        sigle = sum(c.isupper() for c in mot) >= 2
+        nom_propre = (mot[0].isupper() and mot[1:].islower() and avant and avant[-1] not in ".!?:;"
+                      and mot.lower() not in minuscules)
+        n = normaliser(mot)
+        if (sigle or nom_propre) and n not in MOTS_VIDES and n not in TERMES_BANALS:
+            out.add(n)
+    return out
+
+
+def _termes_idee(i: dict, champs=("titre", "resume", "probleme", "principe")) -> set[str]:
+    return set().union(*(_termes_distinctifs(str(i.get(c) or "")) for c in champs))
+
+
 def similarite(a: dict, b: dict) -> float:
+    """Signatures du thésaurus (titre, contenu), plus deux indices qui manquaient pour une
+    même idée reformulée ou traduite (#27) : le thème principal commun et les noms
+    propres / sigles partagés absents du thésaurus (Herzberg), surtout s'ils figurent dans les
+    deux titres."""
     st, sb = _sig_titre(a), _sig_titre(b)
     titre = max(jaccard(st, sb), 0.8 * recouvrement(st, sb))
     contenu = jaccard(_sig_contenu(a), _sig_contenu(b))
-    return round(0.55 * titre + 0.45 * min(1.0, contenu * 1.6), 2)
+    score = 0.55 * titre + 0.45 * min(1.0, contenu * 1.6)
+    if a.get("theme_principal") and a.get("theme_principal") == b.get("theme_principal"):
+        score += 0.1
+    # Les sigles du thésaurus (TMMi, IDEAL, API) pèsent déjà dans les signatures :
+    # seuls les termes qu'il ignore (Herzberg, Maslow…) reçoivent ce bonus.
+    communs = {t for t in _termes_idee(a) & _termes_idee(b) if t not in termes_thesaurus()}
+    titres = set(normaliser(a.get("titre", "")).split()) & set(normaliser(b.get("titre", "")).split())
+    score += 0.3 if communs & titres else 0.15 if communs else 0.0
+    return round(min(1.0, score), 2)
 
 
 def doublons(candidat: dict, exclure: str | None = None, cx: sqlite3.Connection | None = None) -> list[dict]:
@@ -384,12 +508,16 @@ def doublons(candidat: dict, exclure: str | None = None, cx: sqlite3.Connection 
 # ---------------------------------------------------------------- écriture
 
 def _nouvel_id(cx) -> str:
-    """Prochain identifiant, jamais réattribué : on tient compte des idées présentes, des
-    cibles de relations et du journal (une idée retirée du JSONL y laisse sa trace)."""
+    """Identifiant daté et aléatoire, QA-AAAAMMJJ-xxxx : jamais réattribué, même après un
+    `git revert` qui efface l'idée ET sa trace dans le journal (un compteur séquentiel
+    redonnait alors le même numéro à une autre idée, #34). Les anciens QA-0001… restent
+    valides. Unicité vérifiée contre les idées, les cibles de relations et le journal."""
     vus = {r[0] for r in cx.execute("SELECT id FROM idees UNION SELECT cible FROM relations")}
     vus |= {e["cible"] for e in journal.lire(limite=10 ** 9)}
-    n = max([int(m.group(1)) for v in vus if (m := re.fullmatch(r"QA-(\d+)", v or ""))] or [0])
-    return f"QA-{n + 1:04d}"
+    while True:
+        candidat = f"QA-{date.today():%Y%m%d}-{secrets.token_hex(2)}"
+        if candidat not in vus:
+            return candidat
 
 
 def ajouter(donnees: dict, forcer: bool = False, motif: str | None = None) -> dict:
@@ -399,7 +527,7 @@ def ajouter(donnees: dict, forcer: bool = False, motif: str | None = None) -> di
     cx = ouvrir()
     try:
         # Verrou d'écriture AVANT de lire les doublons et le dernier identifiant : deux
-        # ajouts simultanés ne peuvent plus obtenir le même QA-xxxx.
+        # ajouts simultanés ne peuvent pas obtenir le même identifiant.
         cx.execute("BEGIN IMMEDIATE")
         sim = doublons(idee, cx=cx)
         probables = [s for s in sim if s["verdict"] == "doublon probable"]
@@ -439,6 +567,7 @@ def modifier(idee_id: str, donnees: dict, remplacer_listes: bool = False, motif:
                 apres[k] = existant + [x for x in v if cle(x) not in vus]
             else:
                 apres[k] = v
+        _exiger_source(apres)
         apres["maj_le"] = datetime.now().isoformat(timespec="seconds")
         changes = {k: {"avant": avant.get(k), "apres": apres.get(k)} for k in maj if avant.get(k) != apres.get(k)}
         if not changes:
@@ -457,8 +586,13 @@ def changer_statut(idee_id: str, statut: str, motif: str | None) -> dict:
     cx = ouvrir()
     try:
         idee = _charger(cx, idee_id)
-        if statut in ("validee", "abandonnee", "experimentee") and not motif:
-            raise ErreurValidation(f"Le statut « {statut} » exige un motif (--motif) : sur quoi repose la décision ?")
+        motif = (motif or "").strip()
+        if statut in ("validee", "abandonnee", "experimentee") and len(motif) < MOTIF_MIN:
+            raise ErreurValidation(f"Le statut « {statut} » exige un motif d'au moins {MOTIF_MIN} caractères "
+                                   "(--motif) : sur quoi repose la décision ?")
+        if statut == "validee" and not idee["references"] and not idee["retours"]:
+            raise ErreurValidation("« validée » exige au moins une référence (`idee modifier`) ou un retour "
+                                   "d'expérience (`idee retour`) : sur quelle source repose la validation ?")
         if statut == "experimentee" and not idee["retours"]:
             raise ErreurValidation("« expérimentée » exige au moins un retour d'expérience (`idee retour`).")
         avant = idee["statut"]

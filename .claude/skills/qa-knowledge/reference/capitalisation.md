@@ -34,15 +34,19 @@ python qa.py idee ajouter <<'JSON'
 { "titre": "...", "resume": "...", "probleme": "...", "principe": "...",
   "theme_principal": "rbt", "maturite": "documentee",
   "references": [{"type": "istqb", "doc_id": "CTAL-TM-3.0-fr", "pages": "29-30",
-                  "section": "1.3.2", "extrait": "mots copiés du passage lu"}] }
+                  "section": "1.3.2", "extrait": "phrase recopiée mot pour mot du passage lu"}] }
 JSON
 ```
 
 ## Références
 
-- `istqb` : `doc_id` (ou code), `pages` et/ou `section`, `extrait` recommandé. L'outil
-  refuse une page inexistante ou un extrait absent des pages citées, et signale une
-  version remplacée.
+- `istqb` : `doc_id` (ou code), `pages` et/ou `section`, `extrait` recommandé. Un code
+  présent en plusieurs langues (CTAL-TM EN et FR) est départagé par la langue de l'extrait ;
+  sans extrait, donner le `doc_id` exact (ex. `CTAL-TM-3.0-fr`). L'outil
+  refuse une page inexistante (ou mal écrite : « 31 », « 31-33 », « 4, 6 »), une section
+  absente des pages citées, et un extrait qui n'est pas recopié **mot pour mot** (suite
+  continue d'au moins 6 mots significatifs, sans reformulation ni « … ») ; il signale
+  une version remplacée.
 - `web` / `article` : `url` obligatoire, `titre`, `note` (ce que la source apporte) ;
   `consulte_le` est ajouté automatiquement.
 - `norme`, `livre`, `interne`, `conversation` : `titre` + précision utile.
@@ -51,9 +55,12 @@ JSON
 
 - `maturite` : `hypothese` (non étayée) · `documentee` (source fiable) · `pratiquee`
   (répandue dans l'industrie) · `eprouvee` (validée dans NOTRE contexte, avec retour).
+  `documentee` et `pratiquee` sont **refusées sans au moins une référence**.
 - `statut` à la création : `a_explorer` ou `a_evaluer`. `validee`, `abandonnee`,
   `experimentee` : `idee statut QA-xxxx <statut> --motif "…"`, sur décision de
-  l'utilisateur ; `experimentee` exige un retour (`idee retour QA-xxxx --contexte … --resultat …`).
+  l'utilisateur, motif d'au moins 10 caractères (« ok » refusé) ; `validee` exige au
+  moins une référence ou un retour d'expérience ; `experimentee` exige un retour
+  (`idee retour QA-xxxx --contexte … --resultat …`).
 
 ## Traçabilité
 

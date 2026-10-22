@@ -40,10 +40,17 @@ But : donner à l'utilisateur ce qu'il aurait trouvé en parcourant **tous** les
 les idées, où elles sont, ce qu'elles valent — pour qu'il aille lire et décide. Pas de
 dissertation complète ni de longue paraphrase : une piste = 1-2 lignes + sa source.
 
+**Contexte projet** : cycle de vie (agile, séquentiel), taille d'équipe, contraintes
+réglementaires, échéance. S'il est donné, s'en servir pour choisir et classer les pistes.
+Sinon, le dire (« Hypothèse de contexte : … ») et terminer par 1-2 questions de cadrage
+dont la réponse changerait la recommandation. Un sous-agent ne pose pas la question : il
+la rend dans son rapport, la conversation principale la pose.
+
 Gabarit (adapter, rester proportionné ; 150-400 mots pour une question courante) :
 
 ```
 <1-2 phrases conversationnelles : ce que les syllabus disent en gros, et où>
+<« Contexte : … » s'il est donné, sinon « Hypothèse de contexte : … »>
 
 **Pistes par syllabus**
 - **CTAL-TM v3.0 — §1.3 Test basé sur les risques**
@@ -55,8 +62,11 @@ Gabarit (adapter, rester proportionné ; 150-400 mots pour une question courante
 <tableau si comparaison ou choix : | Approche | Principe | Quand l'utiliser | Source |>
 
 **Ce que j'en retiens** (interprétation) : 2-3 puces reliant les pistes au contexte.
+**Par quoi je commencerais** : 2-3 pistes classées impact / effort (impact fort / moyen /
+faible ; effort faible / moyen / fort) ; d'abord fort impact pour faible effort.
 **Où creuser ensuite** : 2-4 sections à lire en entier (`section <doc> <num>`).
 **Confiance : NN/100** (libellé) — 1-2 raisons.
+**Questions de cadrage** (si le contexte manque) : 1-2 questions.
 **À capitaliser ?** 0-3 propositions (rien n'est enregistré sans accord).
 ```
 

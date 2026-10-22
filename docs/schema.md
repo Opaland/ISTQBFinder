@@ -7,7 +7,7 @@ Une idée = une ligne de `connaissances.jsonl` (source versionnée) et une ligne
 
 | Champ | Obligatoire | Contenu |
 |---|---|---|
-| `id` | auto | `QA-0001`, `QA-0002`… stable, jamais réattribué |
+| `id` | auto | `QA-AAAAMMJJ-xxxx` (date de création + suffixe aléatoire, ex. `QA-20261022-7f3a`) : stable, jamais réattribué, même après un `git revert` ; les anciens `QA-0001`… restent valides |
 | `titre` | oui | titre court et explicite |
 | `resume` | oui | description synthétique |
 | `probleme` | oui | problème ou situation traités |
@@ -32,9 +32,9 @@ Une idée = une ligne de `connaissances.jsonl` (source versionnée) et une ligne
 |---|---|
 | `type` | `istqb`, `norme`, `web`, `livre`, `article`, `interne`, `conversation` |
 | `doc_id` | (istqb) identifiant ou code du document ; complété avec la version et le titre de l'index |
-| `pages` | « 31 » ou « 31-33 » (pages physiques du PDF) — vérifiées |
-| `section` | « 3.1.1 » |
-| `extrait` | quelques mots copiés du passage lu — vérifiés sur les pages citées |
+| `pages` | « 31 », « 31-33 » ou « 4, 6 » (pages physiques du PDF, à partir de 1) — vérifiées |
+| `section` | « 3.1.1 » (chiffres et points seulement) — doit figurer sur les pages citées |
+| `extrait` | au moins 6 mots significatifs recopiés mot pour mot (suite continue) du passage lu — vérifiés sur les pages (ou la section) citées |
 | `url`, `titre`, `consulte_le`, `note` | (web/article) URL obligatoire, date ajoutée automatiquement |
 
 ### Règles d'intégrité appliquées par l'outil

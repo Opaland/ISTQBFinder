@@ -11,6 +11,7 @@ import hashlib
 import json
 import os
 import re
+import secrets
 import sqlite3
 from datetime import date, datetime
 
@@ -507,12 +508,16 @@ def doublons(candidat: dict, exclure: str | None = None, cx: sqlite3.Connection 
 # ---------------------------------------------------------------- écriture
 
 def _nouvel_id(cx) -> str:
-    """Prochain identifiant, jamais réattribué : on tient compte des idées présentes, des
-    cibles de relations et du journal (une idée retirée du JSONL y laisse sa trace)."""
+    """Identifiant daté et aléatoire, QA-AAAAMMJJ-xxxx : jamais réattribué, même après un
+    `git revert` qui efface l'idée ET sa trace dans le journal (un compteur séquentiel
+    redonnait alors le même numéro à une autre idée, #34). Les anciens QA-0001… restent
+    valides. Unicité vérifiée contre les idées, les cibles de relations et le journal."""
     vus = {r[0] for r in cx.execute("SELECT id FROM idees UNION SELECT cible FROM relations")}
     vus |= {e["cible"] for e in journal.lire(limite=10 ** 9)}
-    n = max([int(m.group(1)) for v in vus if (m := re.fullmatch(r"QA-(\d+)", v or ""))] or [0])
-    return f"QA-{n + 1:04d}"
+    while True:
+        candidat = f"QA-{date.today():%Y%m%d}-{secrets.token_hex(2)}"
+        if candidat not in vus:
+            return candidat
 
 
 def ajouter(donnees: dict, forcer: bool = False, motif: str | None = None) -> dict:
@@ -522,7 +527,7 @@ def ajouter(donnees: dict, forcer: bool = False, motif: str | None = None) -> di
     cx = ouvrir()
     try:
         # Verrou d'écriture AVANT de lire les doublons et le dernier identifiant : deux
-        # ajouts simultanés ne peuvent plus obtenir le même QA-xxxx.
+        # ajouts simultanés ne peuvent pas obtenir le même identifiant.
         cx.execute("BEGIN IMMEDIATE")
         sim = doublons(idee, cx=cx)
         probables = [s for s in sim if s["verdict"] == "doublon probable"]

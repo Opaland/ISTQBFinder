@@ -65,5 +65,6 @@ Français partout (réponses, messages, commits, commentaires).
   `autouse` de `tests/conftest.py` isole chaque test dans un dossier temporaire.
 - Base d'idées : `connaissances/connaissances.jsonl` est la source versionnée ; ne
   capitaliser qu'avec l'accord de l'utilisateur ; proposer un commit après une session.
+- **Dépôt public** : n'enregistre rien qui nomme un client, une personne, un projet ou un montant (anonymiser) ; un document interne s'importe avec `importer --prive` (`bibliotheque/prive/`, jamais versionné).
 - Les PDF de `bibliotheque/sources/` sont © ISTQB (copie autorisée avec citation) : ne
   pas les modifier ; ils ne relèvent pas de la licence MIT.

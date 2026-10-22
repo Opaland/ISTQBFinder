@@ -131,7 +131,7 @@ def cmd_importer(a):
                 _ecrire(f"{x} : introuvable")
                 rc = 2
                 continue
-            r = bibliotheque.importer(x, meta, remplacer=a.remplacer, motif=a.motif)
+            r = bibliotheque.importer(x, meta, remplacer=a.remplacer, motif=a.motif, prive=a.prive)
             if r["etat"] in ("echec", "refuse"):
                 rc = 2
             _ecrire(f"{x.name} → {r['etat']} {r.get('doc_id', '')} — {r['message']}")
@@ -631,6 +631,8 @@ def analyseur() -> argparse.ArgumentParser:
     x.add_argument("--remplacer", action="store_true",
                    help="confirmer le nouveau contenu d'un fichier modifié sur place (avec --motif, journalisé)")
     x.add_argument("--motif", help="raison du remplacement (obligatoire avec --remplacer)")
+    x.add_argument("--prive", action="store_true",
+                   help="document interne : copié dans bibliotheque/prive/ (jamais versionné), pas dans sources/")
     x.set_defaults(f=cmd_importer)
     x = sp.add_parser("actualiser", help="réindexation incrémentale de bibliotheque/sources/")
     x.add_argument("--forcer", action="store_true", help="tout réextraire")

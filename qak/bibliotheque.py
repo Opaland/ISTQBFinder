@@ -105,17 +105,19 @@ def empreinte(chemin: Path) -> str:
 
 # ---------------------------------------------------------------- manifeste
 
-def lire_manifeste() -> dict:
-    p = chemins.manifeste()
+def lire_manifeste(prive: bool = False) -> dict:
+    """Manifeste versionné, ou (`prive`) celui des documents internes, rangé dans
+    bibliotheque/prive/ et donc jamais versionné : ni chemin ni titre interne dans Git."""
+    p = chemins.manifeste_prive() if prive else chemins.manifeste()
     if not p.exists():
         return {"documents": {}}
     return json.loads(p.read_text(encoding="utf-8-sig"))
 
 
-def ecrire_manifeste(m: dict) -> None:
+def ecrire_manifeste(m: dict, prive: bool = False) -> None:
     """Écriture atomique (fichier temporaire puis `os.replace`) : un lecteur voit l'ancien
     ou le nouveau manifeste, jamais un fichier à moitié écrit. Appeler sous `verrou_manifeste()`."""
-    p = chemins.manifeste()
+    p = chemins.manifeste_prive() if prive else chemins.manifeste()
     p.parent.mkdir(parents=True, exist_ok=True)
     m["documents"] = dict(sorted(m["documents"].items(), key=lambda kv: kv[1].get("doc_id", "")))
     contenu = json.dumps(m, ensure_ascii=False, indent=1, sort_keys=False) + "\n"
@@ -438,30 +440,46 @@ def _confirmer_remplacement(cx, manif: dict, fichier: Path, sha: str, motif: str
 
 
 def importer(fichier: Path, meta_forcee: dict | None = None, copier: bool = True,
-             cx: sqlite3.Connection | None = None, remplacer: bool = False, motif: str | None = None) -> dict:
+             cx: sqlite3.Connection | None = None, remplacer: bool = False, motif: str | None = None,
+             prive: bool = False) -> dict:
     """Importe un fichier dans la bibliothèque. Renvoie un rapport :
     {etat: 'importe'|'doublon'|'echec'|'refuse'|'remplace', doc_id, message, ...}.
     Un fichier de sources/ dont le contenu a changé sur place n'est accepté qu'avec
-    `remplacer=True` et un motif (sinon : refus, document laissé « à confirmer »)."""
+    `remplacer=True` et un motif (sinon : refus, document laissé « à confirmer »).
+    `prive=True` (document interne) : copie dans bibliotheque/prive/ et inscription au
+    manifeste privé, jamais dans sources/ ni dans le manifeste versionné (dépôt public)."""
     fichier = Path(fichier)
+    if prive:
+        if remplacer:
+            raise ValueError("--remplacer ne s'applique pas aux documents privés : réimporter le fichier.")
+        if fichier.resolve().is_relative_to(chemins.sources().resolve()):
+            raise ValueError(f"{fichier.name} est dans bibliotheque/sources/, dossier VERSIONNÉ et public : le "
+                             "déplacer hors du dépôt ou dans bibliotheque/prive/, puis relancer avec --prive.")
     meta_forcee = {k: v for k, v in (meta_forcee or {}).items() if v}
     if fichier.suffix.lower() not in EXTENSIONS:
         return {"etat": "echec", "fichier": fichier.name, "message": f"format non pris en charge ({fichier.suffix})"}
     sha = empreinte(fichier)
     with verrou_manifeste():
-        return _importer(fichier, sha, meta_forcee, copier, cx, remplacer, motif)
+        return _importer(fichier, sha, meta_forcee, copier, cx, remplacer, motif, prive)
 
 
 def _importer(fichier: Path, sha: str, meta_forcee: dict, copier: bool, cx: sqlite3.Connection | None,
-              remplacer: bool = False, motif: str | None = None) -> dict:
-    manif = lire_manifeste()
+              remplacer: bool = False, motif: str | None = None, prive: bool = False) -> dict:
+    manif = lire_manifeste(prive)
+    autre = lire_manifeste(not prive)["documents"]
+    dossier = chemins.prive() if prive else chemins.sources()
+    if sha in autre:
+        return {"etat": "doublon", "fichier": fichier.name, "doc_id": autre[sha]["doc_id"],
+                "message": f"contenu identique (SHA-256) à {autre[sha]['doc_id']}, déjà dans la bibliothèque "
+                           f"{'publique' if prive else 'privée'} — non réimporté"}
     propre = cx is None
     cx = cx or connecter()
     try:
         ancien = None
         if remplacer and sha not in manif["documents"]:
             ancien = _confirmer_remplacement(cx, manif, fichier, sha, motif, copier)
-        elif sha not in manif["documents"] and (chemins.sources() / fichier.name).resolve() == fichier.resolve():
+        elif not prive and sha not in manif["documents"] and \
+                (chemins.sources() / fichier.name).resolve() == fichier.resolve():
             homonyme = next((e for e in manif["documents"].values() if e["fichier"] == fichier.name), None)
             if homonyme:
                 return {"etat": "refuse", "fichier": fichier.name, "doc_id": homonyme["doc_id"],
@@ -470,7 +488,7 @@ def _importer(fichier: Path, sha: str, meta_forcee: dict, copier: bool, cx: sqli
                                    f"`importer {fichier} --remplacer --motif \"…\"`"}
         if sha in manif["documents"]:
             existant = manif["documents"][sha]
-            cible = chemins.sources() / existant["fichier"]
+            cible = dossier / existant["fichier"]
             if cible.resolve() != fichier.resolve():
                 if not cible.exists() and copier:  # source perdue : on la restaure
                     shutil.copy2(fichier, cible)
@@ -491,19 +509,21 @@ def _importer(fichier: Path, sha: str, meta_forcee: dict, copier: bool, cx: sqli
         else:
             meta = detecter(fichier, ext)
             meta.update(meta_forcee)
-            pris = {e["doc_id"] for e in manif["documents"].values()}
+            pris = {e["doc_id"] for e in (*manif["documents"].values(), *autre.values())}
             entree = {"sha256": sha, "doc_id": _doc_id(meta, sha, pris), **meta,
                       "source_officielle": meta_forcee.get("source_officielle"),
                       "origine": meta_forcee.get("origine", "import manuel"),
                       "importe_le": datetime.now().date().isoformat(),
                       "champs_forces": sorted(meta_forcee)}
+            if prive:
+                entree["prive"] = True
             nom = fichier.name
             if copier:
-                chemins.sources().mkdir(parents=True, exist_ok=True)
-                cible = chemins.sources() / nom
+                dossier.mkdir(parents=True, exist_ok=True)
+                cible = dossier / nom
                 if cible.exists() and empreinte(cible) != sha:
                     nom = f"{fichier.stem}-{sha[:6]}{fichier.suffix}"
-                    cible = chemins.sources() / nom
+                    cible = dossier / nom
                 if cible.resolve() != fichier.resolve():
                     shutil.copy2(fichier, cible)
             entree["fichier"] = nom
@@ -511,7 +531,7 @@ def _importer(fichier: Path, sha: str, meta_forcee: dict, copier: bool, cx: sqli
         n = _enregistrer(cx, entree, ext)
         notes = [n for n in calculer_versions(cx) if entree["doc_id"] in n]
         cx.commit()
-        ecrire_manifeste(manif)
+        ecrire_manifeste(manif, prive)
         if ancien and statut in ("ok", "partiel"):
             message = f"remplace le contenu d'empreinte {ancien[:12]}… (historique au manifeste, journalisé) ; {message}"
         return {"etat": ("remplace" if ancien else "importe") if statut in ("ok", "partiel") else "echec",
@@ -621,6 +641,20 @@ def _actualiser(forcer: bool) -> dict:
         for sha, entree in manif["documents"].items():
             cx.execute(f"UPDATE documents SET {', '.join(f'{c}=?' for c in champs)} WHERE sha256=?",
                        (*[entree.get(c) for c in champs], sha))
+        # Documents internes déposés dans bibliotheque/prive/ (jamais versionné) : indexés,
+        # inscrits au manifeste privé seulement.
+        prives = lire_manifeste(prive=True)["documents"]
+        if chemins.prive().is_dir():
+            for f in sorted(chemins.prive().iterdir()):
+                sha = empreinte(f) if _est_source(f) else None
+                doc = connus.get(sha)
+                if sha and (sha not in prives or forcer or not doc
+                            or doc["version_extracteur"] != extraction.VERSION_EXTRACTEUR):
+                    r = importer(f, copier=False, cx=cx, prive=True)
+                    (rapport["importes"] if r["etat"] == "importe" else rapport["doublons"]
+                     if r["etat"] == "doublon" else rapport["echecs"]).append(
+                        f"{r.get('doc_id', f.name)} (privé) : {r['message']}")
+                    prives = lire_manifeste(prive=True)["documents"]
         rapport["versions"] = calculer_versions(cx)
         maintenant = datetime.now().isoformat(timespec="seconds")
         cx.executemany("UPDATE documents SET controle_le=? WHERE sha256=?", [(maintenant, s) for s in presents])
@@ -653,8 +687,9 @@ def controle_index(cx: sqlite3.Connection | None = None) -> dict:
         if propre:
             cx.close()
     manif = lire_manifeste()["documents"]
+    prives = lire_manifeste(prive=True)["documents"]
     dossier = chemins.sources()
-    for sha, e in manif.items():
+    for sha, e in (*manif.items(), *prives.items()):
         d = docs.get(sha)
         if d is None:
             perimes.add(e["doc_id"])
@@ -665,10 +700,10 @@ def controle_index(cx: sqlite3.Connection | None = None) -> dict:
         if d["statut_extraction"] == "a_confirmer":
             perimes.add(d["doc_id"])  # modifié sur place : signalé, en attente de `--remplacer`
             continue
-        f = dossier / e["fichier"]
+        f = (chemins.prive() if e.get("prive") else dossier) / e["fichier"]
         if not f.is_file():
             perimes.add(d["doc_id"])
-            messages.append(f"{d['doc_id']} : fichier {e['fichier']} disparu de bibliotheque/sources/")
+            messages.append(f"{d['doc_id']} : fichier {e['fichier']} disparu de {f.parent.relative_to(chemins.racine())}/")
             continue
         repere = d["controle_le"] or d["indexe_le"]
         try:
@@ -680,7 +715,7 @@ def controle_index(cx: sqlite3.Connection | None = None) -> dict:
             perimes.add(d["doc_id"])
             messages.append(f"{d['doc_id']} : contenu de {e['fichier']} modifié depuis l'indexation")
     for sha, d in docs.items():
-        if sha not in manif and d["statut_extraction"] != "absent":
+        if sha not in manif and sha not in prives and d["statut_extraction"] != "absent":
             perimes.add(d["doc_id"])
             messages.append(f"{d['doc_id']} : indexé mais absent du manifeste (retiré ailleurs ?)")
     if dossier.is_dir():

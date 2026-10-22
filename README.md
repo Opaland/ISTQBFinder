@@ -198,8 +198,11 @@ Documentation consultée (2026-10-22) :
 | `connaissances/connaissances.jsonl` — les idées | `connaissances/base.db` — reconstruite depuis le JSONL |
 | `connaissances/journal.jsonl` — l'historique | `bibliotheque/index.db` — reconstruit par `actualiser` |
 | `bibliotheque/manifeste.json` — métadonnées des documents | |
-| `bibliotheque/sources/` — les PDF (≈ 33 Mo) | |
+| `bibliotheque/sources/` — les PDF (≈ 33 Mo) | `bibliotheque/prive/` — documents internes (`importer --prive`) |
 | `referentiel/` (taxonomie, thésaurus), `catalogue/`, `eval/` | |
+
+Le dépôt est **public** : anonymiser toute idée (ni client, ni personne, ni projet, ni
+montant) et importer les documents internes avec `importer --prive`, jamais dans `sources/`.
 
 Après une session de capitalisation : commiter `connaissances/` (et
 `referentiel/taxonomie.json` si un thème a été ajouté). Sur un autre poste, un `git pull`

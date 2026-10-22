@@ -153,3 +153,18 @@ def test_section_et_page_bornees_indiquent_la_suite(capsys, racine_isolee):
     # Par défaut (15 000 caractères), une petite section n'est pas tronquée.
     assert main(["section", "CTFL", "1"]) == 0
     assert "Sortie tronquée" not in capsys.readouterr().out
+
+
+def test_doublons_en_une_ligne_sans_json(capsys, monkeypatch, racine_isolee):
+    """#128 : `idee doublons --titre … --resume … --theme …` sans entrée standard."""
+    idee = {"titre": "Matrice des risques probabilité impact", "resume": "Prioriser les tests par probabilité × impact.",
+            "probleme": "Effort uniforme.", "principe": "Calculer le niveau de risque.", "theme_principal": "rbt"}
+    monkeypatch.setattr("sys.stdin", __import__("io").StringIO(json.dumps(idee)))
+    assert main(["idee", "ajouter"]) == 0
+    q1 = capsys.readouterr().out.split("Idée créée : ")[1].split()[0]
+    monkeypatch.setattr("sys.stdin", __import__("io").StringIO(""))  # rien sur l'entrée standard
+    assert main(["idee", "doublons", "--titre", "Matrice des risques : probabilité et impact",
+                 "--resume", "Prioriser les tests selon probabilité × impact.", "--theme", "rbt"]) == 0
+    sortie = capsys.readouterr().out
+    assert q1 in sortie and "DOUBLON PROBABLE" in sortie
+    assert main(["idee", "doublons", "--titre", "x", "--theme", "inconnu"]) == 2

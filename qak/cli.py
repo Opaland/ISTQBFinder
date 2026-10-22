@@ -449,6 +449,9 @@ def _afficher_doublons(sim: list[dict]):
         _ecrire(f"  {s['verdict'].upper():16} {s['id']} « {s['titre']} » (similarité {s['score']}, {s['statut']})")
 
 
+CHAMPS_DOUBLONS = ("titre", "resume", "probleme", "principe")
+
+
 def cmd_idee(a):
     act = a.action
     if act == "modele":
@@ -465,7 +468,12 @@ def cmd_idee(a):
         if r["etat"] == "refuse":
             return 2
     elif act == "doublons":
-        d, _ = connaissances.valider(_lire_donnees(a.fichier), partiel=True)
+        # Forme en une ligne, sans accolades (#128) : en `claude -p`, un heredoc contenant
+        # du JSON est bloqué par le contrôle d'expansion de Claude Code.
+        champs = {k: getattr(a, k) for k in CHAMPS_DOUBLONS if getattr(a, k)}
+        if champs and a.theme:
+            champs["theme_principal"] = a.theme
+        d, _ = connaissances.valider(champs or _lire_donnees(a.fichier), partiel=True)
         sim = connaissances.doublons(d)
         _ecrire("Aucune idée similaire." if not sim else "Idées similaires :")
         _afficher_doublons(sim)
@@ -749,6 +757,8 @@ def analyseur() -> argparse.ArgumentParser:
     x.add_argument("id", nargs="?", help="identifiant QA-xxxx")
     x.add_argument("requete", nargs="*", help="texte (pour chercher)")
     x.add_argument("--fichier", default="-", help="JSON de l'idée (défaut : entrée standard)")
+    for champ in CHAMPS_DOUBLONS:
+        x.add_argument(f"--{champ}", help="doublons : champ de l'idée en une ligne, sans JSON (avec --theme)")
     x.add_argument("--forcer", action="store_true")
     x.add_argument("--motif")
     x.add_argument("--remplacer-listes", action="store_true")

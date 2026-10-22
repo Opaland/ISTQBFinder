@@ -14,7 +14,7 @@ intérêt durable, résultat de recherche brut.
    `theme_principal`). Champs utiles : `themes_secondaires`, `domaine_application`,
    `prerequis`, `benefices`, `limites`, `maturite`, `provenance`, `references`.
 3. Thèmes : `theme proposer "<titre + résumé>"`, puis vérifier dans `themes`.
-4. Doublons : `idee doublons` avec le JSON sur l'entrée standard (heredoc, voir plus bas).
+4. Doublons : `idee doublons` en **une ligne**, champs en options (voir plus bas).
    - « doublon probable » (≥ 0,6) → NE PAS créer ; proposer `idee modifier QA-xxxx`
      (les références et thèmes s'ajoutent, rien n'est perdu) ou `idee lier`.
    - « proche » (0,35-0,6) → créer seulement si la différence est réelle, puis lier
@@ -23,13 +23,17 @@ intérêt durable, résultat de recherche brut.
    assumé : `--forcer --motif "en quoi elle diffère"`.
 6. Annoncer l'identifiant créé et les avertissements éventuels.
 
-Le JSON se passe **sans fichier temporaire** (un sous-agent ne peut pas écrire de
-fichier ; `--fichier` reste possible pour un JSON que l'utilisateur a déjà) :
+Rien ne passe par un fichier temporaire (un sous-agent ne peut pas écrire de fichier ;
+`--fichier` reste possible pour un JSON que l'utilisateur a déjà). `idee doublons`, en
+lecture seule, s'écrit **en une ligne sans JSON** : en `claude -p` et pour un
+sous-agent, Claude Code bloque toute commande où une accolade côtoie un guillemet
+(« Contains brace with quote character »), donc tout heredoc JSON ; la forme en une
+ligne est couverte par l'autorisation `Bash(python qa.py idee doublons:*)`. `idee
+ajouter` garde le JSON sur l'entrée standard : il demande de toute façon l'accord de
+l'utilisateur.
 
 ```bash
-python qa.py idee doublons <<'JSON'
-{ "titre": "...", "resume": "...", "probleme": "...", "principe": "...", "theme_principal": "rbt" }
-JSON
+python qa.py idee doublons --titre "..." --resume "..." --probleme "..." --principe "..." --theme rbt
 python qa.py idee ajouter <<'JSON'
 { "titre": "...", "resume": "...", "probleme": "...", "principe": "...",
   "theme_principal": "rbt", "maturite": "documentee",

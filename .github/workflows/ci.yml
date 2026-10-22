@@ -30,3 +30,18 @@ jobs:
           python qa.py actualiser
           python qa.py inventaire
           python qa.py evaluer --jeu controle --min-rappel 0.80
+
+  # Windows : encodages de la console (cp1252), chemins, verrous de fichiers.
+  tests-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Installer les dépendances
+        run: pip install -r requirements.txt
+      - name: Tests
+        run: python -m pytest tests/ -q -rs

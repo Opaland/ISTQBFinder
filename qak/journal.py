@@ -58,7 +58,7 @@ def lire(cible: str | None = None, limite: int = 30) -> list[dict]:
     p = chemins.journal_jsonl()
     if not p.exists():
         return []
-    brut = p.read_text(encoding="utf-8").splitlines()
+    brut = p.read_text(encoding="utf-8-sig").splitlines()
     controler_conflits(p, brut, "Le journal est en ajout seul : garder les lignes des DEUX côtés.")
     lignes = []
     for n, l in enumerate(brut, 1):

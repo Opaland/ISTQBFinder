@@ -44,3 +44,12 @@ def test_sigles_courts_seulement_en_majuscules():
     assert "ideal" not in ids("quel est le processus idéal de revue")
     assert "ideal" in ids("modèle IDEAL") and "ideal" in ids("le cadre IDEAL") and "ideal" in ids("IDEAL")
     assert "ai" not in textes.reperer_concepts("j'ai des tests instables")[1]  # ni « mot trop court ignoré »
+
+
+def test_motivation_n_est_plus_absorbee_par_competences():
+    # Issue #26 : « motivation » était remplacé par l'expansion de « competences » (skills,
+    # training…) ; CTAL-TM §3.1.6 « Motivating or Demotivating Factors » disparaissait.
+    def ids(q):
+        return [cid for cid, _ in textes.reperer_concepts(q)[0]]
+    assert ids("motivation") == ["motivation"] and ids("facteurs de motivation") == ["motivation"]
+    assert ids("compétences et motivation des testeurs") == ["competences", "motivation"]

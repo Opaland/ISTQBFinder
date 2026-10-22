@@ -766,6 +766,40 @@
    "controle": true
   },
   {
+   "requete": "connaissance des parties prenantes dans le management des tests",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.2.2"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "différence entre erreur, défaut et défaillance",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "1.2.3"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "gestion des anomalies",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.5"
+    },
+    {
+     "code": "CTAL-TM",
+     "section": "2.3"
+    }
+   ],
+   "controle": true
+  },
+  {
    "requete": "critical testing processes CTP",
    "attendus": [
     {

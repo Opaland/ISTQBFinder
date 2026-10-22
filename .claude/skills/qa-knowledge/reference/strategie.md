@@ -35,6 +35,11 @@ questions à choix, puis montrer le plan de recherche — voir [conversation.md]
 
 - `lire <id> --contexte 1` donne le passage et ses voisins ; `section <doc> 4.2` toute une
   section. Lire au moins les 2-3 meilleurs passages, de documents différents si possible.
+- `section` et `page` sont bornées (`--max-caracteres`, défaut 15 000) : une sortie
+  tronquée se termine par « ✂ Sortie tronquée… Reste à lire » et la liste des
+  sous-sections ou pages restantes. **Ne jamais tronquer soi-même avec `head`** (ni
+  `tail`, ni `cut`) : lire plutôt une sous-section plus précise parmi celles proposées,
+  et ne citer que ce qui a été réellement affiché.
 - Noter la version et la date du syllabus ; si deux syllabus divergent (ex. CTFL vs
   CTAL-TM), le dire et expliquer (niveau, date, angle).
 
@@ -136,24 +141,14 @@ taille et rythme de l'équipe, outillage) — elles ne bloquent pas la réponse.
 
 ## Score de confiance (obligatoire)
 
-Partir de la **confiance documentaire** affichée par `chercher` (0-100 ; prendre celle
-de la requête la plus pertinente), puis ajuster :
-
-| Situation | Ajustement |
-|---|---|
-| Moins de 2 passages réellement lus (`lire`/`section`) | − 20 |
-| Seul un syllabus ancien (≤ 2016) ou une version remplacée couvre le sujet | − 15 |
-| Syllabus contradictoires non arbitrés | − 15 |
-| Une partie de la réponse repose sur le Web | − 10 (et préciser laquelle) |
-| Une partie repose sur ton raisonnement sans source | − 10 |
-| ≥ 3 syllabus courants concordants, passages lus | + 5 |
-
+La grille est dans SKILL.md (seul texte préchargé chez Thomas et Sylvie) et dans
+`qak/confiance.py` ; `python qa.py confiance …` l'applique et affiche le calcul. Écrire
+« Confiance : NN/100 (libellé) » suivi du calcul, par exemple :
+`base 79 × 0,6 = 47 ; 3 passages lus +20 ; 2 syllabus concordants +10 ; Web −10 → 67`.
+Aucun autre ajustement (« −5 syllabus non lu », point de départ choisi à l'œil…).
 Plafond : si une notion de la question (ex. l'outil nommé) n'est couverte ni par un
-passage lu ni par une source Web consultée, le score ne dépasse pas **60** — le dire.
-
-Borner entre 0 et 100. Libellés : ≥ 75 élevée · 50-74 moyenne · 25-49 faible ·
-< 25 très faible (le dire franchement et proposer Web ou reformulation).
-Écrire « Confiance : NN/100 (libellé) » suivi des raisons principales.
+passage lu ni par une source Web consultée (`--non-couvert 1`), le score
+ne dépasse pas **60** — le dire.
 
 ## Marquage de la provenance
 

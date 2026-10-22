@@ -309,6 +309,21 @@
    ]
   },
   {
+   "id": "erreur",
+   "termes": [
+    "error",
+    "errors",
+    "mistake",
+    "mistakes",
+    "human error",
+    "erreur",
+    "erreurs",
+    "erreur humaine",
+    "méprise",
+    "méprises"
+   ]
+  },
+  {
    "id": "defaut",
    "termes": [
     "defect",
@@ -317,19 +332,39 @@
     "défauts",
     "bug",
     "bugs",
-    "anomalie",
-    "anomalies",
-    "incident",
-    "incidents",
     "fault",
+    "faults",
     "faute",
+    "fautes"
+   ]
+  },
+  {
+   "id": "defaillance",
+   "termes": [
     "failure",
+    "failures",
     "défaillance",
-    "defect report",
-    "rapport de défaut",
+    "défaillances"
+   ]
+  },
+  {
+   "id": "anomalie",
+   "termes": [
+    "anomaly",
+    "anomalies",
+    "anomalie",
+    "incident",
+    "incidents"
+   ]
+  },
+  {
+   "id": "gestion-defauts",
+   "termes": [
     "defect management",
     "gestion des défauts",
-    "gestion des anomalies"
+    "gestion des anomalies",
+    "defect report",
+    "rapport de défaut"
    ]
   },
   {

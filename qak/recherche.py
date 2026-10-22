@@ -69,8 +69,7 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
         th = taxonomie.theme(theme)
         obligatoire = Groupe(f"thème {th['code']}", th["mots_cles"])
     if not gs and not obligatoire:
-        return {"requete_fts": "", "groupes": [], "resultats": [],
-                "avertissements": ["Requête vide après retrait des mots vides : préciser les notions cherchées."]}
+        return _sans_resultat([], "Requête vide après retrait des mots vides : préciser les notions cherchées.")
     filtres, params = [], []
     if not toutes_versions:
         # Un doc_id précis demandé explicitement (même remplacé) reste cherchable.
@@ -111,8 +110,8 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
     cx = cx or bibliotheque.connecter()
     try:
         if not cx.execute("SELECT 1 FROM passages LIMIT 1").fetchone():
-            return {"requete_fts": "", "groupes": [g.libelle for g in gs], "resultats": [],
-                    "avertissements": ["Bibliothèque vide : lancer `actualiser` ou `telecharger` d'abord."]}
+            return _sans_resultat([g.libelle for g in gs],
+                                  "Bibliothèque vide : lancer `actualiser` ou `telecharger` d'abord.")
         prefixe = f"{obligatoire.fts()} AND " if obligatoire else ""
         ou = prefixe + "(" + " OR ".join(g.fts() for g in gs) + ")" if gs else obligatoire.fts()
         candidats = executer(ou, CANDIDATS)
@@ -187,6 +186,13 @@ def _notions_des_candidats(candidats: list[sqlite3.Row], gs: list[Groupe]) -> tu
     finally:
         mini.close()
     return trouves, en_titre
+
+
+def _sans_resultat(libelles: list[str], avertissement: str) -> dict:
+    """Retour anticipé (requête vide, bibliothèque vide) : même forme qu'un résultat normal,
+    clé « confiance » comprise (issue #53 : la CLI la lit toujours)."""
+    return {"requete_fts": "", "groupes": libelles, "resultats": [], "confiance": confiance_documentaire([]),
+            "avertissements": [avertissement]}
 
 
 def confiance_documentaire(resultats: list[dict]) -> dict:

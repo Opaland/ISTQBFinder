@@ -17,8 +17,12 @@ Linux/macOS si `python` est absent). `--help` sur chaque commande.
 2. **Syllabus locaux** : `chercher "<notions>"` — plusieurs requêtes courtes et ciblées
    valent mieux qu'une phrase longue. Le thésaurus traduit FR↔EN ; ajoute toi-même le
    terme anglais ISTQB si tu le connais (`"risk-based testing" priorisation`).
-   Filtres utiles : `--doc CTAL-TM`, `--niveau avance`, `--section 1.3`, `--theme rbt`,
-   `--langue fr`. Les versions remplacées sont exclues (sauf `--toutes-versions`).
+   Filtres utiles : `--doc CTAL-TM`, `--niveau avance`, `--section 1.3`, `--theme rbt`.
+   **Ne filtre pas par langue** : 12 syllabus (dont CTFL v4.0, CT-AI, CT-GenAI) n'existent
+   qu'en anglais ; `--langue fr` les ferait disparaître. Cite le texte anglais et
+   traduis-le dans ta réponse. Les versions remplacées sont exclues (sauf `--toutes-versions`).
+   Un avertissement « existe seulement en… » / « exclu par… » n'est PAS une absence :
+   relance sans le filtre avant de dire qu'un syllabus manque.
 3. **Lire avant de citer** : `lire <passage> --contexte 1`, `section <doc> <num>`,
    `page <doc> <p>`. Un extrait de recherche ne suffit jamais pour affirmer.
 4. **Web** seulement si un besoin identifiable le justifie (voir plus bas) — dis

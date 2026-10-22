@@ -14,7 +14,9 @@
 - Découper la question en 2-4 notions et lancer une requête par angle :
   `chercher "risk-based testing" agile`, puis `chercher priorisation risques --doc CTAL-TM`.
 - Ajouter le terme ISTQB anglais quand il est connu : les syllabus EN sont plus complets
-  (26 codes) que les traductions FR. Les deux langues sont indexées.
+  (26 codes) que les traductions FR (14 codes). Les deux langues sont indexées et
+  cherchées ensemble : ne pas utiliser `--langue` sauf demande explicite de texte français
+  à citer mot pour mot (et préciser alors que la couverture FR est partielle).
 - `--theme <code>` restreint aux passages qui évoquent le thème (mots-clés de la taxonomie).
 - Un résultat « PARTIEL » ne couvre qu'une partie des notions : le lire avant de l'utiliser.
 - Un passage dans `§ 0.x` ou une annexe (« Business Outcomes », « Release Notes ») est

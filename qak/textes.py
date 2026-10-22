@@ -72,6 +72,16 @@ def thesaurus() -> tuple:
     return _thesaurus(str(chemins.thesaurus()))[0]
 
 
+def termes_thesaurus() -> frozenset:
+    """Tous les termes du thésaurus, normalisés (« tmmi », « api », « partition d equivalence »)."""
+    return _termes_thesaurus(str(chemins.thesaurus()))
+
+
+@lru_cache(maxsize=4)
+def _termes_thesaurus(chemin: str) -> frozenset:
+    return frozenset(normaliser(t) for _, termes in _thesaurus(chemin)[0] for t in termes)
+
+
 def reperer_concepts(texte: str) -> tuple[list[tuple[str, tuple]], list[str]]:
     """Repère les concepts du thésaurus dans `texte` (pluriels tolérés, expressions
     longues prioritaires). Renvoie [(id_concept, termes)] et les mots non couverts."""

@@ -275,3 +275,38 @@ def test_code_istqb_ambigu_departage_par_la_langue_de_l_extrait(bibliotheque_tes
     with pytest.raises(ErreurValidation, match=r"ambigu.*CTFL-9\.9-en.*doc_id exact"):
         connaissances.valider(_ref_ctfl(pages="1"))
     connaissances.valider(_ref_ctfl(pages="1", doc_id=r["doc_id"]))  # identifiant exact : pas d'ambiguïté
+
+HERZBERG = {"titre": "Herzberg, motivation et hygiène",
+            "resume": "Distinguer facteurs de motivation et facteurs d'hygiène (Herzberg) pour animer une équipe de test.",
+            "probleme": "Équipe de test démotivée malgré de bonnes conditions matérielles.",
+            "principe": "Les facteurs d'hygiène évitent l'insatisfaction ; seuls les facteurs de motivation "
+                        "(reconnaissance, responsabilité, progression) motivent.",
+            "theme_principal": "competences"}
+
+
+@pytest.mark.parametrize("reformulee", [
+    {"titre": "Motiver l'équipe QA avec le modèle de Herzberg",
+     "resume": "Utiliser la théorie bifactorielle de Herzberg : hygiène vs motivation.",
+     "probleme": "Testeurs peu engagés.",
+     "principe": "Agir sur la reconnaissance et la responsabilité plutôt que sur le seul confort.",
+     "theme_principal": "competences"},
+    {"titre": "Using Herzberg's two-factor theory to motivate testers",
+     "resume": "Hygiene factors vs motivators for a QA team.", "probleme": "Low tester engagement.",
+     "principe": "Act on recognition and responsibility.", "theme_principal": "competences"},
+])
+def test_doublon_reformule_avec_nom_propre_partage(reformulee):
+    """#27 : « Motiver l'équipe QA avec le modèle de Herzberg » (FR ou EN) n'était pas détecté."""
+    connaissances.ajouter(dict(HERZBERG))
+    r = connaissances.ajouter(reformulee)
+    assert r["etat"] == "refuse" and r["doublons"][0]["id"] == "QA-0001"
+
+
+def test_meme_theme_sans_contenu_commun_non_signale():
+    connaissances.ajouter(dict(HERZBERG))
+    autre = {"titre": "Entretiens annuels des testeurs", "resume": "Préparer les entretiens individuels.",
+             "probleme": "Entretiens bâclés.", "principe": "Grille d'objectifs et de compétences.",
+             "theme_principal": "competences"}
+    assert connaissances.doublons(autre) == []
+    # Mots capitalisés en début de phrase : pas des noms propres.
+    assert connaissances._termes_distinctifs("Équipe motivée. Les testeurs de l'équipe (Herzberg) et TMMi.") \
+        == {"herzberg", "tmmi"}

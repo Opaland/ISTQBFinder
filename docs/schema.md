@@ -7,7 +7,7 @@ Une idée = une ligne de `connaissances.jsonl` (source versionnée) et une ligne
 
 | Champ | Obligatoire | Contenu |
 |---|---|---|
-| `id` | auto | `QA-0001`, `QA-0002`… stable, jamais réattribué |
+| `id` | auto | `QA-AAAAMMJJ-xxxx` (date de création + suffixe aléatoire, ex. `QA-20261022-7f3a`) : stable, jamais réattribué, même après un `git revert` ; les anciens `QA-0001`… restent valides |
 | `titre` | oui | titre court et explicite |
 | `resume` | oui | description synthétique |
 | `probleme` | oui | problème ou situation traités |

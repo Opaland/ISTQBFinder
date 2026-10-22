@@ -26,6 +26,16 @@ question porte sur le test logiciel ou la qualité (ou via `/qa-knowledge`).
 
 ## Utilisation
 
+### Les agents
+
+| Agent | Rôle | Lancer |
+|---|---|---|
+| **Sylvie** | auditrice : vérifie qu'une démarche est alignée sur les pratiques ISTQB, liste les manques, donne un niveau de maturité (grille `referentiel/grille-maturite.md`) | `@agent-sylvie <ta démarche>` ou `claude --agent sylvie` |
+
+Exemple : « @agent-sylvie Je veux mettre en place une stratégie basée sur les risques :
+atelier avec le PO pour lister les risques, priorisation des tests critiques, revue en
+fin de sprint. Suis-je aligné ISTQB ? Quel niveau de maturité ? »
+
 Exemples de demandes, en langage naturel :
 
 - « Quelles techniques ISTQB permettent d'améliorer la couverture des tests ? »

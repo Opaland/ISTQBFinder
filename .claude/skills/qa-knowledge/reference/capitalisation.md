@@ -14,18 +14,22 @@ intérêt durable, résultat de recherche brut.
    `theme_principal`). Champs utiles : `themes_secondaires`, `domaine_application`,
    `prerequis`, `benefices`, `limites`, `maturite`, `provenance`, `references`.
 3. Thèmes : `theme proposer "<titre + résumé>"`, puis vérifier dans `themes`.
-4. Doublons : `idee doublons --fichier idee.json`.
+4. Doublons : `idee doublons` avec le JSON sur l'entrée standard (heredoc, voir plus bas).
    - « doublon probable » (≥ 0,6) → NE PAS créer ; proposer `idee modifier QA-xxxx`
      (les références et thèmes s'ajoutent, rien n'est perdu) ou `idee lier`.
    - « proche » (0,35-0,6) → créer seulement si la différence est réelle, puis lier
      (`variante`, `complementaire`, `contradictoire`, `prerequis`, `remplace`).
-5. Ajout : `idee ajouter --fichier idee.json` (ou `-` + entrée standard). En cas de
-   doublon assumé : `--forcer --motif "en quoi elle diffère"`.
+5. Ajout : `idee ajouter` avec le même JSON sur l'entrée standard. En cas de doublon
+   assumé : `--forcer --motif "en quoi elle diffère"`.
 6. Annoncer l'identifiant créé et les avertissements éventuels.
 
-Le JSON peut être passé sans fichier :
+Le JSON se passe **sans fichier temporaire** (un sous-agent ne peut pas écrire de
+fichier ; `--fichier` reste possible pour un JSON que l'utilisateur a déjà) :
 
 ```bash
+python qa.py idee doublons <<'JSON'
+{ "titre": "...", "resume": "...", "probleme": "...", "principe": "...", "theme_principal": "rbt" }
+JSON
 python qa.py idee ajouter <<'JSON'
 { "titre": "...", "resume": "...", "probleme": "...", "principe": "...",
   "theme_principal": "rbt", "maturite": "documentee",

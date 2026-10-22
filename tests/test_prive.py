@@ -86,3 +86,16 @@ def test_corriger_puis_retirer_un_document_prive(depot, tmp_path_factory, capsys
     public = next(iter(bibliotheque.lire_manifeste()["documents"].values()))["doc_id"]
     with pytest.raises(ValueError, match="privés"):
         bibliotheque.retirer(public, supprimer_fichier=True)
+
+
+def test_aucun_fichier_ignore_n_est_versionne():
+    """#158 : `bibliotheque/vecteurs.npz` (4,8 Mo, ignoré) avait été commité. Un fichier
+    à la fois ignoré et suivi salit `git status` à chaque reconstruction."""
+    if not shutil.which("git"):
+        pytest.skip("git absent")
+    r = subprocess.run(["git", "-C", str(chemins.CODE), "ls-files", "-ci", "--exclude-standard"],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        pytest.skip(f"pas un dépôt Git : {r.stderr.strip()}")
+    assert r.stdout.splitlines() == [], ("fichiers ignorés par .gitignore mais versionnés : "
+                                         "`git rm --cached <fichier>`")

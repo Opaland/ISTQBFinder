@@ -35,9 +35,27 @@ la comparaison et des recommandations contextualisées.
 
 **Forme de la réponse** : conversationnelle, des **pistes par syllabus / chapitre** en
 puces, un tableau si l'on compare, « où creuser ensuite » — pour faire émerger des idées,
-pas pour livrer un texte à recopier. **Toujours** un « Confiance : NN/100 » calculé à
-partir de la confiance documentaire de `chercher` (grille d'ajustement). Gabarit, grille
-et détails : [reference/strategie.md](reference/strategie.md).
+pas pour livrer un texte à recopier. **Toujours** un « Confiance : NN/100 » (grille
+ci-dessous). Gabarit et détails : [reference/strategie.md](reference/strategie.md).
+
+## Score de confiance (obligatoire, déterministe)
+
+N'utilise **que** cette grille, sans ajustement de ton cru, et **écris le calcul** dans la
+réponse. Fais-le calculer : `confiance --base N --lus N --concordants N --ancien 0|1
+--contradiction 0|1 --web 0|1 --raisonnement 0|1 --non-couvert 0|1`.
+
+- **Base** = « Couverture lexicale » affichée par la **requête principale** (la première
+  qui reprend la question), × 0,6. Ce n'est pas une confiance : elle ne dit que si les
+  notions figurent dans des passages pertinents.
+- **Passages lus** (`lire`/`section`/`page`) : 0 → +0 · 1 → +10 · ≥ 2 → +20.
+- **Syllabus courants concordants**, passages lus : ≤ 1 → +0 · 2 → +10 · ≥ 3 → +20.
+- Seul un syllabus ancien (avant 2017) ou une version remplacée couvre le sujet : − 15 ·
+  syllabus contradictoires non arbitrés : − 15 · une partie repose sur le Web : − 10 ·
+  une partie repose sur ton raisonnement sans source : − 10.
+- Borner entre 0 et 100, puis **plafond 40** si une notion de la question n'est couverte
+  ni par un passage lu ni par le Web.
+- Libellés : ≥ 75 élevée · 50-74 moyenne · 25-49 faible · < 25 très faible (le dire
+  franchement et proposer Web ou reformulation).
 
 ## Règles de citation (impératives)
 

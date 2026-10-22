@@ -72,11 +72,24 @@ def test_filtre_qui_exclut_un_document_le_dit(bibliotheque_test):
     assert any("CTAL-TM : absent" in w for w in r["avertissements"])
 
 
-def test_confiance_documentaire(bibliotheque_test):
-    bonne = recherche.chercher("equivalence partitioning")["confiance"]
-    assert bonne["score"] >= 75 and bonne["libelle"] == "élevée"
-    assert "une section est consacrée à la notion" in bonne["raisons"]
-    partielle = recherche.chercher("equivalence partitioning blockchain")["confiance"]
+def test_couverture_lexicale(bibliotheque_test):
+    bonne = recherche.chercher("equivalence partitioning")["couverture_lexicale"]
+    assert bonne["libelle"] in ("élevée", "moyenne")
+    assert any("nomment une notion dans leur titre" in r for r in bonne["raisons"])
+    partielle = recherche.chercher("equivalence partitioning blockchain")["couverture_lexicale"]
     assert partielle["score"] < bonne["score"]
-    assert recherche.chercher("blockchain quantique")["confiance"] == {
+    assert recherche.chercher("blockchain quantique")["couverture_lexicale"] == {
         "score": 0, "libelle": "nulle", "raisons": ["aucun passage trouvé"]}
+
+
+def test_couverture_lexicale_ne_sature_pas_sur_des_sujets_disperses():
+    # Issue #18 (Claire) : notions toutes présentes, mais dans des sections qui ne les traitent
+    # pas (titres sans la notion) et d'un syllabus ancien → bien en dessous d'un socle pertinent.
+    def res(titre, date):
+        return {"doc_id": "CTFL-4.0-en", "couverture": 1.0, "partiel": False, "notion_en_titre": titre > 0,
+                "couverture_titre": titre, "date_publication": date}
+    pertinent = recherche.couverture_lexicale([res(1.0, "2023-05-01")] * 5)
+    disperse = recherche.couverture_lexicale([res(0.0, "2012-10-19")] * 5)
+    assert pertinent["score"] == 100 - 10  # un seul syllabus complet : 5/15
+    assert disperse["score"] == pertinent["score"] - 30 - 15
+    assert any("sujets dispersés" in r for r in disperse["raisons"])

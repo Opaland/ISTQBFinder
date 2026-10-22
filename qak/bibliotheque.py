@@ -50,11 +50,22 @@ CREATE VIRTUAL TABLE IF NOT EXISTS passages_fts USING fts5(
 """
 
 
-def connecter(chemin: Path | None = None) -> sqlite3.Connection:
-    chemin = chemin or chemins.index_db()
+ATTENTE_VERROU = 30  # secondes d'attente d'un verrou SQLite avant d'abandonner
+
+
+def ouvrir_sqlite(chemin: Path) -> sqlite3.Connection:
+    """Connexion partagée par les deux bases (index, idées). Le journal WAL laisse lire
+    pendant qu'un autre processus écrit (`chercher` pendant `actualiser`) ; deux écritures
+    simultanées s'attendent jusqu'à ATTENTE_VERROU secondes au lieu d'échouer aussitôt."""
     chemin.parent.mkdir(parents=True, exist_ok=True)
-    cx = sqlite3.connect(chemin)
+    cx = sqlite3.connect(chemin, timeout=ATTENTE_VERROU)
     cx.row_factory = sqlite3.Row
+    cx.execute("PRAGMA journal_mode=WAL")
+    return cx
+
+
+def connecter(chemin: Path | None = None) -> sqlite3.Connection:
+    cx = ouvrir_sqlite(chemin or chemins.index_db())
     cx.executescript(SCHEMA)
     return cx
 
@@ -411,6 +422,10 @@ def actualiser(forcer: bool = False) -> dict:
                     if k not in entree.get("champs_forces", []) and v:
                         entree[k] = v
                 _enregistrer(cx, entree, ext)
+                # Validation document par document : une recherche lancée pendant la
+                # réindexation voit l'index d'avant ou d'après, jamais un verrou de 2 minutes.
+                cx.commit()
+                ecrire_manifeste(manif)
                 rapport["reindexes"].append(entree["doc_id"])
             else:
                 # importer() relit et réécrit le manifeste : on y enregistre d'abord les

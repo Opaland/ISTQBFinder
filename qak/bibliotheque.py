@@ -480,6 +480,32 @@ def modifier_metadonnees(doc_id: str, **champs) -> dict:
     return entree
 
 
+def manquants(cx: sqlite3.Connection | None = None) -> dict:
+    """Couverture du catalogue officiel : pour chaque code, version courante en anglais et
+    en français (ou absence), versions remplacées et extractions à surveiller ; plus les
+    documents locaux hors catalogue."""
+    docs = inventaire(cx)
+    lignes = []
+    for e in catalogue()["documents"]:
+        siens = [d for d in docs if d["code"] == e["code"] and d["statut_version"] != "absent"]
+        par_langue = {}
+        for langue in ("en", "fr"):
+            courant = [d for d in siens if d["langue"] == langue and d["statut_version"] == "courant"]
+            par_langue[langue] = courant[0]["doc_id"] if courant else None
+        lignes.append({
+            "code": e["code"], "titre": e["titre"], "niveau": e["niveau"],
+            "version_officielle": e["version_constatee"], "en": par_langue["en"], "fr": par_langue["fr"],
+            "remplaces": [d["doc_id"] for d in siens if d["statut_version"] == "remplace"],
+            "a_surveiller": [f"{d['doc_id']} ({d['statut_extraction']})" for d in siens
+                             if d["statut_extraction"] not in ("ok",)],
+        })
+    codes = {e["code"] for e in catalogue()["documents"]}
+    hors = [d["doc_id"] for d in docs if d["code"] not in codes]
+    return {"catalogue": lignes, "hors_catalogue": hors,
+            "absents_en": [l["code"] for l in lignes if not l["en"]],
+            "absents_fr": [l["code"] for l in lignes if not l["fr"]]}
+
+
 def inventaire(cx: sqlite3.Connection | None = None) -> list[dict]:
     propre = cx is None
     cx = cx or connecter()

@@ -17,30 +17,12 @@ python qa.py evaluer --jeu controle   # qualité de la recherche (avant/après t
 python qa.py inventaire               # état de la bibliothèque
 ```
 
-## Règles de développement
+## Consignes communes (Claude, Copilot, Gemini)
 
-- **Un problème = une issue** GitHub (constat, scénario reproductible, impact attendu),
-  qu'il vienne d'une revue, d'un test ou de l'usage.
-- **Un correctif = une PR** : une branche partie de `main` à jour, un seul sujet, et
-  `Closes #n` dans la description. Jamais de commit direct sur `main`.
-- Une PR n'est fusionnée que si la CI est verte ; la fusion ferme l'issue.
-- Avant de pousser : `python -m pytest tests/ -q -rs` vert, et `python qa.py evaluer
-  --jeu controle` si le moteur de recherche est touché (chiffres dans la PR).
+Règles de réponse, de développement et métier : dans `AGENTS.md` (source unique, lue
+aussi par GitHub Copilot), importé ici :
 
-## Règles métier
+@AGENTS.md
 
-- Ne jamais citer une page, une section ou un passage non lu via `lire`/`section`/`page`.
-- Une référence ISTQB n'est enregistrée que vérifiée par l'outil (page, extrait) ;
-  ne jamais contourner ces contrôles.
-- Téléchargement depuis istqb.org uniquement (`catalogue/istqb.json`).
-- Tout changement d'extraction, de découpage ou de détection incrémente
-  `VERSION_EXTRACTEUR` (qak/extraction.py).
-- Moteur de recherche : mesurer `evaluer --jeu controle` avant et après ; ajouter une
-  question qui échoue au jeu de contrôle AVANT de modifier le moteur (pas de sur-réglage).
-- Tests : pas de client HTTP bouchonné ; `tests/test_sources_reelles.py` appelle vraiment
-  istqb.org (injoignable → ignoré avec la raison ; mauvaise réponse → échec). Le garde-fou
-  `autouse` de `tests/conftest.py` isole chaque test dans un dossier temporaire.
-- Base d'idées : `connaissances/connaissances.jsonl` est la source versionnée ; ne
-  capitaliser qu'avec l'accord de l'utilisateur ; proposer un commit après une session.
-- Les PDF de `bibliotheque/sources/` sont © ISTQB (copie autorisée avec citation) : ne
-  pas les modifier ; ils ne relèvent pas de la licence MIT.
+Les fichiers d'intégration des autres assistants sont générés depuis `.claude/` :
+après toute modification d'un agent ou d'un skill, `python scripts/generer_integrations.py`.

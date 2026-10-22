@@ -65,6 +65,18 @@ JSON
 ## Traçabilité
 
 Chaque création / modification / changement de statut / relation / thème est journalisé
-(`journal`, `journal --cible QA-xxxx`). La base se versionne avec Git via
+avec son auteur et un horodatage avec fuseau (`journal`, `journal --cible QA-xxxx`,
+`--details` pour l'avant/après). Le journal se fusionne sans conflit entre postes
+(`merge=union`) ; si un JSONL contient encore des marqueurs `<<<<<<<`, l'outil indique
+le fichier et la ligne : résoudre le conflit avant toute autre commande. La base se versionne avec Git via
 `connaissances/connaissances.jsonl` et `journal.jsonl` : proposer un commit
 après une session de capitalisation.
+
+- Ne jamais éditer `connaissances.jsonl` à la main : passer par `idee modifier`, et
+  pour supprimer `idee retirer QA-xxxx --motif "…"` (instantané conservé dans le
+  journal, relations retirées, identifiant jamais réattribué). Préférer
+  `idee statut … abandonnee` quand l'idée garde une valeur historique.
+- Si le fichier a été modifié hors de l'outil (édition, fusion, `git revert`), la base
+  est reconstruite, les règles sont recontrôlées (statut, références, relations
+  orphelines) et l'écart est journalisé (`modification_externe`) : relayer
+  l'avertissement « ⚠ » à l'utilisateur.

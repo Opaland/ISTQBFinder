@@ -363,6 +363,11 @@ def cmd_idee(a):
                                    f"{'|'.join(connaissances.RELATIONS)} [--note …]")
         r = connaissances.lier(a.id, a.cible, a.type, a.note)
         _ecrire(f"{r['source']} —{r['type']}→ {r['cible']}")
+    elif act == "retirer":
+        r = connaissances.retirer(a.id, a.motif)
+        _ecrire(f"{a.id} retirée (instantané conservé dans le journal)")
+        for x in r["relations_entrantes_retirees"]:
+            _ecrire(f"  relation {x['type']} depuis {x['source']} retirée")
     elif act == "voir":
         i = connaissances.voir(a.id)
         if a.json:
@@ -419,7 +424,11 @@ def cmd_idee(a):
 
 def cmd_journal(a):
     for e in journal.lire(a.cible, a.n):
-        _ecrire(f"{e['horodatage']} {e['action']:18} {e['cible']}" + (f" — {e['motif']}" if e.get("motif") else ""))
+        _ecrire(f"{e['horodatage']} {e.get('auteur', '?'):12} {e['action']:20} {e['cible']}"
+                + (f" — {e['motif']}" if e.get("motif") else ""))
+        if a.details and e.get("details"):
+            for ligne in json.dumps(e["details"], ensure_ascii=False, indent=1).splitlines():
+                _ecrire(f"      {ligne}")
 
 
 def cmd_evaluer(a):
@@ -566,7 +575,7 @@ def analyseur() -> argparse.ArgumentParser:
 
     x = sp.add_parser("idee", help="base de connaissances : ajouter, modifier, chercher…")
     x.add_argument("action", choices=["modele", "ajouter", "doublons", "modifier", "statut", "retour", "lier",
-                                      "voir", "lister", "chercher", "verifier-refs"])
+                                      "retirer", "voir", "lister", "chercher", "verifier-refs"])
     x.add_argument("id", nargs="?", help="identifiant QA-xxxx")
     x.add_argument("requete", nargs="*", help="texte (pour chercher)")
     x.add_argument("--fichier", default="-", help="JSON de l'idée (défaut : entrée standard)")
@@ -587,6 +596,7 @@ def analyseur() -> argparse.ArgumentParser:
     x = sp.add_parser("journal", help="historique des modifications")
     x.add_argument("--cible")
     x.add_argument("-n", type=int, default=30)
+    x.add_argument("--details", action="store_true", help="détails de chaque entrée (avant/après, anomalies)")
     x.set_defaults(f=cmd_journal)
     x = sp.add_parser("evaluer", help="mesure la qualité de la recherche sur eval/requetes.json")
     x.add_argument("-k", type=_entier_positif, default=5)
@@ -613,6 +623,11 @@ def main(argv=None) -> int:
         msg = exc.args[0] if exc.args else str(exc)
         sys.stderr.write(f"Erreur : {msg}\n")
         return 2
+    finally:
+        # Base reconstruite depuis un JSONL modifié hors de l'outil : prévenir l'utilisateur.
+        for w in connaissances.avertissements():
+            if not sys.stderr.closed:
+                sys.stderr.write(f"⚠ {w}\n")
     return 0
 
 
@@ -629,6 +644,6 @@ def _normaliser_idee(a) -> None:
     elif a.action == "lister" and (a.id or a.requete):
         raise SystemExit("Erreur : `idee lister` ne prend pas de texte : utiliser --theme <code> / --statut, "
                          "ou `idee chercher <texte>`.")
-    besoin_id = {"modifier", "statut", "retour", "lier", "voir"}
+    besoin_id = {"modifier", "statut", "retour", "lier", "retirer", "voir"}
     if a.action in besoin_id and not a.id:
         raise SystemExit(f"Erreur : `idee {a.action}` attend un identifiant (QA-xxxx).")

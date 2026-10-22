@@ -130,9 +130,107 @@ def _action_miroir(cx) -> str | None:
     return "exporter" if cx.execute("SELECT 1 FROM idees LIMIT 1").fetchone() else None
 
 
+COLONNES_REQUISES = ("id", "titre", "resume", "probleme", "principe", "theme_principal", "maturite", "statut",
+                     "cree_le", "maj_le")
+_AVERTISSEMENTS: list[str] = []
+
+
+def avertissements() -> list[str]:
+    """Avertissements produits à l'ouverture (reconstruction depuis un JSONL modifié hors
+    de l'outil) ; la liste est vidée à la lecture. La CLI les affiche après chaque commande."""
+    out = list(_AVERTISSEMENTS)
+    _AVERTISSEMENTS.clear()
+    return out
+
+
+def _lire_jsonl() -> list[dict]:
+    p = chemins.connaissances_jsonl()
+    brut = p.read_text(encoding="utf-8").splitlines()
+    try:
+        journal.controler_conflits(p, brut, "Garder pour chaque idée la version voulue (une seule ligne par "
+                                            "identifiant) ; la base sera recontrôlée et l'écart journalisé.")
+    except ValueError as exc:
+        raise ErreurValidation(exc.args[0]) from None
+    idees = []
+    for n, ligne in enumerate(brut, 1):
+        if not ligne.strip():
+            continue
+        try:
+            idee = json.loads(ligne)
+        except json.JSONDecodeError as exc:
+            raise ErreurValidation(f"{p.name}, ligne {n} : JSON invalide ({exc.msg}). Corriger la ligne "
+                                   "à la main (ou `git checkout` du fichier), puis relancer.") from exc
+        manquants = [c for c in COLONNES_REQUISES if not isinstance(idee, dict) or not idee.get(c)]
+        if manquants:
+            raise ErreurValidation(f"{p.name}, ligne {n} : champ(s) obligatoire(s) absent(s) : "
+                                   f"{', '.join(manquants)}. Compléter la ligne, puis relancer.")
+        idees.append(idee)
+    return idees
+
+
+def _anomalies(idee: dict, ids: set[str]) -> list[str]:
+    """Règles que l'outil applique à l'écriture, recontrôlées sur une idée relue depuis le
+    JSONL (qui peut avoir été modifié à la main) : rien n'interdit de reconstruire, mais
+    l'écart doit être vu et tracé."""
+    out = []
+    inconnus = sorted(k for k in idee if k not in CHAMPS_SAISIE and k not in CHAMPS_GERES)
+    if inconnus:
+        out.append(f"champ(s) inconnu(s) : {', '.join(inconnus)}")
+    saisie = {k: v for k, v in idee.items() if k in CHAMPS_SAISIE and k != "statut"}
+    try:
+        valider(saisie)
+    except (ErreurValidation, KeyError) as exc:
+        out.append(exc.args[0] if exc.args else str(exc))
+    statut = idee.get("statut")
+    if statut not in STATUTS:
+        out.append(f"statut invalide : {statut}")
+    elif statut == "experimentee" and not idee.get("retours"):
+        out.append("« expérimentée » sans retour d'expérience")
+    elif statut == "validee" and not idee.get("references") and not idee.get("retours"):
+        out.append("« validée » sans référence ni retour d'expérience")
+    for r in idee.get("relations", []):
+        if not isinstance(r, dict) or r.get("type") not in RELATIONS:
+            out.append(f"relation invalide : {r}")
+        elif r.get("cible") not in ids:
+            out.append(f"relation {r.get('type')} vers {r.get('cible')} : idée cible inexistante (orpheline)")
+    return [f"{idee['id']} : {m}" for m in out]
+
+
+def _differentiel(avant: dict[str, dict], apres: dict[str, dict]) -> dict:
+    """Changements que le journal n'explique pas : idée ajoutée sans `idee_creee`, retirée
+    sans `idee_retiree`, modifiée sans entrée de journal à sa date de mise à jour
+    (une modification par l'outil, même sur un autre poste, met à jour `maj_le` et journalise)."""
+    entrees = journal.lire(limite=10 ** 9)
+    actions = {(e["cible"], e["action"]) for e in entrees}
+    dernieres = {}
+    for e in entrees:
+        dernieres[e["cible"]] = max(dernieres.get(e["cible"], ""), e["horodatage"][:19])
+    diff = {}
+    ajoutees = sorted(i for i in apres.keys() - avant.keys() if (i, "idee_creee") not in actions)
+    supprimees = sorted(i for i in avant.keys() - apres.keys() if (i, "idee_retiree") not in actions)
+    modifiees = {}
+    for i in sorted(avant.keys() & apres.keys()):
+        a, b = avant[i], apres[i]
+        champs = {k: {"avant": a.get(k), "apres": b.get(k)} for k in sorted(a.keys() | b.keys())
+                  if k != "maj_le" and _forme(a.get(k)) != _forme(b.get(k))}
+        if not champs:
+            continue
+        explique = b.get("maj_le") != a.get("maj_le") and dernieres.get(i, "") >= str(b.get("maj_le"))[:19]
+        if not explique:
+            modifiees[i] = champs
+    for cle, val in (("ajoutees", ajoutees), ("supprimees", supprimees), ("modifiees", modifiees)):
+        if val:
+            diff[cle] = val
+    return diff
+
+
+def _forme(v):
+    """Valeur comparable : listes vides et absences sont équivalentes."""
+    return None if v in (None, "", []) else json.dumps(v, sort_keys=True, ensure_ascii=False)
+
+
 def _reconstruire(cx: sqlite3.Connection) -> None:
-    idees = [json.loads(l) for l in chemins.connaissances_jsonl().read_text(encoding="utf-8").splitlines()
-             if l.strip()]
+    idees = _lire_jsonl()
     vus, doubles = set(), set()
     for i in idees:
         (doubles if i["id"] in vus else vus).add(i["id"])
@@ -143,12 +241,29 @@ def _reconstruire(cx: sqlite3.Connection) -> None:
         raise ErreurValidation(
             f"Identifiants en double dans {chemins.connaissances_jsonl().name} : {', '.join(sorted(doubles))}. "
             "Fusionner ou renuméroter ces lignes à la main (conflit Git ?), puis relancer.")
+    base_connue = cx.execute("SELECT 1 FROM meta WHERE cle='hash_jsonl'").fetchone() is not None
+    avant = {r["id"]: _charger(cx, r["id"]) for r in cx.execute("SELECT id FROM idees")} if base_connue else {}
+    anomalies = [m for i in idees for m in _anomalies(i, vus)]
     for t in ("idees", "idee_themes", "refs", "relations", "retours", "idees_fts"):
         cx.execute(f"DELETE FROM {t}")
     for idee in idees:
         _inserer(cx, idee, relations=True)
     cx.execute("INSERT OR REPLACE INTO meta VALUES ('hash_jsonl', ?)", (_empreinte_fichier(),))
     cx.commit()
+    diff = _differentiel(avant, {i["id"]: _charger(cx, i["id"]) for i in idees}) if base_connue else {}
+    if diff or anomalies:
+        if diff:
+            # Seul un changement inexpliqué est journalisé : une base neuve (clone) ou un
+            # `git pull` d'ajouts faits avec l'outil ne produit pas d'entrée.
+            journal.noter("modification_externe", chemins.connaissances_jsonl().name,
+                          {**diff, **({"anomalies": anomalies} if anomalies else {})},
+                          "JSONL modifié hors de l'outil (édition manuelle, fusion ou revert Git)")
+        libelles = {"ajoutees": "ajoutée(s)", "supprimees": "supprimée(s)", "modifiees": "modifiée(s)"}
+        resume = ", ".join(f"{len(v)} idée(s) {libelles[k]}" for k, v in diff.items())
+        if diff:
+            _AVERTISSEMENTS.append(f"{chemins.connaissances_jsonl().name} modifié hors de l'outil ({resume}) : "
+                                   "écart tracé dans le journal (`journal --cible connaissances.jsonl --details`).")
+        _AVERTISSEMENTS.extend(f"anomalie {a}" for a in anomalies)
 
 
 def _inserer(cx, idee: dict, relations: bool = False, nouvelle: bool = False) -> None:
@@ -631,9 +746,38 @@ def lier(source: str, cible: str, type_: str, note: str | None = None) -> dict:
         _charger(cx, source), _charger(cx, cible)
         cx.execute("INSERT OR REPLACE INTO relations VALUES (?,?,?,?,?)",
                    (source, cible, type_, note, date.today().isoformat()))
+        cx.execute("UPDATE idees SET maj_le=? WHERE id=?", (datetime.now().isoformat(timespec="seconds"), source))
         _exporter(cx)
         journal.noter("relation_ajoutee", source, {"cible": cible, "type": type_, "note": note})
         return {"etat": "lie", "source": source, "cible": cible, "type": type_}
+    finally:
+        cx.close()
+
+
+def retirer(idee_id: str, motif: str | None) -> dict:
+    """Supprime proprement une idée (au lieu d'effacer sa ligne du JSONL) : relations
+    sortantes et entrantes retirées, instantané complet conservé dans le journal (l'idée
+    reste restaurable et son identifiant n'est jamais réattribué)."""
+    motif = (motif or "").strip()
+    if len(motif) < 10:
+        raise ErreurValidation("Retirer une idée exige un motif d'au moins 10 caractères (--motif) : "
+                               "pourquoi la supprimer plutôt que l'« abandonner » (`idee statut … abandonnee`) ?")
+    cx = ouvrir()
+    try:
+        cx.execute("BEGIN IMMEDIATE")
+        idee = _charger(cx, idee_id)
+        entrantes = [dict(r) for r in cx.execute("SELECT source, type FROM relations WHERE cible=?", (idee_id,))]
+        for t, col in (("idees", "id"), ("idee_themes", "idee_id"), ("refs", "idee_id"), ("retours", "idee_id"),
+                       ("idees_fts", "id"), ("relations", "source"), ("relations", "cible")):
+            cx.execute(f"DELETE FROM {t} WHERE {col}=?", (idee_id,))
+        maintenant = datetime.now().isoformat(timespec="seconds")
+        for r in entrantes:
+            cx.execute("UPDATE idees SET maj_le=? WHERE id=?", (maintenant, r["source"]))
+        _exporter(cx)
+        journal.noter("idee_retiree", idee_id, {"idee": idee, "relations_entrantes_retirees": entrantes}, motif)
+        for r in entrantes:
+            journal.noter("relation_retiree", r["source"], {"cible": idee_id, "type": r["type"]}, motif)
+        return {"etat": "retire", "id": idee_id, "relations_entrantes_retirees": entrantes}
     finally:
         cx.close()
 

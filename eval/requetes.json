@@ -798,6 +798,36 @@
     }
    ],
    "controle": true
+  },
+  {
+   "requete": "critical testing processes CTP",
+   "attendus": [
+    {
+     "code": "CTEL-ITP",
+     "section": "3.4.2"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "modèles d'amélioration basés sur le contenu STEP et CTP",
+   "attendus": [
+    {
+     "code": "CTEL-ITP",
+     "section": "3.4"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "représentation étagée ou continue d'un modèle de maturité",
+   "attendus": [
+    {
+     "code": "CTEL-ITP",
+     "section": "3.1.2"
+    }
+   ],
+   "controle": true
   }
  ]
 }

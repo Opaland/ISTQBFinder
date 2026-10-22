@@ -34,6 +34,16 @@ def test_jaccard_et_recouvrement():
     assert textes.jaccard(set(), {"a"}) == 0.0
 
 
+def test_tpi_ctp_step_et_modele_de_maturite_distincts():
+    # Issue #45 : CTEL-ITP distingue TPI (§3.3.1) et les modèles de contenu STEP / CTP (§3.4).
+    def ids(q):
+        return [cid for cid, _ in textes.reperer_concepts(q)[0]]
+    assert ids("critical testing processes") == ["ctp"] and ids("TPI Next") == ["tpi"]
+    assert ids("systematic test and evaluation process") == ["step"]
+    assert ids("TMMi") == ["tmmi"] and ids("modèle de maturité") == ["modele-maturite"]
+    assert ids("Test Maturity Model integration") == ["tmmi"] and ids("TMM") == ["tmm"]
+
+
 def test_erreur_defaut_defaillance_anomalie_sont_des_concepts_distincts():
     # Issue #43 : CTFL v4.0.1 §1.2.3 et le glossaire distinguent ces notions.
     def ids(q):

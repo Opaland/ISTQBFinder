@@ -413,6 +413,9 @@ def _verifier_reference_istqb(ref: dict) -> list[str]:
         d = _document_reference(cx, doc, ref.get("extrait")) if doc else None
         if not d:
             return [f"document « {doc} » absent de la bibliothèque : référence non vérifiable"]
+        if d["doc_id"] in bibliotheque.controle_index(cx)["perimes"]:
+            raise ErreurValidation(f"{d['doc_id']} : index périmé (fichier source disparu ou modifié depuis "
+                                   "l'indexation) : lancer `python qa.py actualiser` avant de citer ce document.")
         ref["doc_id"] = d["doc_id"]
         ref.setdefault("version", d["version"])
         ref.setdefault("titre", d["titre"])

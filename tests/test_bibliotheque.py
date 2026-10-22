@@ -153,3 +153,48 @@ def test_pdf_modifie_sur_place_a_confirmer_puis_remplacement_journalise(capsys, 
     assert recherche.chercher("valeurs limites")["resultats"]
     note = [e for e in journal.lire() if e["action"] == "document_remplace"][-1]
     assert note["cible"] == bibliotheque_test and note["motif"] == "PDF ré-exporté, contenu vérifié"
+
+
+def test_imports_paralleles_sans_perte_dans_le_manifeste(racine_isolee):
+    """#54 : 6 imports lancés en même temps (processus distincts) → 6 entrées au manifeste,
+    aucun fichier temporaire laissé derrière l'écriture atomique."""
+    import os
+    import subprocess
+    import sys
+    from pathlib import Path
+    fichiers = []
+    for i in range(6):
+        f = racine_isolee / f"conc{i}.md"
+        f.write_text(f"# Note {i}\n\n## 1 Sujet {i}\nTexte de la note {i} sur le test logiciel, "
+                     "assez long pour être indexé.\n", encoding="utf-8")
+        fichiers.append(f)
+    qa = Path(__file__).resolve().parent.parent / "qa.py"
+    env = {**os.environ, "QAK_RACINE": str(racine_isolee)}
+    procs = [subprocess.Popen([sys.executable, str(qa), "importer", str(f)], env=env,
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE) for f in fichiers]
+    assert all(p.wait(timeout=120) == 0 for p in procs)
+    docs = bibliotheque.lire_manifeste()["documents"]
+    assert len(docs) == 6 and len({e["doc_id"] for e in docs.values()}) == 6
+    assert not list((racine_isolee / "bibliotheque").glob("*.tmp"))
+    assert len(bibliotheque.inventaire()) == 6
+
+
+def test_passage_en_wal_attend_le_verrou(tmp_path):
+    """#122 : `PRAGMA journal_mode=WAL` échouait aussitôt (« database is locked ») quand un
+    autre processus écrivait dans une base encore en mode rollback, malgré le délai d'attente."""
+    import sqlite3
+    import threading
+    import time
+
+    chemin = tmp_path / "b.db"
+    a = sqlite3.connect(chemin, isolation_level=None, check_same_thread=False)
+    a.execute("CREATE TABLE t(x)")
+    a.execute("BEGIN IMMEDIATE")
+    a.execute("INSERT INTO t VALUES (1)")
+    threading.Timer(0.5, lambda: a.execute("COMMIT")).start()
+    debut = time.monotonic()
+    cx = bibliotheque.ouvrir_sqlite(chemin)
+    assert time.monotonic() - debut >= 0.4
+    assert cx.execute("PRAGMA journal_mode").fetchone()[0] == "wal"
+    cx.close()
+    a.close()

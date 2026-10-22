@@ -6,7 +6,9 @@ Sorties en texte français compact ; `--json` sur les commandes de lecture pour 
 traitement automatique."""
 import argparse
 import json
+import re
 import sys
+import sqlite3
 from pathlib import Path
 
 from . import bibliotheque, catalogue, connaissances, journal, recherche, taxonomie
@@ -52,8 +54,22 @@ def _ref_doc(r: dict) -> str:
     return f"{r['doc_id']} · {r.get('titre', '')} · v{r.get('version') or '?'} ({r.get('date_publication') or 'date ?'}){etat}"
 
 
+def lire_entree_standard() -> str:
+    """Entrée standard lue en octets et décodée en UTF-8 : sous Windows, `sys.stdin` suit la
+    page de code de la console (cp1252) et corrompait les accents (« Ã‰valuer »). Le BOM
+    éventuel (Bloc-notes, PowerShell) est retiré."""
+    tampon = getattr(sys.stdin, "buffer", None)
+    if tampon is None:  # flux texte déjà décodé (tests, redirection Python)
+        return sys.stdin.read().lstrip("\ufeff")
+    try:
+        return tampon.read().decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise ErreurValidation("Entrée standard illisible : enregistrer le JSON en UTF-8 "
+                               f"(octet invalide en position {exc.start}).") from exc
+
+
 def _lire_donnees(source: str) -> dict:
-    brut = sys.stdin.read() if source == "-" else Path(source).read_text(encoding="utf-8")
+    brut = lire_entree_standard() if source == "-" else Path(source).read_text(encoding="utf-8-sig")
     try:
         return json.loads(brut)
     except json.JSONDecodeError as exc:
@@ -86,24 +102,34 @@ def cmd_catalogue(a):
 def cmd_telecharger(a):
     if not (a.codes or a.tous or a.niveau):
         raise ErreurValidation("Préciser des codes (ex. CTFL CTAL-TM), --niveau ou --tous.")
+    rc = 0
     for d in catalogue.documents(None if a.tous or a.niveau else a.codes, a.niveau):
         r = catalogue.telecharger(d)
         _ecrire(f"{d['code']:10} {r['etat']:8} {r.get('doc_id', '')} — {r['message']}")
         for n in r.get("versions", []):
             _ecrire(f"           version : {n}")
+        rc = 2 if r["etat"] == "echec" else rc
+    return rc
 
 
 def cmd_importer(a):
     meta = {"code": a.code, "titre": a.titre, "niveau": a.niveau, "domaine": a.domaine, "version": a.version,
             "langue": a.langue, "date_publication": a.date, "source_officielle": a.source, "type": a.type}
+    rc = 0
     for f in a.fichiers:
         p = Path(f)
         fichiers = sorted(x for x in p.iterdir() if x.suffix.lower() in bibliotheque.EXTENSIONS) if p.is_dir() else [p]
+        if not fichiers:
+            _ecrire(f"{p} : aucun fichier PDF / .txt / .md")
+            rc = 2
         for x in fichiers:
             if not x.exists():
                 _ecrire(f"{x} : introuvable")
+                rc = 2
                 continue
             r = bibliotheque.importer(x, meta, remplacer=a.remplacer, motif=a.motif)
+            if r["etat"] in ("echec", "refuse"):
+                rc = 2
             _ecrire(f"{x.name} → {r['etat']} {r.get('doc_id', '')} — {r['message']}")
             if r.get("meta"):
                 m = r["meta"]
@@ -111,6 +137,7 @@ def cmd_importer(a):
                         f"langue={m['langue']} date={m['date_publication']} — corriger avec `corriger` si faux")
             for n in r.get("versions", []):
                 _ecrire(f"    version : {n}")
+    return rc
 
 
 def cmd_actualiser(a):
@@ -123,6 +150,7 @@ def cmd_actualiser(a):
             _ecrire(f"{titre} :")
             for x in r[cle]:
                 _ecrire(f"  - {x}")
+    return 2 if r["echecs"] else 0
 
 
 def cmd_inventaire(a):
@@ -181,10 +209,14 @@ def cmd_manquants(a):
 
 
 def cmd_corriger(a):
+    if not any(getattr(a, k) for k in ("code", "titre", "niveau", "domaine", "version", "langue", "date", "source",
+                                       "type")):
+        raise ErreurValidation("Rien à corriger : préciser au moins un champ (--version, --date AAAA-MM-JJ, "
+                               "--langue fr|en, --niveau…).")
     champs = {"code": a.code, "titre": a.titre, "niveau": a.niveau, "domaine": a.domaine, "version": a.version,
               "langue": a.langue, "date_publication": a.date, "source_officielle": a.source, "type": a.type}
     e = bibliotheque.modifier_metadonnees(a.doc_id, **champs)
-    _ecrire(f"{a.doc_id} mis à jour (champs forcés : {', '.join(e['champs_forces'])}). "
+    _ecrire(f"{e['doc_id']} mis à jour (champs forcés : {', '.join(e['champs_forces'])}). "
             "L'identifiant reste inchangé ; relancer `inventaire` pour vérifier les versions.")
 
 
@@ -232,24 +264,86 @@ def cmd_lire(a):
     _json(rows) if a.json else _afficher_passages(rows)
 
 
+def _plage_pages(texte: str) -> tuple[int, int | None]:
+    m = re.fullmatch(r"\s*(\d+)\s*(?:-\s*(\d+)\s*)?", texte)
+    if not m or int(m[1]) < 1 or (m[2] and int(m[2]) < int(m[1])):
+        raise ErreurValidation(f"Pages attendues : un numéro ou une plage croissante (ex. 31 ou 31-33), "
+                               f"reçu : « {texte} ».")
+    return int(m[1]), int(m[2]) if m[2] else None
+
+
+MAX_CARACTERES = 15000   # sortie de `page` / `section` : ~4 000 tokens, lisible en une fois
+
+
+def _borner(passages: list[dict], maximum: int) -> tuple[list[dict], list[dict]]:
+    """(affichés, restants) : des passages entiers jusqu'à `maximum` caractères (au moins un).
+    maximum <= 0 : pas de limite."""
+    if maximum <= 0:
+        return passages, []
+    total = 0
+    for i, p in enumerate(passages):
+        total += len(p["texte"])
+        if total > maximum and i:
+            return passages[:i], passages[i:]
+    return passages, []
+
+
+def _reste_a_lire(doc_id: str, affiches: list[dict], restants: list[dict]) -> list[str]:
+    """Commandes qui affichent la suite : la fin de la sous-section coupée (`page`), puis
+    chaque sous-section restante (`section`), dans l'ordre du document."""
+    lignes, vues = [], set()
+    coupee = affiches[-1]["section_num"] if affiches else None
+    for p in restants:
+        num = p["section_num"]
+        if num in vues:
+            continue
+        vues.add(num)
+        pages = [q["page"] for q in restants if q["section_num"] == num]
+        etendue = f"{min(pages)}" if min(pages) == max(pages) else f"{min(pages)}-{max(pages)}"
+        titre = f"§{num} {p['section_titre']}".strip() if num or p["section_titre"] else "hors section"
+        if num == coupee or not num:
+            lignes.append(f"  - suite de {titre} : `page {doc_id} {etendue}`")
+        else:
+            lignes.append(f"  - {titre} (p. {etendue}) : `section {doc_id} {num}`")
+    return lignes
+
+
+def _afficher_borne(r: dict, maximum: int, json_: bool, par_pages: bool = False) -> None:
+    affiches, restants = _borner(r["passages"], maximum)
+    doc_id = r["document"]["doc_id"]
+    reste = _reste_a_lire(doc_id, affiches, restants) if restants else []
+    if restants and par_pages:
+        pages = [p["page"] for p in restants]
+        reste.insert(0, f"  - pages restantes : `page {doc_id} {min(pages)}-{max(pages)}`"
+                        if min(pages) != max(pages) else f"  - page restante : `page {doc_id} {min(pages)}`")
+    if json_:
+        return _json({**r, "passages": affiches, "tronque": bool(restants),
+                      "reste_a_lire": [l.strip(" -") for l in reste]})
+    _afficher_passages(affiches, r["document"])
+    if restants:
+        affiche = sum(len(p["texte"]) for p in affiches)
+        total = affiche + sum(len(p["texte"]) for p in restants)
+        _ecrire(f"\n✂ Sortie tronquée : {affiche} caractères affichés sur {total} "
+                f"({len(affiches)}/{len(affiches) + len(restants)} passages). Ne citer que ce qui précède. "
+                "Reste à lire :")
+        for ligne in reste:
+            _ecrire(ligne)
+        _ecrire("  (ou relancer avec --max-caracteres 0 pour tout afficher)")
+
+
 def cmd_page(a):
-    debut, _, fin = a.pages.partition("-")
-    r = recherche.lire_pages(a.doc, int(debut), int(fin) if fin else None)
-    if a.json:
-        return _json(r)
-    if not r["passages"]:
+    r = recherche.lire_pages(a.doc, *_plage_pages(a.pages))
+    if not r["passages"] and not a.json:
         return _ecrire(f"Aucun texte indexé pour ces pages de {r['document']['doc_id']} "
                        f"({r['document']['nb_pages']} pages ; pages vides : {r['document']['pages_vides'] or 'aucune'}).")
-    _afficher_passages(r["passages"], r["document"])
+    _afficher_borne(r, a.max_caracteres, a.json, par_pages=True)
 
 
 def cmd_section(a):
     r = recherche.lire_section(a.doc, a.numero)
-    if a.json:
-        return _json(r)
-    if not r["passages"]:
+    if not r["passages"] and not a.json:
         return _ecrire(f"Section {a.numero} introuvable dans {r['document']['doc_id']} : voir `plan {a.doc}`.")
-    _afficher_passages(r["passages"], r["document"])
+    _afficher_borne(r, a.max_caracteres, a.json)
 
 
 def cmd_plan(a):
@@ -326,6 +420,8 @@ def cmd_idee(a):
         _afficher_doublons(r["doublons"])
         for w in r["avertissements"]:
             _ecrire(f"  ⚠ {w}")
+        if r["etat"] == "refuse":
+            return 2
     elif act == "doublons":
         d, _ = connaissances.valider(_lire_donnees(a.fichier), partiel=True)
         sim = connaissances.doublons(d)
@@ -334,7 +430,7 @@ def cmd_idee(a):
         _ecrire("Thèmes suggérés : " + ", ".join(c for _, c in taxonomie.proposer(
             " ".join(str(d.get(k, "")) for k in ("titre", "resume", "principe")))))
     elif act == "modifier":
-        r = connaissances.modifier(a.id, _lire_donnees(a.fichier), a.remplacer_listes, a.motif)
+        r = connaissances.modifier(a.id, _lire_donnees(a.fichier), a.remplacer_listes, a.motif, a.forcer)
         _ecrire(f"{a.id} : {r['etat']}" + (f" ({', '.join(r['champs'])})" if r.get("champs") else ""))
         for w in r["avertissements"]:
             _ecrire(f"  ⚠ {w}")
@@ -342,7 +438,7 @@ def cmd_idee(a):
         r = connaissances.changer_statut(a.id, a.statut, a.motif)
         _ecrire(f"{a.id} : {r['avant']} → {r['apres']}")
     elif act == "retour":
-        r = connaissances.ajouter_retour(a.id, a.contexte, a.resultat, a.enseignement, a.date)
+        r = connaissances.ajouter_retour(a.id, a.contexte, a.resultat, a.enseignement, a.date, a.forcer, a.motif)
         _ecrire(f"{a.id} : retour d'expérience enregistré ({r['retours']} au total)")
     elif act == "lier":
         if not a.cible or not a.type:
@@ -437,6 +533,19 @@ def cmd_evaluer(a):
 
 # ---------------------------------------------------------------- analyseur
 
+NIVEAUX = ["fondation", "avance", "expert", "specialiste"]
+
+
+def _date_iso(v: str) -> str:
+    from datetime import date
+    try:
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", v):
+            return date.fromisoformat(v).isoformat()
+    except ValueError:
+        pass
+    raise argparse.ArgumentTypeError(f"date AAAA-MM-JJ attendue (reçu : {v})")
+
+
 def _entier_positif(v: str) -> int:
     try:
         n = int(v)
@@ -462,17 +571,21 @@ def analyseur() -> argparse.ArgumentParser:
     sp = p.add_subparsers(dest="commande", required=True)
 
     def meta(x):
-        for opt in ("code", "titre", "niveau", "domaine", "version", "langue", "date", "source", "type"):
+        for opt in ("code", "titre", "domaine", "version", "source"):
             x.add_argument(f"--{opt}")
+        x.add_argument("--niveau", choices=NIVEAUX)
+        x.add_argument("--langue", choices=["fr", "en"])
+        x.add_argument("--type", choices=["syllabus", "bok", "glossaire", "notes", "examen", "document"])
+        x.add_argument("--date", type=_date_iso, help="date de publication AAAA-MM-JJ")
 
     x = sp.add_parser("catalogue", help="syllabus officiels ISTQB et présence locale")
     x.add_argument("--verifier", action="store_true", help="interroger istqb.org (nouvelles versions)")
-    x.add_argument("--niveau", choices=["fondation", "avance", "expert", "specialiste"])
+    x.add_argument("--niveau", choices=NIVEAUX)
     x.set_defaults(f=cmd_catalogue)
     x = sp.add_parser("telecharger", help="télécharger des syllabus officiels (istqb.org) et les indexer")
     x.add_argument("codes", nargs="*")
     x.add_argument("--tous", action="store_true")
-    x.add_argument("--niveau", choices=["fondation", "avance", "expert", "specialiste"])
+    x.add_argument("--niveau", choices=NIVEAUX)
     x.set_defaults(f=cmd_telecharger)
     x = sp.add_parser("importer", help="importer des PDF / .txt / .md (fichiers ou dossiers)")
     x.add_argument("fichiers", nargs="+")
@@ -504,7 +617,7 @@ def analyseur() -> argparse.ArgumentParser:
     x.add_argument("requete", nargs="+")
     x.add_argument("-n", type=_entier_positif, default=8)
     x.add_argument("--doc", action="append", help="code ou doc_id (répétable)")
-    x.add_argument("--niveau", choices=["fondation", "avance", "expert", "specialiste"])
+    x.add_argument("--niveau", choices=NIVEAUX)
     x.add_argument("--langue", choices=["fr", "en"])
     x.add_argument("--section", help="numéro de section, sous-sections incluses (ex. 4.2)")
     x.add_argument("--theme", help="code de thème de la taxonomie")
@@ -522,11 +635,15 @@ def analyseur() -> argparse.ArgumentParser:
     x.add_argument("doc")
     x.add_argument("pages")
     x.add_argument("--json", action="store_true")
+    x.add_argument("--max-caracteres", type=int, default=MAX_CARACTERES,
+                   help=f"borne de la sortie (défaut {MAX_CARACTERES} ; 0 = sans limite) : la fin indique quoi lire ensuite")
     x.set_defaults(f=cmd_page)
     x = sp.add_parser("section", help="lire une section entière (sous-sections incluses)")
     x.add_argument("doc")
     x.add_argument("numero")
     x.add_argument("--json", action="store_true")
+    x.add_argument("--max-caracteres", type=int, default=MAX_CARACTERES,
+                   help=f"borne de la sortie (défaut {MAX_CARACTERES} ; 0 = sans limite) : la fin indique quoi lire ensuite")
     x.set_defaults(f=cmd_section)
     x = sp.add_parser("plan", help="plan (sections) d'un document")
     x.add_argument("doc")
@@ -587,13 +704,14 @@ def analyseur() -> argparse.ArgumentParser:
 
 
 def main(argv=None) -> int:
-    if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding="utf-8")  # console Windows
+    for flux in (sys.stdout, sys.stderr):  # console Windows : sorties et erreurs en UTF-8
+        if hasattr(flux, "reconfigure"):
+            flux.reconfigure(encoding="utf-8")
     a = analyseur().parse_args(argv)
-    if a.commande == "idee":
-        _normaliser_idee(a)
     try:
-        a.f(a)
+        if a.commande == "idee":
+            _normaliser_idee(a)
+        rc = a.f(a)
     except BrokenPipeError:  # sortie tronquée (`| head`) : pas une erreur
         sys.stderr.close()
         return 0
@@ -601,12 +719,20 @@ def main(argv=None) -> int:
         msg = exc.args[0] if exc.args else str(exc)
         sys.stderr.write(f"Erreur : {msg}\n")
         return 2
+    except sqlite3.OperationalError as exc:
+        if "locked" in str(exc) or "busy" in str(exc):
+            sys.stderr.write("Erreur : la base est occupée par une autre commande (`actualiser`, import…) "
+                             "depuis plus de 30 s. Relancer quand elle sera terminée.\n")
+        else:
+            sys.stderr.write(f"Erreur : base SQLite inutilisable ({exc}). Reconstruire l'index : "
+                             "`python qa.py actualiser --forcer`.\n")
+        return 2
     finally:
         # Base reconstruite depuis un JSONL modifié hors de l'outil : prévenir l'utilisateur.
         for w in connaissances.avertissements():
             if not sys.stderr.closed:
                 sys.stderr.write(f"⚠ {w}\n")
-    return 0
+    return rc if isinstance(rc, int) else 0
 
 
 def _normaliser_idee(a) -> None:
@@ -620,8 +746,8 @@ def _normaliser_idee(a) -> None:
     elif a.action == "lier" and not a.cible and a.requete:
         a.cible = a.requete[0]
     elif a.action == "lister" and (a.id or a.requete):
-        raise SystemExit("Erreur : `idee lister` ne prend pas de texte : utiliser --theme <code> / --statut, "
+        raise ErreurValidation("`idee lister` ne prend pas de texte : utiliser --theme <code> / --statut, "
                          "ou `idee chercher <texte>`.")
     besoin_id = {"modifier", "statut", "retour", "lier", "retirer", "voir"}
     if a.action in besoin_id and not a.id:
-        raise SystemExit(f"Erreur : `idee {a.action}` attend un identifiant (QA-xxxx).")
+        raise ErreurValidation(f"`idee {a.action}` attend un identifiant (QA-xxxx).")

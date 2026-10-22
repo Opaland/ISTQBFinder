@@ -85,6 +85,11 @@ def test_regles_de_statut():
     with pytest.raises(ErreurValidation, match="motif"):
         connaissances.changer_statut(q1, "validee", None)
     with pytest.raises(ErreurValidation, match="retour"):
+        connaissances.changer_statut("QA-0001", "experimentee", "essai sur la release 3.1")
+    connaissances.ajouter_retour("QA-0001", "Release 3.2", "2 défauts critiques trouvés plus tôt")
+    assert connaissances.changer_statut("QA-0001", "experimentee", "appliqué en 3.2")["apres"] == "experimentee"
+    assert [e["action"] for e in journal.lire("QA-0001")] == ["idee_creee", "retour_ajoute", "statut_change"]
+
         connaissances.changer_statut(q1, "experimentee", "essai")
     connaissances.ajouter_retour(q1, "Release 3.2", "2 défauts critiques trouvés plus tôt")
     assert connaissances.changer_statut(q1, "experimentee", "appliqué en 3.2")["apres"] == "experimentee"
@@ -244,6 +249,41 @@ def test_section_joker_ne_designe_plus_tout_le_document(bibliotheque_test):
     assert recherche.lire_section("CTFL", "%")["passages"] == []
     assert recherche.lire_section("CTFL", "1.2")["passages"]
 
+
+def test_source_exigee_pour_documentee_pratiquee_et_validee():
+    """#29 : une idée sans aucune source pouvait être « validée » et « documentée »."""
+    for maturite in ("documentee", "pratiquee"):
+        with pytest.raises(ErreurValidation, match="sans aucune référence"):
+            connaissances.ajouter({**IDEE, "maturite": maturite})
+    connaissances.ajouter(dict(IDEE))
+    with pytest.raises(ErreurValidation, match="sans aucune référence"):
+        connaissances.modifier("QA-0001", {"maturite": "documentee"})
+    with pytest.raises(ErreurValidation, match="10 caractères"):
+        connaissances.changer_statut("QA-0001", "validee", "ok")
+    with pytest.raises(ErreurValidation, match="au moins une référence"):
+        connaissances.changer_statut("QA-0001", "validee", "adopté par l'équipe QA")
+    connaissances.modifier("QA-0001", {"maturite": "documentee",
+                                       "references": [{"type": "norme", "titre": "ISO/IEC/IEEE 29119-3"}]})
+    assert connaissances.changer_statut("QA-0001", "validee", "adopté par l'équipe QA")["apres"] == "validee"
+    with pytest.raises(ErreurValidation, match="10 caractères"):
+        connaissances.changer_statut("QA-0001", "abandonnee", "   bof    ")
+
+def test_code_istqb_ambigu_departage_par_la_langue_de_l_extrait(bibliotheque_test, tmp_path):
+    """#37 : avec EN et FR « courants », une vraie citation FR était vérifiée contre l'EN."""
+    from qak import bibliotheque
+    fr = tmp_path / "ctfl-fr.md"
+    fr.write_text("# 2.1 Analyse des risques produit\n\nLe niveau de risque est déterminé par la probabilité "
+                  "du risque et par l'impact du risque pour chaque élément.\n", encoding="utf-8")
+    r = bibliotheque.importer(fr, {"code": "CTFL", "version": "9.9", "langue": "fr"})
+    assert r["etat"] == "importe", r
+    extrait_fr = "Le niveau de risque est déterminé par la probabilité du risque et par l'impact du risque"
+    d, _ = connaissances.valider(_ref_ctfl(pages="1", extrait=extrait_fr))
+    assert d["references"][0]["doc_id"] == r["doc_id"]
+    d, _ = connaissances.valider(_ref_ctfl(pages="6", extrait=EXTRAIT_P6))
+    assert d["references"][0]["doc_id"] == bibliotheque_test
+    with pytest.raises(ErreurValidation, match=r"ambigu.*CTFL-9\.9-en.*doc_id exact"):
+        connaissances.valider(_ref_ctfl(pages="1"))
+    connaissances.valider(_ref_ctfl(pages="1", doc_id=r["doc_id"]))  # identifiant exact : pas d'ambiguïté
 
 def test_identifiant_non_reattribue_apres_git_revert():
     """#34 : un `git revert` efface l'idée ET sa ligne de journal ; un compteur séquentiel

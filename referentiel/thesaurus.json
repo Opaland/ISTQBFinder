@@ -946,11 +946,26 @@
    "termes": [
     "tmmi",
     "test maturity model integration",
+    "testing maturity model integration"
+   ]
+  },
+  {
+   "id": "tmm",
+   "termes": [
     "tmm",
+    "test maturity model"
+   ]
+  },
+  {
+   "id": "modele-maturite",
+   "termes": [
     "maturity model",
+    "maturity models",
     "modèle de maturité",
+    "modèles de maturité",
     "maturity level",
     "niveau de maturité",
+    "niveaux de maturité",
     "maturité",
     "maturity"
    ]
@@ -960,9 +975,20 @@
    "termes": [
     "tpi next",
     "tpi",
-    "test process improvement model",
-    "ctp",
+    "test process improvement model"
+   ]
+  },
+  {
+   "id": "ctp",
+   "termes": [
     "critical testing processes",
+    "critical testing process",
+    "ctp"
+   ]
+  },
+  {
+   "id": "step",
+   "termes": [
     "systematic test and evaluation process"
    ]
   },

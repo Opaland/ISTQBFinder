@@ -31,6 +31,11 @@
 
 - `lire <id> --contexte 1` donne le passage et ses voisins ; `section <doc> 4.2` toute une
   section. Lire au moins les 2-3 meilleurs passages, de documents différents si possible.
+- `section` et `page` sont bornées (`--max-caracteres`, défaut 15 000) : une sortie
+  tronquée se termine par « ✂ Sortie tronquée… Reste à lire » et la liste des
+  sous-sections ou pages restantes. **Ne jamais tronquer soi-même avec `head`** (ni
+  `tail`, ni `cut`) : lire plutôt une sous-section plus précise parmi celles proposées,
+  et ne citer que ce qui a été réellement affiché.
 - Noter la version et la date du syllabus ; si deux syllabus divergent (ex. CTFL vs
   CTAL-TM), le dire et expliquer (niveau, date, angle).
 

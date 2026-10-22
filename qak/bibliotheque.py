@@ -75,7 +75,7 @@ def lire_manifeste() -> dict:
     p = chemins.manifeste()
     if not p.exists():
         return {"documents": {}}
-    return json.loads(p.read_text(encoding="utf-8"))
+    return json.loads(p.read_text(encoding="utf-8-sig"))
 
 
 def ecrire_manifeste(m: dict) -> None:
@@ -86,7 +86,7 @@ def ecrire_manifeste(m: dict) -> None:
 
 
 def catalogue() -> dict:
-    return json.loads(chemins.catalogue().read_text(encoding="utf-8"))
+    return json.loads(chemins.catalogue().read_text(encoding="utf-8-sig"))
 
 
 # ---------------------------------------------------------------- détection des métadonnées

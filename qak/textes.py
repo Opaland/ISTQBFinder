@@ -56,7 +56,7 @@ def mots(s: str, garder_generiques: bool = True) -> list[str]:
 
 @lru_cache(maxsize=4)
 def _thesaurus(chemin: str) -> tuple:
-    data = json.loads(open(chemin, encoding="utf-8").read())
+    data = json.loads(open(chemin, encoding="utf-8-sig").read())
     concepts, motifs = [], []
     for c in data["concepts"]:
         termes = tuple(t for t in c["termes"] if normaliser(t))

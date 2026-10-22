@@ -608,7 +608,11 @@
     "test automation architecture",
     "architecture d'automatisation des tests",
     "test automation framework",
-    "framework d'automatisation"
+    "framework d'automatisation",
+    "automatisés",
+    "automatisées",
+    "automated tests",
+    "automated"
    ]
   },
   {
@@ -653,7 +657,12 @@
     "sélecteur",
     "sélecteurs",
     "test smells",
-    "code smell"
+    "code smell",
+    "maintainability of the test automation solution",
+    "maintenabilité de la solution d'automatisation",
+    "test automation solution maintainability",
+    "test automation maintainability",
+    "maintenabilité de l'automatisation"
    ]
   },
   {
@@ -866,8 +875,6 @@
     "modularité",
     "technical debt",
     "dette technique",
-    "maintainability of the test automation solution",
-    "maintenabilité de la solution d'automatisation",
     "maintenabilité des tests",
     "test maintainability"
    ]

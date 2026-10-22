@@ -158,6 +158,28 @@ def cmd_inventaire(a):
             _ecrire(f"  - {x}")
 
 
+def cmd_manquants(a):
+    r = bibliotheque.manquants()
+    if a.json:
+        return _json(r)
+    _ecrire(f"{'code':10} {'niveau':11} {'anglais':22} {'français':22} titre")
+    for l in r["catalogue"]:
+        if a.langue and l[a.langue]:
+            continue
+        _ecrire(f"{l['code']:10} {l['niveau']:11} {l['en'] or '— MANQUANT':22} {l['fr'] or '— manquant':22} "
+                f"{l['titre'][:45]}" + (f"  [remplacés : {', '.join(l['remplaces'])}]" if l["remplaces"] else "")
+                + (f"  ⚠ {', '.join(l['a_surveiller'])}" if l["a_surveiller"] else ""))
+    _ecrire(f"\nCatalogue officiel : {len(r['catalogue'])} syllabus · manquants en anglais : "
+            f"{len(r['absents_en'])} · sans traduction française locale : {len(r['absents_fr'])}")
+    if r["absents_en"]:
+        _ecrire(f"Récupérer les officiels : python qa.py telecharger {' '.join(r['absents_en'])}")
+    if r["absents_fr"]:
+        _ecrire("Traductions françaises : non téléchargeables automatiquement — déposer le PDF (CFTL) dans "
+                "bibliotheque/sources/ puis `python qa.py actualiser` (skill /ajouter-syllabus).")
+    if r["hors_catalogue"]:
+        _ecrire(f"Documents locaux hors catalogue : {', '.join(r['hors_catalogue'])}")
+
+
 def cmd_corriger(a):
     champs = {"code": a.code, "titre": a.titre, "niveau": a.niveau, "domaine": a.domaine, "version": a.version,
               "langue": a.langue, "date_publication": a.date, "source_officielle": a.source, "type": a.type}
@@ -423,6 +445,10 @@ def analyseur() -> argparse.ArgumentParser:
     x = sp.add_parser("inventaire", help="documents indexés, versions, extractions à surveiller")
     x.add_argument("--json", action="store_true")
     x.set_defaults(f=cmd_inventaire)
+    x = sp.add_parser("manquants", help="syllabus du catalogue officiel non indexés (par langue)")
+    x.add_argument("--langue", choices=["en", "fr"], help="ne lister que les manquants dans cette langue")
+    x.add_argument("--json", action="store_true")
+    x.set_defaults(f=cmd_manquants)
     x = sp.add_parser("corriger", help="corriger les métadonnées détectées d'un document")
     x.add_argument("doc_id")
     meta(x)

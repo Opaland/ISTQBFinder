@@ -264,9 +264,10 @@ qu'avec l'accord de l'utilisateur.
 
 ## Droits
 
-Les syllabus sont © ISTQB® ; leur notice autorise la copie, en tout ou partie, si la
-source est citée. Les PDF de `bibliotheque/sources/` sont versionnés à ce
-titre, source citée dans `bibliotheque/manifeste.json` (page officielle istqb.org ou
+Les syllabus sont © ISTQB® (traductions : CFTL). Leur notice publique n'autorise que des
+extraits non commerciaux, source citée ; les PDF de `bibliotheque/sources/` sont versionnés
+avec l'autorisation obtenue par le mainteneur auprès de l'ISTQB®, du CFTL et de la TMMi
+Foundation (non transmise aux forks : voir NOTICE.md), source citée dans `bibliotheque/manifeste.json` (page officielle istqb.org ou
 traduction fournie par l'utilisateur). La licence MIT du dépôt couvre le code et la
 documentation, **pas** les syllabus, qui restent la propriété de l'ISTQB® et de leurs
 traducteurs : exclusion explicite dans `LICENSE`, liste des documents avec ayant droit,

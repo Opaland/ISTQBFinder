@@ -6,10 +6,20 @@ l'International Software Testing Qualifications Board (ISTQB®) et, pour les ver
 françaises, leurs traductions, propriété de leurs traducteurs (le plus souvent le Comité
 Français des Tests Logiciels, CFTL).
 
-Leur notice de copyright autorise la copie, en tout ou partie, à condition de citer la source.
-Ils sont versionnés à ce titre, sans modification (ne jamais les éditer), avec leur source
-et leur empreinte SHA-256 dans `bibliotheque/manifeste.json`. Toute citation tirée de ces
-documents doit mentionner le syllabus, sa version et ses pages.
+**Droits.** La notice de copyright des syllabus récents n'autorise, à elle seule, que la copie
+d'**extraits**, à usage non commercial et avec citation de la source (par exemple CTFL v4.0.1,
+p. 2 : « Any other use of this syllabus is prohibited without first obtaining the approval in
+writing of the ISTQB® ») ; seules les notices antérieures (2011-2019) autorisent la copie
+intégrale. Les documents sont versionnés ici **avec l'autorisation obtenue par le mainteneur du
+dépôt auprès de l'ISTQB®, du CFTL et de la TMMi Foundation** (octobre 2026).
+
+Cette autorisation vaut pour ce dépôt : elle ne se transmet pas automatiquement à une copie ou à
+un fork. Pour redistribuer ces documents ailleurs, obtenez votre propre accord ou téléchargez-les
+à la source (istqb.org, cftl.fr, tmmi.org).
+
+Ils sont reproduits sans modification (ne jamais les éditer), avec leur source et leur
+empreinte SHA-256 dans `bibliotheque/manifeste.json`. Toute citation tirée de ces documents
+doit mentionner le syllabus, sa version et ses pages.
 
 Traducteurs : mention relevée dans chaque PDF (`python3 qa.py page <doc_id> 2`, relevé du
 2026-10-22). Sources : URL officielle istqb.org pour les versions anglaises ; les traductions

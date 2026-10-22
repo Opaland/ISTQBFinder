@@ -22,7 +22,7 @@ from collections import Counter
 from datetime import datetime
 from pathlib import Path
 
-from . import chemins, extraction
+from . import chemins, extraction, journal
 from .textes import normaliser, sans_accents
 
 EXTENSIONS = {".pdf", ".txt", ".md", ".markdown"}
@@ -349,7 +349,7 @@ def calculer_versions(cx: sqlite3.Connection) -> list[str]:
     notes = []
     groupes: dict[tuple, list] = {}
     for r in cx.execute("SELECT doc_id, code, type, langue, version, date_publication, statut_version "
-                        "FROM documents WHERE code IS NOT NULL AND statut_extraction != 'absent'"):
+                        "FROM documents WHERE code IS NOT NULL AND statut_extraction NOT IN ('absent', 'a_confirmer')"):
         groupes.setdefault((r["code"], r["type"], r["langue"]), []).append(r)
     cx.execute("UPDATE documents SET statut_version='courant', remplace_par=NULL")
     for (code, typ, langue), docs in groupes.items():
@@ -367,6 +367,7 @@ def calculer_versions(cx: sqlite3.Connection) -> list[str]:
             notes.append(f"{r['doc_id']} {'(même version déclarée, fichier différent) ' if meme else ''}"
                          f"remplacé par {tete['doc_id']} pour {code} {typ} [{langue}]")
     cx.execute("UPDATE documents SET statut_version='absent' WHERE statut_extraction='absent'")
+    cx.execute("UPDATE documents SET statut_version='a_confirmer' WHERE statut_extraction='a_confirmer'")
     return notes
 
 
@@ -405,24 +406,65 @@ def _enregistrer(cx, entree: dict, ext: extraction.Extraction) -> int:
     return _indexer(cx, entree["doc_id"], ext) if statut in ("ok", "partiel") else 0
 
 
+def _confirmer_remplacement(cx, manif: dict, fichier: Path, sha: str, motif: str | None, copier: bool) -> str:
+    """`importer <fichier> --remplacer --motif` : le nouveau contenu prend la place du
+    document de même nom de fichier (doc_id et corrections conservés). L'ancienne empreinte
+    rejoint l'historique du manifeste et le remplacement est journalisé. Renvoie l'ancienne."""
+    if not (motif or "").strip():
+        raise ValueError("--remplacer exige --motif \"…\" (ex. « PDF ré-exporté par le CFTL, contenu vérifié ») : "
+                         "le remplacement est journalisé.")
+    ancien = next((k for k, e in manif["documents"].items() if e["fichier"] == fichier.name and k != sha), None)
+    if not ancien:
+        raise KeyError(f"Aucun document de la bibliothèque n'a pour fichier {fichier.name} : --remplacer est "
+                       "inutile (import normal).")
+    entree = manif["documents"].pop(ancien)
+    entree.setdefault("historique_empreintes", []).append(
+        {"sha256": ancien, "remplace_le": datetime.now().date().isoformat(), "motif": motif.strip()})
+    entree.pop("a_confirmer", None)
+    entree["sha256"] = sha
+    manif["documents"][sha] = entree
+    cx.execute("DELETE FROM documents WHERE sha256=?", (ancien,))
+    cible = chemins.sources() / entree["fichier"]
+    if copier and cible.resolve() != fichier.resolve():
+        chemins.sources().mkdir(parents=True, exist_ok=True)
+        shutil.copy2(fichier, cible)
+    journal.noter("document_remplace", entree["doc_id"],
+                  {"fichier": entree["fichier"], "ancienne_empreinte": ancien, "nouvelle_empreinte": sha},
+                  motif=motif.strip())
+    return ancien
+
+
 def importer(fichier: Path, meta_forcee: dict | None = None, copier: bool = True,
-             cx: sqlite3.Connection | None = None) -> dict:
+             cx: sqlite3.Connection | None = None, remplacer: bool = False, motif: str | None = None) -> dict:
     """Importe un fichier dans la bibliothèque. Renvoie un rapport :
-    {etat: 'importe'|'doublon'|'echec'|'reindexe', doc_id, message, ...}."""
+    {etat: 'importe'|'doublon'|'echec'|'refuse'|'remplace', doc_id, message, ...}.
+    Un fichier de sources/ dont le contenu a changé sur place n'est accepté qu'avec
+    `remplacer=True` et un motif (sinon : refus, document laissé « à confirmer »)."""
     fichier = Path(fichier)
     meta_forcee = {k: v for k, v in (meta_forcee or {}).items() if v}
     if fichier.suffix.lower() not in EXTENSIONS:
         return {"etat": "echec", "fichier": fichier.name, "message": f"format non pris en charge ({fichier.suffix})"}
     sha = empreinte(fichier)
     with verrou_manifeste():
-        return _importer(fichier, sha, meta_forcee, copier, cx)
+        return _importer(fichier, sha, meta_forcee, copier, cx, remplacer, motif)
 
 
-def _importer(fichier: Path, sha: str, meta_forcee: dict, copier: bool, cx: sqlite3.Connection | None) -> dict:
+def _importer(fichier: Path, sha: str, meta_forcee: dict, copier: bool, cx: sqlite3.Connection | None,
+              remplacer: bool = False, motif: str | None = None) -> dict:
     manif = lire_manifeste()
     propre = cx is None
     cx = cx or connecter()
     try:
+        ancien = None
+        if remplacer and sha not in manif["documents"]:
+            ancien = _confirmer_remplacement(cx, manif, fichier, sha, motif, copier)
+        elif sha not in manif["documents"] and (chemins.sources() / fichier.name).resolve() == fichier.resolve():
+            homonyme = next((e for e in manif["documents"].values() if e["fichier"] == fichier.name), None)
+            if homonyme:
+                return {"etat": "refuse", "fichier": fichier.name, "doc_id": homonyme["doc_id"],
+                        "message": f"contenu modifié sur place (empreinte différente de celle du manifeste) : "
+                                   f"{homonyme['doc_id']} reste à confirmer. Si la modification est voulue : "
+                                   f"`importer {fichier} --remplacer --motif \"…\"`"}
         if sha in manif["documents"]:
             existant = manif["documents"][sha]
             cible = chemins.sources() / existant["fichier"]
@@ -467,7 +509,10 @@ def _importer(fichier: Path, sha: str, meta_forcee: dict, copier: bool, cx: sqli
         notes = [n for n in calculer_versions(cx) if entree["doc_id"] in n]
         cx.commit()
         ecrire_manifeste(manif)
-        return {"etat": "importe" if statut in ("ok", "partiel") else "echec", "fichier": fichier.name,
+        if ancien and statut in ("ok", "partiel"):
+            message = f"remplace le contenu d'empreinte {ancien[:12]}… (historique au manifeste, journalisé) ; {message}"
+        return {"etat": ("remplace" if ancien else "importe") if statut in ("ok", "partiel") else "echec",
+                "fichier": fichier.name,
                 "doc_id": entree["doc_id"], "passages": n, "statut_extraction": statut, "message": message,
                 "versions": notes, "meta": {k: entree.get(k) for k in
                                             ("titre", "code", "type", "version", "langue", "date_publication")}}
@@ -485,8 +530,9 @@ def actualiser(forcer: bool = False) -> dict:
 
 
 def _actualiser(forcer: bool) -> dict:
-    rapport = {"importes": [], "reindexes": [], "modifies": [], "inchanges": 0, "doublons": [], "absents": [],
+    rapport = {"importes": [], "reindexes": [], "a_confirmer": [], "inchanges": 0, "doublons": [], "absents": [],
                "echecs": [], "versions": []}
+    en_attente = set()  # empreintes du manifeste dont le fichier a changé sur place
     manif = lire_manifeste()
     cx = connecter()
     try:
@@ -504,15 +550,22 @@ def _actualiser(forcer: bool) -> dict:
             presents.add(sha)
             entree = manif["documents"].get(sha)
             if entree is None:
-                # Même nom, contenu modifié sur place (fichier corrigé, PDF ré-exporté) : on
-                # reprend l'entrée existante (doc_id et corrections manuelles conservés).
+                # Même nom, contenu modifié sur place : rien ne distingue un PDF corrigé d'un
+                # PDF altéré. Le document passe « à confirmer » (exclu des recherches) jusqu'à
+                # une confirmation explicite et journalisée : `importer … --remplacer --motif`.
                 ancien = next((k for k, e in manif["documents"].items() if e["fichier"] == f.name), None)
                 if ancien:
-                    entree = manif["documents"].pop(ancien)
-                    entree["sha256"] = sha
-                    manif["documents"][sha] = entree
-                    cx.execute("DELETE FROM documents WHERE sha256=?", (ancien,))
-                    rapport["modifies"].append(f"{entree['doc_id']} ({f.name}) : contenu modifié, réindexé")
+                    attente = manif["documents"][ancien]
+                    attente["a_confirmer"] = sha
+                    en_attente.add(ancien)
+                    cx.execute("UPDATE documents SET statut_extraction='a_confirmer', message_extraction=? "
+                               "WHERE sha256=?", (f"contenu de {f.name} modifié sur place (empreinte {sha[:12]}… "
+                                                  f"au lieu de {ancien[:12]}…) : exclu des recherches jusqu'à "
+                                                  "confirmation", ancien))
+                    rapport["a_confirmer"].append(
+                        f"{attente['doc_id']} ({f.name}) : contenu modifié sur place, exclu des recherches. "
+                        f"Si c'est voulu : `importer bibliotheque/sources/{f.name} --remplacer --motif \"…\"`")
+                    continue
             if entree and entree["fichier"] != f.name:
                 if (dossier / entree["fichier"]).exists():
                     rapport["doublons"].append(f"{f.name} = {entree['fichier']}")
@@ -546,7 +599,7 @@ def _actualiser(forcer: bool) -> dict:
                 (rapport["importes"] if r["etat"] == "importe" else rapport["echecs"]).append(
                     f"{r.get('doc_id', f.name)} : {r['message']}")
         for sha, entree in manif["documents"].items():
-            if sha not in presents:
+            if sha not in presents and sha not in en_attente:
                 rapport["absents"].append(f"{entree['doc_id']} ({entree['fichier']})")
                 cx.execute("DELETE FROM passages_fts WHERE rowid IN (SELECT id FROM passages WHERE doc_id=?)",
                            (entree["doc_id"],))

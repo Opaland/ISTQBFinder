@@ -1,9 +1,10 @@
 # ISTQBFinder — consignes communes aux assistants
 
-Consignes lues par GitHub Copilot (VS Code, Copilot CLI) et importées par `CLAUDE.md`
-pour Claude Code. Assistant de connaissances QA **conversationnel** pour un Test
-Manager / QA Lead : syllabus ISTQB locaux (FR/EN), base d'idées QA capitalisées, Web
-seulement si justifié. Français partout (réponses, messages, commits, commentaires).
+Consignes lues par GitHub Copilot (VS Code, Copilot CLI) et Gemini CLI
+(`context.fileName` de `.gemini/settings.json`), importées par `CLAUDE.md` pour Claude Code.
+Assistant de connaissances QA **conversationnel** pour un Test Manager / QA Lead :
+syllabus ISTQB locaux (FR/EN), base d'idées QA capitalisées, Web seulement si justifié.
+Français partout (réponses, messages, commits, commentaires).
 
 ## Où est la méthode
 
@@ -15,7 +16,8 @@ seulement si justifié. Français partout (réponses, messages, commits, comment
   Sylvie, auditrice). Pour une question QA, lis d'abord
   `.claude/skills/qa-knowledge/SKILL.md` et applique-le.
 - Fichiers **générés** par `python scripts/generer_integrations.py` (ne jamais les modifier
-  à la main ; modifier la source puis relancer le script) : `.github/agents/*.agent.md`.
+  à la main ; modifier la source puis relancer le script) : `.github/agents/*.agent.md`,
+  tout le dossier `.gemini/` (skills copiés, sous-agents, commandes `/thomas` et `/sylvie`, réglages).
 
 ## Répondre à une question QA (règles impératives)
 

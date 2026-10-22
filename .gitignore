@@ -5,6 +5,9 @@ connaissances/base.db*
 *.db-wal
 *.db-shm
 
+# Documents internes / confidentiels : jamais versionnés (dépôt public)
+bibliotheque/prive/
+
 __pycache__/
 *.pyc
 .pytest_cache/

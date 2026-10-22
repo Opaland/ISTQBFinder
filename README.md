@@ -82,10 +82,10 @@ La CLI reste utilisable directement (`python qa.py --help`) :
 |---|---|
 | Chercher dans les syllabus | `chercher <notions> [--doc CTAL-TM] [--theme rbt] [--section 1.3] [--langue fr]` |
 | Confiance d'une réponse | `confiance --base N --lus N --concordants N [--web 1] [--non-couvert 1] …` (calcul affiché) |
-| Lire avant de citer | `lire <passage> [--contexte 1]` · `section <doc> <num>` · `page <doc> <p[-q]>` (sorties bornées : `--max-caracteres`, défaut 15 000) · `plan <doc>` |
+| Lire avant de citer | `lire <passage> [--contexte 1]` · `section <doc> <num>` · `page <doc> <p[-q]>` (trois sorties bornées : `--max-caracteres N`, défaut 15 000, 0 = sans limite) · `plan <doc>` |
 | Base d'idées | `idee chercher …` · `idee lister [--theme] [--statut]` · `idee voir QA-20261022-7f3a` |
 | Capitaliser | `idee modele` · `idee doublons --titre … --resume … --theme …` (une ligne) · `idee ajouter <<'JSON'` (JSON sur l'entrée standard) |
-| Faire évoluer | `idee modifier` · `idee statut … --motif` · `idee retour` · `idee lier` · `journal` |
+| Faire évoluer | `idee modifier` · `idee statut … --motif` · `idee retour` · `idee lier` · `idee retirer … --motif` (suppression) · `journal` |
 | Taxonomie | `themes` · `theme proposer "<texte>"` · `theme ajouter …` · `theme obsolete …` · `couverture` |
 | Syllabus manquants | `manquants [--langue fr]` · skills `/bibliotheque` (maintenance) et `/ajouter-syllabus` |
 | Bibliothèque | `catalogue [--verifier]` · `telecharger` · `importer` · `actualiser` · `inventaire` · `corriger` · `retirer` |

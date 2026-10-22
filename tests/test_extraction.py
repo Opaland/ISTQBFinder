@@ -96,3 +96,37 @@ def test_plan_ignore_les_rangees_du_tableau_des_temps_de_formation():
                                                   ("11", 12), ("11.1", 12), ("12", 13), ("12.1", 13)]
     # Un vrai titre qui porte sa durée (« 300 mins. ») reste un titre.
     assert plan[0].titre == "Critical Success Factors 300 mins."
+
+
+def test_plan_titres_completes_recolles_et_index():
+    """#48 : titre coupé complété par la ligne suivante, mots coupés par une espace
+    parasite recollés, intitulé « Index » d'une page d'index conservé."""
+    corps = ("Les parties prenantes participent au management des tests. Le contrôle des tests "
+             "et le leadership comptent. Learning objectives and knowledge.\n") * 3
+    index = "\n".join(f"terme {k}, {k + 10}" for k in range(14))
+    pages = _pages(
+        "1 Introduction\n" + corps,
+        "1.1 Importance des parties prenantes dans le management d es\ntests\n" + corps,
+        "1.2 Le pilotage et le c ontrôle\n" + corps,
+        "2 Appendix A – Learning Objectives/Cognitive Level of\nKnowledge\n" + corps,
+        "2.1 Agile Test Le adership\n" + corps,
+        "3 Index\n" + index,
+    )
+    pages[-1].sommaire = True
+    plan = extraction._plan_depuis_texte(pages)
+    assert [(t.numero, t.titre) for t in plan] == [
+        ("1", "Introduction"),
+        ("1.1", "Importance des parties prenantes dans le management des tests"),
+        ("1.2", "Le pilotage et le contrôle"),
+        ("2", "Appendix A – Learning Objectives/Cognitive Level of Knowledge"),
+        ("2.1", "Agile Test Leadership"),
+        ("3", "Index"),
+    ]
+
+
+def test_recollage_prudent():
+    vocab = extraction._vocabulaire(_pages("go in to the into test and quel que l approche " * 3))
+    # Deux vrais mots voisins ne sont jamais réunis, ni un mot et une élision.
+    assert extraction._recoller("in to the test", vocab) == "in to the test"
+    assert extraction._recoller("que l’approche", vocab) == "que l’approche"
+    assert extraction._recoller("Test a nd", vocab) == "Test and"

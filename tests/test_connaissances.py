@@ -82,7 +82,7 @@ def test_regles_de_statut():
     with pytest.raises(ErreurValidation, match="motif"):
         connaissances.changer_statut("QA-0001", "validee", None)
     with pytest.raises(ErreurValidation, match="retour"):
-        connaissances.changer_statut("QA-0001", "experimentee", "essai")
+        connaissances.changer_statut("QA-0001", "experimentee", "essai sur la release 3.1")
     connaissances.ajouter_retour("QA-0001", "Release 3.2", "2 défauts critiques trouvés plus tôt")
     assert connaissances.changer_statut("QA-0001", "experimentee", "appliqué en 3.2")["apres"] == "experimentee"
     assert [e["action"] for e in journal.lire("QA-0001")] == ["idee_creee", "retour_ajoute", "statut_change"]
@@ -173,3 +173,22 @@ def test_modifier_refuse_les_champs_geres_par_l_outil_et_inconnus():
         connaissances.ajouter({**IDEE, "id": "QA-0002"})
     assert chemins.connaissances_jsonl().read_text(encoding="utf-8") == avant
     assert connaissances.voir("QA-0002")["references"][0]["url"] == "https://exemple.org/c"
+
+
+def test_source_exigee_pour_documentee_pratiquee_et_validee():
+    """#29 : une idée sans aucune source pouvait être « validée » et « documentée »."""
+    for maturite in ("documentee", "pratiquee"):
+        with pytest.raises(ErreurValidation, match="sans aucune référence"):
+            connaissances.ajouter({**IDEE, "maturite": maturite})
+    connaissances.ajouter(dict(IDEE))
+    with pytest.raises(ErreurValidation, match="sans aucune référence"):
+        connaissances.modifier("QA-0001", {"maturite": "documentee"})
+    with pytest.raises(ErreurValidation, match="10 caractères"):
+        connaissances.changer_statut("QA-0001", "validee", "ok")
+    with pytest.raises(ErreurValidation, match="au moins une référence"):
+        connaissances.changer_statut("QA-0001", "validee", "adopté par l'équipe QA")
+    connaissances.modifier("QA-0001", {"maturite": "documentee",
+                                       "references": [{"type": "norme", "titre": "ISO/IEC/IEEE 29119-3"}]})
+    assert connaissances.changer_statut("QA-0001", "validee", "adopté par l'équipe QA")["apres"] == "validee"
+    with pytest.raises(ErreurValidation, match="10 caractères"):
+        connaissances.changer_statut("QA-0001", "abandonnee", "   bof    ")

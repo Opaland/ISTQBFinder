@@ -184,3 +184,62 @@ def test_sylvie_signale_ce_qu_aucun_syllabus_ne_couvre():
     assert "Aucun syllabus de la bibliothèque" in corps(AGENTS / "sylvie.md")
     # Références de la grille de maturité : citées de seconde main sinon (S1, S3).
     assert "cite « grille du dépôt » sans page" in corps(AGENTS / "sylvie.md")
+
+
+LECTURE = ("lire", "section", "page")
+POSITIONNELS = {"lire": ["1"], "section": ["CTFL", "1.3"], "page": ["CTFL", "31"]}
+
+
+def _options_documentees(texte: str, commandes: set) -> list[tuple[str, str, str | None]]:
+    """(commande, option, valeur écrite) pour `lire`, `section` et `page`.
+
+    Une option écrite dans le même code que la commande (`lire <passage> --contexte 1`) lui
+    appartient. Une option écrite seule (`--max-caracteres N`) appartient au dernier groupe
+    de commandes cité dans le même paragraphe ou item de liste : « `lire`, `section` ou
+    `page` : `--max-caracteres N` » la donne aux trois."""
+    import re
+    trouve = []
+    for bloc in re.split(r"\n\s*\n|\n(?=\s*(?:\d+\.|-)\s)", texte):
+        bloc = " ".join(bloc.split())
+        groupe, fin_cmd = [], None
+        for m in re.finditer(r"`([^`]+)`", bloc):
+            jetons = re.sub(r"^python3? qa\.py\s+", "", m[1].strip()).split()
+            if jetons and jetons[0] in commandes:
+                lie = fin_cmd is not None and re.fullmatch(r"\s*(?:,|ou|et)?\s*", bloc[fin_cmd:m.start()])
+                groupe = (groupe if lie else []) + [jetons[0]]
+                fin_cmd = m.end()
+                for i, j in enumerate(jetons[1:], 1):
+                    if j.startswith("--") and jetons[0] in LECTURE:
+                        trouve.append((jetons[0], j, jetons[i + 1] if i + 1 < len(jetons) else None))
+            elif jetons and jetons[0].startswith("--"):
+                trouve += [(c, jetons[0], jetons[1] if len(jetons) > 1 else None) for c in groupe if c in LECTURE]
+    return trouve
+
+
+def test_options_documentees_de_lire_section_page_acceptees():
+    """#156 : chaque option que le skill ou un agent prescrit pour `lire`, `section` ou
+    `page` est acceptée par le parseur (`lire --max-caracteres` était refusé, code 2)."""
+    from qak.cli import analyseur
+    p = analyseur()
+    sous = next(a for a in p._actions if a.dest == "commande").choices
+    fichiers = [SKILL, AGENTS / "thomas.md", AGENTS / "sylvie.md",
+                *sorted((SKILL.parent / "reference").glob("*.md"))]
+    vues, refus = set(), []
+    for chemin in fichiers:
+        for cmd, opt, valeur in _options_documentees(chemin.read_text(encoding="utf-8"), set(sous)):
+            vues.add((cmd, opt))
+            action = next((a for a in sous[cmd]._actions if opt in a.option_strings), None)
+            if action is None:
+                refus.append(f"{chemin.name} : `{cmd} {opt}` inconnue du parseur")
+                continue
+            argv = [cmd, *POSITIONNELS[cmd], opt]
+            if action.nargs != 0:
+                argv.append(valeur if valeur and valeur.isdigit() else "1")
+            try:
+                p.parse_args(argv)
+            except SystemExit:
+                refus.append(f"{chemin.name} : `{' '.join(argv)}` refusé")
+    assert not refus, refus
+    # Le test n'est pas vide : les consignes connues sont bien relevées.
+    assert {("lire", "--contexte"), ("lire", "--max-caracteres"),
+            ("section", "--max-caracteres"), ("page", "--max-caracteres")} <= vues, vues

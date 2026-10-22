@@ -23,7 +23,9 @@ from .textes import normaliser, sans_accents
 EXTENSIONS = {".pdf", ".txt", ".md", ".markdown"}
 IGNORES = {"lisezmoi.md", "readme.md"}  # notes du dossier sources, pas des documents
 
-SCHEMA = """
+# Tokeniseur de l'index plein texte, partagé avec le reclassement de recherche.py.
+TOKENISEUR = "porter unicode61 remove_diacritics 2"
+SCHEMA = f"""
 CREATE TABLE IF NOT EXISTS documents (
     doc_id TEXT PRIMARY KEY, sha256 TEXT UNIQUE NOT NULL, fichier TEXT NOT NULL,
     titre TEXT, code TEXT, type TEXT, niveau TEXT, domaine TEXT, version TEXT, langue TEXT,
@@ -45,7 +47,7 @@ CREATE TABLE IF NOT EXISTS passages (
 CREATE INDEX IF NOT EXISTS passages_doc ON passages(doc_id, page);
 CREATE VIRTUAL TABLE IF NOT EXISTS passages_fts USING fts5(
     texte, section_titre, content='passages', content_rowid='id',
-    tokenize='porter unicode61 remove_diacritics 2'
+    tokenize='{TOKENISEUR}'
 );
 """
 

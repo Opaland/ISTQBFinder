@@ -42,13 +42,13 @@ def test_2_identifiant_en_double_dans_le_jsonl_refuse_sans_perte():
 
 
 def test_3_identifiant_retire_jamais_reattribue():
-    for n in range(3):
-        connaissances.ajouter(_idee(n), forcer=True, motif="idées de test volontairement proches")
-    connaissances.lier("QA-0001", "QA-0003", "complementaire")
+    ids = [connaissances.ajouter(_idee(n), forcer=True, motif="idées de test volontairement proches")["id"]
+           for n in range(3)]
+    connaissances.lier(ids[0], ids[2], "complementaire")
     p = chemins.connaissances_jsonl()
-    lignes = [l for l in p.read_text(encoding="utf-8").splitlines() if '"QA-0003"' not in l.split(",")[0]]
+    lignes = [l for l in p.read_text(encoding="utf-8").splitlines() if f'"{ids[2]}"' not in l.split(",")[0]]
     p.write_text("\n".join(lignes) + "\n", encoding="utf-8")
-    assert connaissances.ajouter(_idee(9), forcer=True, motif="t")["id"] == "QA-0004"
+    assert connaissances.ajouter(_idee(9), forcer=True, motif="t")["id"] not in ids
 
 
 def test_4_filtre_theme_applique_avant_la_limite():

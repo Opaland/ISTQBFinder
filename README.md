@@ -235,11 +235,12 @@ qu'avec l'accord de l'utilisateur.
 
 ## Limites
 
-- Recherche **lexicale** (FTS5 + thésaurus FR/EN) : rappel@5 = 89 % sur des questions de
-  contrôle jamais vues. Les requêtes très courtes et génériques réussissent mieux avec le
-  terme ISTQB anglais. Recherche sémantique (embeddings Hugging Face) évaluée et
-  non retenue : elle baisse les mesures ; prototype optionnel `--semantique`
-  ([docs/architecture.md](docs/architecture.md)).
+- Recherche **lexicale** (FTS5 + thésaurus FR/EN) : rappel@5 = 82 % sur 40 questions de
+  contrôle jamais vues (dont des questions volontairement difficiles), 100 % sur le jeu
+  de réglage. Les requêtes très courtes et génériques réussissent mieux avec le terme
+  ISTQB anglais. Recherche sémantique (embeddings Hugging Face) évaluée et non retenue :
+  elle ne résout pas les questions éloignées du vocabulaire ISTQB ; prototype optionnel
+  `--semantique` ([docs/architecture.md](docs/architecture.md)).
 - Pas d'OCR (PDF scanné = « illisible »). Certains PDF produisent des espaces parasites
   dans les mots (« sélecti on ») : l'extraction recolle les fragments quand le mot réuni
   existe dans le document (≈ 80 % des coupures) ; une expression exacte peut encore être

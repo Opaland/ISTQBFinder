@@ -54,22 +54,41 @@ Aucun serveur, aucune interface graphique, aucune clé d'API. Dépendance unique
 (code + section) figure dans les 5 premiers résultats. La CI exige `evaluer --jeu controle --min-rappel 0.80`
 (code retour 2 sous le seuil, ou si aucune question n'a pu être évaluée).
 
-| Version du moteur | Jeu de réglage (36 q.) | Jeu de contrôle (16 q., jamais utilisées pour régler) |
+| Version du moteur | Jeu de réglage (36 q.) | Jeu de contrôle (jamais utilisé pour régler ; taille entre parenthèses) |
 |---|---|---|
 | FTS5 + thésaurus, « ET strict puis OU » | 75 % | — |
 | + reclassement par couverture, concepts scindés, lexique FR→EN | 94 % | — |
 | + rétrogradation annexes / notes de version | 100 % (MRR 0,82) | 88 % (MRR 0,76) |
 | contrôle élargi à 18 q. (issue #4 : « shift-left », maintenance de l'automatisation) — avant correctif | 100 % (MRR 0,81) | 83 % (MRR 0,69) |
-| + priorité aux sections dont le titre nomme la notion, thésaurus « maintainability » | 100 % (MRR 0,91) | **89 %** (MRR 0,81) |
+| + priorité aux sections dont le titre nomme la notion, thésaurus « maintainability » | 100 % (MRR 0,91) | 89 % (16/18, MRR 0,81) |
+| Lot du 2026-10-22, mesures avant → après de chaque PR, questions de l'issue ajoutées au contrôle AVANT la correction : | | |
+| #42 sigles de 2 lettres et IDEAL seulement en MAJUSCULES | 100 % → 100 % | 86 % → 91 % (22 q.) |
+| #43 erreur / défaut / défaillance / anomalie séparés, « différence » générique | 100 % → 100 % | 88 % → 92 % (24 q.) |
+| #45 TPI, CTP, STEP, modèle de maturité générique | 100 % → 100 % | 88 % → 92 % (25 q.) |
+| #26 « motivation » distinct de « compétences » | 100 % → 100 % | 83 % → 92 % (24 q.) |
+| #25 §0.x d'introduction rétrogradés (fraîcheur mesurée, non retenue) | 100 % → 100 % | 84 % → 84 % (25 q.) |
+| #47 « layering » ↔ « superposition / couches » | 100 % → 100 % | 88 % → 88 % (25 q.) |
+| #106 fautes de frappe corrigées, mots coupés recollés à l'extraction | 100 % (0,91) → 100 % (0,92) | 72 % → 82 % (40 q.) |
+| **État actuel** (moteur lexical ; #59 : mêmes classements, ≈ 8 × plus rapide) | **100 % (MRR 0,92)** | **82 % (33/40, MRR 0,74)** |
 
 Le 100 % du jeu de réglage est optimiste par construction ; le chiffre honnête est celui
-du jeu de contrôle. Les questions ajoutées au contrôle l'ont été AVANT la correction qu'elles motivent. Les deux échecs du contrôle sont des requêtes très courtes faites de
-mots omniprésents (« principes du test », « contenu d'un plan de test ») : la même
-question avec le terme ISTQB anglais (« testing principles », « purpose and content of a
-test plan ») trouve la bonne section en 1re ou 2e position. Le skill demande donc
-d'ajouter le terme anglais quand il est connu.
+du jeu de contrôle. Les questions ajoutées au contrôle l'ont été AVANT la correction qu'elles
+motivent ; le contrôle est passé de 18 à 40 questions, en grande partie des questions
+difficiles issues des revues (fautes de frappe, questions de Test Manager, formulations loin
+du vocabulaire ISTQB) : sa baisse de 89 % à 82 % vient de ces ajouts, pas d'une régression
+(chaque PR a été mesurée avant/après sur le même jeu). Les 7 échecs actuels :
+- requêtes très courtes faites de mots omniprésents (« principes du test », « contenu d'un
+  plan de test ») : avec le terme ISTQB anglais (« testing principles », « purpose and
+  content of a test plan ») la bonne section sort en 1re ou 2e position — le skill demande
+  d'ajouter le terme anglais quand il est connu ;
+- « rapport d'avancement des tests parties prenantes », « comment estimer l'effort de
+  test » : arbitrages laissés ouverts dans #25 ;
+- « architecture en couches d'un framework d'automatisation » : §3.1.3 n'emploie pas
+  « architecture » (#47) ;
+- « tests exploratoirs » (« tests exploratoires » échoue aussi) et « évaluation de
+  l'utilisabilité » en français : classement entre sections voisines du même syllabus.
 
-Temps : une recherche ≈ 50 ms ; import initial ≈ 3 s par syllabus (≈ 2-3 min pour 42) ;
+Temps : une recherche ≈ 50 ms de calcul (0,2-0,45 s pour la commande complète) ; import initial ≈ 3 s par syllabus (≈ 2-3 min pour 42) ;
 actualisation sans changement < 1 s.
 
 ## Critères d'acceptation (vérifiables)

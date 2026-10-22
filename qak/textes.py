@@ -33,6 +33,14 @@ def normaliser(s: str) -> str:
     return re.sub(r"[^a-z0-9]+", " ", s).strip()
 
 
+def motif_sous_sections(numero: str) -> str:
+    """Motif LIKE des sous-sections de `numero` (« 4.2 » → « 4.2.% »), jokers % et _
+    échappés : à employer avec `LIKE ? ESCAPE '\\'`. Sans échappement, une section « % »
+    désignait tout le document."""
+    n = numero.rstrip(".").replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    return n + ".%"
+
+
 def racine(mot: str) -> str:
     """Racinisation minimale FR/EN (pluriels) : suffisante pour comparer des titres."""
     for suf in ("ies", "es", "s", "x"):

@@ -69,3 +69,30 @@ def test_fichier_corrompu_et_format_inconnu(tmp_path):
     docx = tmp_path / "x.docx"
     docx.write_bytes(b"PK")
     assert "format non pris en charge" in extraction.extraire(docx).statut()[1]
+
+
+def _pages(*textes):
+    return [extraction.Page(i, None, t) for i, t in enumerate(textes, start=1)]
+
+
+def test_plan_ignore_les_rangees_du_tableau_des_temps_de_formation():
+    """#41 : CTEL-ITP — le tableau des temps de formation (annexe) reprend les titres des
+    chapitres suivis de nombres ; il ne doit ni remplacer le vrai chapitre 10, ni couper la suite."""
+    debut = [f"{n}. Chapter {n}\nTexte du chapitre." for n in range(1, 9)]
+    pages = _pages(
+        *debut,
+        "9. Critical Success Factors 300 mins.\nTexte.\n9.1 Key Success Factors\nTexte.",
+        "9.2 Setting a Culture for Improvement\nTexte du chapitre neuf.",
+        "10. Adapting to Different Life Cycle Models 60 mins.\nKeywords:\n"
+        "10.1 Adapting to Different Life Cycle Models\nTexte.",
+        "11. References\n11.1 Standards\nTexte.",
+        "12. Appendix A – Notice to Training Providers\n12.1 Training Times\n"
+        "Nr. Chapter Course teaching\n1 Introduction 60 0 60\n2 The Context of Improvement 285 0 285\n"
+        "9 Critical Success Factors 120 180 300\n10 Adapting to Different Life Cycle\nModels\n60 0 60\n"
+        "10 S’Adapter à Différents Modèles de Cycle de Vie 60 0 60\n Total 2520 1065 3585",
+    )
+    plan = extraction._plan_depuis_texte(pages)[8:]
+    assert [(t.numero, t.page) for t in plan] == [("9", 9), ("9.1", 9), ("9.2", 10), ("10", 11), ("10.1", 11),
+                                                  ("11", 12), ("11.1", 12), ("12", 13), ("12.1", 13)]
+    # Un vrai titre qui porte sa durée (« 300 mins. ») reste un titre.
+    assert plan[0].titre == "Critical Success Factors 300 mins."

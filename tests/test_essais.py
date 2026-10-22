@@ -150,3 +150,12 @@ def test_citation_pp_est_controlee_et_ne_fusionne_pas():
     assert essais_agents.verifier_citations("[CTAL-TM v3.0 FR, §1.3.3, pp. 30-31]", set())[0]["lue"] is False
     # « §1.3 ; §1.3.1, p. 29 » : une seule citation, la seconde.
     assert len(essais_agents.verifier_citations("[CTAL-TM v3.0 FR, §1.3 ; §1.3.1, p. 29]", set())) == 1
+
+
+def test_questions_choix_format_une_option_par_ligne():
+    """#144 : le format prescrit (options numérotées sous la question, une par ligne) est
+    reconnu ; les options écrites en ligne (« 1. … · 2. … ») ne le sont pas."""
+    sous_liste = "**Questions à choix**\n- Votre cycle de vie ?\n  1. agile\n  2. cascade\n  3. mixte\n"
+    en_ligne = "**Questions à choix**\n- Votre cycle de vie : 1. agile · 2. cascade · 3. mixte ?\n"
+    assert essais_agents.controler(sous_liste, {"questions_choix": True}) == {"questions_choix": True}
+    assert essais_agents.controler(en_ligne, {"questions_choix": True}) == {"questions_choix": False}

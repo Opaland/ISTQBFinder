@@ -124,7 +124,7 @@ def test_gabarit_mise_en_place():
     strategie = (SKILL.parent / "reference" / "strategie.md").read_text(encoding="utf-8")
     gabarit = strategie.split("## Format « mise en place »", 1)[1].split("## Score de confiance", 1)[0]
     for attendu in ("Méthode pas à pas", "Exemple de mise en œuvre", "fictif", "interprétation",
-                    "Adaptation par domaine", "Questions de cadrage", "Où creuser ensuite",
+                    "Adaptation par domaine", "Questions à choix", "Où creuser ensuite",
                     "Confiance : NN/100"):
         assert attendu in gabarit, attendu
     for domaine in ("Santé / réglementé", "Web", "embarqué", "Mobile", "API"):

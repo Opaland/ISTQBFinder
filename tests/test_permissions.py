@@ -5,8 +5,8 @@ import re
 
 from conftest import RACINE_CODE
 
-ECRITURE = ("idee ajouter", "idee modifier", "idee statut", "idee retour", "idee lier", "theme ajouter",
-            "theme obsolete", "telecharger", "importer", "actualiser", "corriger", "retirer")
+ECRITURE = ("idee ajouter", "idee modifier", "idee statut", "idee retour", "idee lier", "idee retirer",
+            "theme ajouter", "theme obsolete", "telecharger", "importer", "actualiser", "corriger", "retirer")
 
 
 def _ecrit(regle: str) -> bool:

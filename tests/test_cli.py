@@ -155,6 +155,25 @@ def test_section_et_page_bornees_indiquent_la_suite(capsys, racine_isolee):
     assert "Sortie tronquée" not in capsys.readouterr().out
 
 
+def test_lire_borne_comme_section_et_page(capsys, racine_isolee):
+    # Issue #156 : `lire --max-caracteres N`, prescrit par le skill et les agents, était refusé.
+    assert main(["importer", str(FIXTURES / "syllabus_v9.pdf")]) == 0
+    capsys.readouterr()
+    assert main(["chercher", "valeurs", "limites", "--json"]) == 0
+    pid = json.loads(capsys.readouterr().out)["resultats"][0]["id"]
+    assert main(["lire", str(pid), "--contexte", "50", "--max-caracteres", "100"]) == 0
+    sortie = capsys.readouterr().out
+    assert "Sortie tronquée" in sortie and "Ne citer que ce qui précède" in sortie
+    assert main(["lire", str(pid), "--contexte", "50", "--max-caracteres", "100", "--json"]) == 0
+    r = json.loads(capsys.readouterr().out)
+    assert r["tronque"] and r["reste_a_lire"] and r["document"]["doc_id"] == "CTFL-9.9-en"
+    assert main(["lire", str(pid), "--contexte", "50", "--max-caracteres", "0"]) == 0
+    assert "Sortie tronquée" not in capsys.readouterr().out
+    assert main(["lire", str(pid)]) == 0  # défaut 15 000 : un passage seul n'est pas tronqué
+    sortie = capsys.readouterr().out
+    assert f"passage #{pid}" in sortie and "Sortie tronquée" not in sortie
+
+
 def test_doublons_en_une_ligne_sans_json(capsys, monkeypatch, racine_isolee):
     """#128 : `idee doublons --titre … --resume … --theme …` sans entrée standard."""
     idee = {"titre": "Matrice des risques probabilité impact", "resume": "Prioriser les tests par probabilité × impact.",

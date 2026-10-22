@@ -59,6 +59,8 @@
       "Bash(python3 qa.py idee retour:*)",
       "Bash(python qa.py idee lier:*)",
       "Bash(python3 qa.py idee lier:*)",
+      "Bash(python qa.py idee retirer:*)",
+      "Bash(python3 qa.py idee retirer:*)",
       "Bash(python qa.py theme ajouter:*)",
       "Bash(python3 qa.py theme ajouter:*)",
       "Bash(python qa.py theme obsolete:*)",

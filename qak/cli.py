@@ -303,7 +303,8 @@ def _afficher_passages(rows: list[dict], doc: dict | None = None):
 
 def cmd_lire(a):
     rows = recherche.lire_passage(a.passage, a.contexte)
-    _json(rows) if a.json else _afficher_passages(rows)
+    # Mêmes bornes que `page` / `section` (#156) : `--contexte 50` dépasse 100 000 caractères.
+    _afficher_borne({"document": rows[0], "passages": rows}, a.max_caracteres, a.json)
 
 
 def _plage_pages(texte: str) -> tuple[int, int | None]:
@@ -314,7 +315,7 @@ def _plage_pages(texte: str) -> tuple[int, int | None]:
     return int(m[1]), int(m[2]) if m[2] else None
 
 
-MAX_CARACTERES = 15000   # sortie de `page` / `section` : ~4 000 tokens, lisible en une fois
+MAX_CARACTERES = 15000   # sortie de `lire` / `page` / `section` : ~4 000 tokens, lisible en une fois
 
 
 def _borner(passages: list[dict], maximum: int) -> tuple[list[dict], list[dict]]:
@@ -713,6 +714,8 @@ def analyseur() -> argparse.ArgumentParser:
     x.add_argument("passage", type=int)
     x.add_argument("--contexte", type=int, default=0)
     x.add_argument("--json", action="store_true")
+    x.add_argument("--max-caracteres", type=int, default=MAX_CARACTERES,
+                   help=f"borne de la sortie (défaut {MAX_CARACTERES} ; 0 = sans limite) : la fin indique quoi lire ensuite")
     x.set_defaults(f=cmd_lire)
     x = sp.add_parser("page", help="lire des pages d'un document (ex. 31 ou 31-33)")
     x.add_argument("doc")

@@ -692,6 +692,34 @@
     }
    ],
    "controle": true
+  },
+  {
+   "requete": "shift-left",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "2.1.5"
+    },
+    {
+     "code": "CTAL-AT",
+     "section": "4"
+    }
+   ],
+   "controle": true
+  },
+  {
+   "requete": "coût de maintenance des tests automatisés",
+   "attendus": [
+    {
+     "code": "CTAL-TAE",
+     "section": "4.3"
+    },
+    {
+     "code": "CTAL-TAE",
+     "section": "8.1"
+    }
+   ],
+   "controle": true
   }
  ]
 }

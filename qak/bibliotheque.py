@@ -17,6 +17,7 @@ import shutil
 import sqlite3
 import sys
 import tempfile
+import time
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
@@ -66,8 +67,23 @@ def ouvrir_sqlite(chemin: Path) -> sqlite3.Connection:
     chemin.parent.mkdir(parents=True, exist_ok=True)
     cx = sqlite3.connect(chemin, timeout=ATTENTE_VERROU)
     cx.row_factory = sqlite3.Row
-    cx.execute("PRAGMA journal_mode=WAL")
+    _passer_en_wal(cx)
     return cx
+
+
+def _passer_en_wal(cx: sqlite3.Connection) -> None:
+    """Le changement de mode de journal n'attend pas le verrou (SQLite n'appelle pas le
+    gestionnaire d'attente pour ce PRAGMA) : on réessaie jusqu'à ATTENTE_VERROU secondes."""
+    limite = time.monotonic() + ATTENTE_VERROU
+    while True:
+        try:
+            if cx.execute("PRAGMA journal_mode").fetchone()[0].lower() != "wal":
+                cx.execute("PRAGMA journal_mode=WAL")
+            return
+        except sqlite3.OperationalError as exc:
+            if "locked" not in str(exc) or time.monotonic() >= limite:
+                raise
+            time.sleep(0.05)
 
 
 def connecter(chemin: Path | None = None) -> sqlite3.Connection:

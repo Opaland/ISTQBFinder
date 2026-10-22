@@ -68,6 +68,11 @@ lecture seule `.claude/settings.json`. Compte Claude Pro, Max, Team, Enterprise 
 Vérifier : `./installer.sh --assistant claude`. Agents : `@agent-thomas <question>`,
 `@agent-sylvie <démarche>`, ou `claude --agent thomas`.
 
+Au premier lancement, **ouvrir le clone une fois en interactif** (`claude` à la racine) et
+accepter le dossier : tant qu'il n'est pas approuvé, `claude -p` ignore les permissions de
+`.claude/settings.json` et refuse les `python qa.py …`. Pour un usage scripté sans cette
+étape, passer les outils explicitement (`--allowedTools`), comme `scripts/essais_agents.py`.
+
 **claude.ai** (Web ou appli, onglet Chat) : **non pris en charge**. Un skill importé (zip)
 n'y emporte ni la CLI `qa.py` ni la bibliothèque, et ne garde rien d'une conversation à
 l'autre (voir README, « Où l'utiliser »).

@@ -17,7 +17,7 @@ import sqlite3
 from dataclasses import dataclass
 
 from . import bibliotheque, taxonomie
-from .textes import MOTS_GENERIQUES, normaliser, reperer_concepts
+from .textes import MOTS_GENERIQUES, motif_sous_sections, normaliser, reperer_concepts
 
 CANDIDATS = 300  # passages BM25 reclassés par couverture
 # Sections périphériques (annexes, notes de version, bibliographie, matrices de traçabilité) :
@@ -92,8 +92,8 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
         filtres.append("d.langue = ?")
         params.append(langue)
     if section:
-        filtres.append("(p.section_num = ? OR p.section_num LIKE ?)")
-        params += [section, section.rstrip(".") + ".%"]
+        filtres.append("(p.section_num = ? OR p.section_num LIKE ? ESCAPE '\\')")
+        params += [section, motif_sous_sections(section)]
     where = (" AND " + " AND ".join(filtres)) if filtres else ""
 
     def executer(expr: str, limite: int) -> list[sqlite3.Row]:
@@ -269,8 +269,8 @@ def lire_section(doc: str, numero: str, cx: sqlite3.Connection | None = None) ->
     try:
         d = _doc(cx, doc)
         rows = [dict(x) for x in cx.execute(
-            "SELECT * FROM passages WHERE doc_id=? AND sommaire=0 AND (section_num=? OR section_num LIKE ?) "
-            "ORDER BY ordre", (d["doc_id"], numero, numero.rstrip(".") + ".%"))]
+            "SELECT * FROM passages WHERE doc_id=? AND sommaire=0 AND (section_num=? OR section_num LIKE ? ESCAPE '\\') "
+            "ORDER BY ordre", (d["doc_id"], numero, motif_sous_sections(numero)))]
         return {"document": dict(d), "passages": rows}
     finally:
         if propre:

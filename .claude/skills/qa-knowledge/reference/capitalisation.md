@@ -30,15 +30,17 @@ python qa.py idee ajouter <<'JSON'
 { "titre": "...", "resume": "...", "probleme": "...", "principe": "...",
   "theme_principal": "rbt", "maturite": "documentee",
   "references": [{"type": "istqb", "doc_id": "CTAL-TM-3.0-fr", "pages": "29-30",
-                  "section": "1.3.2", "extrait": "mots copiés du passage lu"}] }
+                  "section": "1.3.2", "extrait": "phrase recopiée mot pour mot du passage lu"}] }
 JSON
 ```
 
 ## Références
 
 - `istqb` : `doc_id` (ou code), `pages` et/ou `section`, `extrait` recommandé. L'outil
-  refuse une page inexistante ou un extrait absent des pages citées, et signale une
-  version remplacée.
+  refuse une page inexistante (ou mal écrite : « 31 », « 31-33 », « 4, 6 »), une section
+  absente des pages citées, et un extrait qui n'est pas recopié **mot pour mot** (suite
+  continue d'au moins 6 mots significatifs, sans reformulation ni « … ») ; il signale
+  une version remplacée.
 - `web` / `article` : `url` obligatoire, `titre`, `note` (ce que la source apporte) ;
   `consulte_le` est ajouté automatiquement.
 - `norme`, `livre`, `interne`, `conversation` : `titre` + précision utile.

@@ -41,7 +41,9 @@ Diagnostic : OK
 ```
 
 `KO` = bloquant (le script s'arrête, code retour 1, avec la commande qui répare) ;
-`--` = à faire, non bloquant (par exemple la CLI d'un assistant pas encore installée).
+`--` = à faire, non bloquant (par exemple la CLI d'un assistant pas encore installée, ou
+« Fichiers d'intégration … à régénérer » après une permission ajoutée à `.claude/settings.json` :
+`python scripts/generer_integrations.py` les réaligne pour Copilot et Gemini).
 
 Option `--assistant claude|copilot|gemini|tous` (Windows : `-Assistant gemini`) : contrôle
 en plus les fichiers d'intégration de l'assistant et la présence de sa CLI dans le `PATH`.

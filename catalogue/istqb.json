@@ -4,7 +4,7 @@
  "domaines_autorises": [
   "istqb.org"
  ],
- "conditions": "Notice de copyright ISTQB : le document peut être copié en tout ou partie si la source est citée. Les PDF restent la propriété de l'ISTQB® (et de leurs traducteurs, le plus souvent le CFTL, pour les versions françaises) ; ce dépôt en versionne une copie non modifiée dans bibliotheque/sources/, exclue de la licence MIT : voir NOTICE.md.",
+ "conditions": "Notice de copyright ISTQB : extraits à usage non commercial, source citée (copie intégrale pour les notices antérieures à 2020) ; ce dépôt versionne les PDF avec l'autorisation obtenue par son mainteneur auprès de l'ISTQB®, du CFTL et de la TMMi Foundation, non transmise aux forks. Les PDF restent la propriété de l'ISTQB® (et de leurs traducteurs, le plus souvent le CFTL, pour les versions françaises) ; ce dépôt en versionne une copie non modifiée dans bibliotheque/sources/, exclue de la licence MIT : voir NOTICE.md.",
  "documents": [
   {
    "code": "CTEL-TM",

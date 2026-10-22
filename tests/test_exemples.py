@@ -15,5 +15,16 @@ def test_couches_citees_au_paragraphe_3_1_3():
 
 
 def test_passage_ta_en_p25_indexe_sous_l_introduction():
+    # L'exemple 1 qui citait ce passage est remplacé par une sortie réelle (#91) ;
+    # la mauvaise référence ne doit pas revenir.
     assert "EN §2.1, p. 25" not in EXEMPLES
-    assert "EN §2 (introduction du chapitre), p. 25" in EXEMPLES
+
+
+def test_exemple_1_est_une_sortie_reelle_de_mise_en_place():
+    """#91 : l'exemple 1 (RBT en agile) vient d'un essai réel au format « mise en place »."""
+    exemple = EXEMPLES.split("## 1.", 1)[1].split("## 2.", 1)[0]
+    assert "eval/essais-resultats/2026-10-22/M1-rbt-agile.md" in exemple
+    assert (RACINE_CODE / "eval" / "essais-resultats" / "2026-10-22" / "M1-rbt-agile.md").exists()
+    for attendu in ("Méthode pas à pas", "fictif — interprétation", "Adaptation par domaine",
+                    "Questions à choix", "Confiance : 80/100"):
+        assert attendu in exemple, attendu

@@ -20,7 +20,8 @@ which what how why when where who into than then there their them they not no do
 
 # Mots trop généraux dans un corpus de syllabus pour peser dans une requête.
 MOTS_GENERIQUES = {"istqb", "syllabus", "idee", "idees", "pratique", "pratiques",
-                   "recherche", "cherche", "trouve", "retrouve", "quelles", "ameliorer", "amelioration"}
+                   "recherche", "cherche", "trouve", "retrouve", "quelles", "ameliorer", "amelioration",
+                   "difference", "differences"}
 
 
 def sans_accents(s: str) -> str:

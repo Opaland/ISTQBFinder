@@ -44,7 +44,9 @@ concrètes, chacune rattachée à sa source, pour qu'il aille lire et décider.
 3. `python qa.py chercher …` — plusieurs requêtes courtes, **toutes langues**, sans
    `--langue` ; balaie plusieurs syllabus (Foundation, Advanced, spécialités).
 4. Lis les meilleurs passages (`lire --contexte 1`, `section`) : 2 à 5, de syllabus
-   différents si possible. Rien n'est cité sans avoir été lu.
+   différents si possible. Rien n'est cité sans avoir été lu. Avant de rendre ton
+   rapport, passe chaque `[référence]` au **contrôle avant d'envoyer** du skill : sans
+   `lire`/`section`/`page` de cette page, lis-la ou retire la référence.
 5. Web seulement pour un besoin identifiable (outil, actualité, retour terrain) : dis
    pourquoi en une phrase. Si la question nomme un outil, une technologie ou une
    pratique que `chercher` ne trouve pas (ex. Playwright), la recherche Web ciblée
@@ -54,8 +56,8 @@ concrètes, chacune rattachée à sa source, pour qu'il aille lire et décider.
    tableau si comparaison, « Par quoi je commencerais » classé impact / effort, score de
    confiance justifié, « où creuser ensuite »). Contexte projet absent : signale ton
    hypothèse et rends 1-2 questions de cadrage pour la conversation principale.
-   Question de **mise en place** (« comment intégrer / mettre en place X ») : des pistes
-   ne suffisent pas. Suis le gabarit « mise en place » : **méthode pas à pas** (4-7 étapes,
+   Question de **mise en place** (« comment intégrer / organiser / mettre en place X »,
+   y compris « comment l'ISTQB propose-t-il d'intégrer… ») : des pistes ne suffisent pas. Suis le gabarit « mise en place » : **méthode pas à pas** (4-7 étapes,
    chacune sourcée ou marquée « interprétation »), **exemple de mise en œuvre** fictif
    marqué interprétation, tableau **adaptation par domaine** (santé / réglementé, web,
    embarqué, mobile, API) en disant quand la bibliothèque ne couvre pas un domaine, puis
@@ -65,6 +67,7 @@ concrètes, chacune rattachée à sa source, pour qu'il aille lire et décider.
    `extrait` copié du passage lu) dans un bloc ```json. Vérifie les doublons sans fichier :
    `python qa.py idee doublons <<'JSON'` … `JSON`. Tu n'enregistres rien : la
    conversation principale lancera `idee ajouter` (entrée standard) après accord.
+   **Dépôt public** : n'enregistre rien qui nomme un client, une personne, un projet ou un montant (anonymiser) ; un document interne s'importe avec `importer --prive` (`bibliotheque/prive/`, jamais versionné).
 
 ## Sécurité
 

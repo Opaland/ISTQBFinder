@@ -33,10 +33,15 @@ istqb.org depuis la machine. Un paquet dédié à claude.ai (consultation seule)
 
 ```bash
 git clone https://github.com/Opaland/ISTQBFinder && cd ISTQBFinder
-pip install -r requirements.txt
-python qa.py actualiser      # indexe les 42 PDF fournis dans bibliotheque/sources/ (≈ 3 min, une fois)
-python qa.py inventaire
+./installer.sh               # Windows : powershell -ExecutionPolicy Bypass -File installer.ps1
 ```
+
+Le script (relançable) vérifie Python ≥ 3.10, crée le venv `.venv`, installe les
+dépendances, indexe les 42 PDF fournis (≈ 3 min la première fois) puis affiche un
+diagnostic OK/KO (`python qa.py diagnostic`). Option `--assistant claude|copilot|gemini|tous`.
+Procédure pas à pas, par assistant (Claude Code, GitHub Copilot, Gemini CLI) :
+**[docs/installation.md](docs/installation.md)**. Lancer ensuite l'assistant venv activé
+(`source .venv/bin/activate`).
 
 Ajouter d'autres documents : `python qa.py importer chemin/vers/fichiers/` ; nouvelles
 versions officielles : `python qa.py catalogue --verifier` puis `telecharger <code>`.
@@ -76,6 +81,7 @@ La CLI reste utilisable directement (`python qa.py --help`) :
 | Besoin | Commande |
 |---|---|
 | Chercher dans les syllabus | `chercher <notions> [--doc CTAL-TM] [--theme rbt] [--section 1.3] [--langue fr]` |
+| Confiance d'une réponse | `confiance --base N --lus N --concordants N [--web 1] [--non-couvert 1] …` (calcul affiché) |
 | Lire avant de citer | `lire <passage> [--contexte 1]` · `section <doc> <num>` · `page <doc> <p[-q]>` (sorties bornées : `--max-caracteres`, défaut 15 000) · `plan <doc>` |
 | Base d'idées | `idee chercher …` · `idee lister [--theme] [--statut]` · `idee voir QA-20261022-7f3a` |
 | Capitaliser | `idee modele` · `idee doublons <<'JSON'` · `idee ajouter <<'JSON'` (JSON sur l'entrée standard) |
@@ -84,6 +90,7 @@ La CLI reste utilisable directement (`python qa.py --help`) :
 | Syllabus manquants | `manquants [--langue fr]` · skills `/bibliotheque` (maintenance) et `/ajouter-syllabus` |
 | Bibliothèque | `catalogue [--verifier]` · `telecharger` · `importer` · `actualiser` · `inventaire` · `corriger` · `retirer` |
 | Qualité de la recherche | `evaluer --jeu controle` |
+| Contrôle de l'installation | `diagnostic [--assistant claude\|copilot\|gemini\|tous]` |
 
 ## Utiliser avec GitHub Copilot
 
@@ -191,8 +198,11 @@ Documentation consultée (2026-10-22) :
 | `connaissances/connaissances.jsonl` — les idées | `connaissances/base.db` — reconstruite depuis le JSONL |
 | `connaissances/journal.jsonl` — l'historique | `bibliotheque/index.db` — reconstruit par `actualiser` |
 | `bibliotheque/manifeste.json` — métadonnées des documents | |
-| `bibliotheque/sources/` — les PDF (≈ 33 Mo) | |
+| `bibliotheque/sources/` — les PDF (≈ 33 Mo) | `bibliotheque/prive/` — documents internes (`importer --prive`) |
 | `referentiel/` (taxonomie, thésaurus), `catalogue/`, `eval/` | |
+
+Le dépôt est **public** : anonymiser toute idée (ni client, ni personne, ni projet, ni
+montant) et importer les documents internes avec `importer --prive`, jamais dans `sources/`.
 
 Après une session de capitalisation : commiter `connaissances/` (et
 `referentiel/taxonomie.json` si un thème a été ajouté). Sur un autre poste, un `git pull`
@@ -256,4 +266,5 @@ source est citée. Les PDF de `bibliotheque/sources/` sont versionnés à ce
 titre, source citée dans `bibliotheque/manifeste.json` (page officielle istqb.org ou
 traduction fournie par l'utilisateur). La licence MIT du dépôt couvre le code et la
 documentation, **pas** les syllabus, qui restent la propriété de l'ISTQB® et de leurs
-traducteurs.
+traducteurs : exclusion explicite dans `LICENSE`, liste des documents avec ayant droit,
+traducteur (CFTL pour les traductions françaises) et source dans [`NOTICE.md`](NOTICE.md).

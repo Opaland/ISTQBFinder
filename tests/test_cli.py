@@ -40,10 +40,10 @@ def test_chercher_sans_notion_ni_bibliotheque_ne_plante_pas(capsys, racine_isole
     for requete in (["chercher", "le la"], ["chercher", ""], ["chercher", "😀🧪"], ["chercher", "risque"]):
         assert main(requete) == 0, requete
         sortie = capsys.readouterr()
-        assert "Confiance documentaire : 0/100 (nulle)" in sortie.out and not sortie.err
+        assert "Couverture lexicale : 0/100 (nulle)" in sortie.out and not sortie.err
     assert main(["chercher", "", "--json"]) == 0
     r = json.loads(capsys.readouterr().out)
-    assert r["confiance"]["score"] == 0 and "Requête vide" in r["avertissements"][0]
+    assert r["couverture_lexicale"]["score"] == 0 and "Requête vide" in r["avertissements"][0]
     assert main(["chercher", "risque", "--json"]) == 0
     assert "Bibliothèque vide" in json.loads(capsys.readouterr().out)["avertissements"][0]
 

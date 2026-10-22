@@ -11,6 +11,8 @@ couvre pas toutes les notions est marqué « partiel ».
 Ce choix a été mesuré sur eval/requetes.json (voir docs/architecture.md) : le mode
 « ET strict puis OU » échouait dès qu'un mot secondaire de la question manquait.
 """
+import collections
+import difflib
 import json
 import re
 import sqlite3
@@ -18,13 +20,14 @@ from dataclasses import dataclass
 
 from . import bibliotheque, taxonomie
 from .bibliotheque import TOKENISEUR
-from .textes import MOTS_GENERIQUES, motif_sous_sections, normaliser, reperer_concepts
+from .textes import MOTS_GENERIQUES, MOTS_VIDES, motif_sous_sections, normaliser, reperer_concepts, thesaurus
 
 CANDIDATS = 300  # passages BM25 reclassés par couverture
 SEMANTIQUE_K = 100  # passages proposés par les embeddings (recherche hybride, optionnelle)
 RRF_K = 60          # constante usuelle de la fusion par rangs réciproques
-# Sections périphériques (annexes, notes de version, bibliographie, matrices de traçabilité) :
-# elles citent beaucoup de notions sans les traiter. Rétrogradées à couverture égale.
+# Sections périphériques (annexes, notes de version, bibliographie, matrices de traçabilité,
+# chapitre 0 d'introduction) : elles citent beaucoup de notions sans les traiter.
+# Rétrogradées à couverture égale.
 RE_PERIPHERIQUE = re.compile(r"\b(appendi|annexe|release notes|notes de (version|release)|references|bibliograph|"
                              r"business outcomes|objectifs metier|tracabilite|traceability matrix|index)", re.I)
 
@@ -125,6 +128,14 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
         if not cx.execute("SELECT 1 FROM passages LIMIT 1").fetchone():
             return _sans_resultat([g.libelle for g in gs],
                                   "Bibliothèque vide : lancer `actualiser` ou `telecharger` d'abord.")
+        corrections = corriger_fautes(requete, cx)
+        if corrections:
+            # Fautes de frappe probables (issue #106) : le mot inconnu de l'index et du thésaurus
+            # est remplacé par le mot connu le plus proche, et l'utilisateur en est averti.
+            requete = _remplacer_mots(requete, corrections)
+            gs = groupes(requete)
+            avert.append("Faute de frappe probable : " + ", ".join(f"« {a} » compris comme « {b} »"
+                                                                   for a, b in corrections.items()) + ".")
         prefixe = f"{obligatoire.fts()} AND " if obligatoire else ""
         ou = prefixe + "(" + " OR ".join(g.fts() for g in gs) + ")" if gs else obligatoire.fts()
         candidats = executer(ou, CANDIDATS)
@@ -147,7 +158,9 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
             return sum(gs[k].poids for k in trouves[r["id"]]) / total
 
         def peripherique(r) -> bool:
-            return bool(RE_PERIPHERIQUE.search(normaliser(r["section_titre"] or "")))
+            # §0.x : introduction du syllabus (objet, examen, parcours de carrière) — issue #25
+            return (bool(RE_PERIPHERIQUE.search(normaliser(r["section_titre"] or "")))
+                    or (r["section_num"] or "").split(".")[0] == "0")
 
         def titre(r) -> float:
             return sum(gs[k].poids for k in en_titre[r["id"]]) / total
@@ -195,6 +208,56 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
     finally:
         if propre:
             cx.close()
+
+
+SIMILARITE_THESAURUS = 0.8   # difflib : « priorisasion » / « priorisation » = 0,92
+SIMILARITE_INDEX = 0.85
+
+
+def _mots_du_thesaurus() -> set[str]:
+    return {m for _, termes in thesaurus() for t in termes for m in normaliser(t).split() if len(m) >= 4}
+
+
+def corriger_fautes(requete: str, cx: sqlite3.Connection) -> dict[str, str]:
+    """{mot saisi: correction} pour les mots de la question (5 lettres ou plus) absents à la
+    fois du thésaurus et de l'index, quand un mot connu très proche existe : d'abord un mot du
+    thésaurus, sinon un terme de l'index (racine porter, ramenée à sa forme la plus courante
+    dans les passages). Un mot connu n'est jamais « corrigé »."""
+    connus = _mots_du_thesaurus()
+    out = {}
+    for m in dict.fromkeys(normaliser(requete).split()):
+        if len(m) < 5 or m.isdigit() or m in MOTS_VIDES or m in connus:
+            continue
+        if cx.execute("SELECT 1 FROM passages_fts WHERE passages_fts MATCH ? LIMIT 1", (f'"{m}"',)).fetchone():
+            continue
+        proches = [c for c in connus if c[0] == m[0] and abs(len(c) - len(m)) <= 2]
+        trouve = difflib.get_close_matches(m, proches, n=1, cutoff=SIMILARITE_THESAURUS)
+        if not trouve:
+            trouve = _proche_dans_l_index(m, cx)
+        if trouve:
+            out[m] = trouve[0]
+    return out
+
+
+def _proche_dans_l_index(mot: str, cx: sqlite3.Connection) -> list[str]:
+    cx.execute("CREATE VIRTUAL TABLE IF NOT EXISTS temp.vocabulaire USING fts5vocab(main, passages_fts, row)")
+    termes = [t for (t,) in cx.execute("SELECT term FROM temp.vocabulaire WHERE term >= ? AND term < ? AND doc >= 3",
+                                       (mot[0], chr(ord(mot[0]) + 1)))
+              if len(t) >= 4 and not t.isdigit()]
+    # racines porter (« limit ») : comparées au début du mot saisi de même longueur (+1)
+    meilleur = max(((difflib.SequenceMatcher(None, mot[:len(t) + 1], t).ratio(), t) for t in termes), default=(0, ""))
+    if meilleur[0] < SIMILARITE_INDEX:
+        return []
+    racine_ = meilleur[1]
+    formes = collections.Counter(
+        w for (texte,) in cx.execute("SELECT texte FROM passages WHERE id IN (SELECT rowid FROM passages_fts "
+                                     "WHERE passages_fts MATCH ? LIMIT 20)", (f'"{racine_}"',))
+        for w in normaliser(texte).split() if w.startswith(racine_))
+    return [formes.most_common(1)[0][0]] if formes else []
+
+
+def _remplacer_mots(requete: str, corrections: dict[str, str]) -> str:
+    return re.sub(r"\w+", lambda m: corrections.get(normaliser(m.group(0)), m.group(0)), requete)
 
 
 def _notions_des_candidats(candidats: list[sqlite3.Row], gs: list[Groupe]) -> tuple[dict, dict]:

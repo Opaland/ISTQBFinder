@@ -33,10 +33,15 @@ istqb.org depuis la machine. Un paquet dédié à claude.ai (consultation seule)
 
 ```bash
 git clone https://github.com/Opaland/ISTQBFinder && cd ISTQBFinder
-pip install -r requirements.txt
-python qa.py actualiser      # indexe les 42 PDF fournis dans bibliotheque/sources/ (≈ 3 min, une fois)
-python qa.py inventaire
+./installer.sh               # Windows : powershell -ExecutionPolicy Bypass -File installer.ps1
 ```
+
+Le script (relançable) vérifie Python ≥ 3.10, crée le venv `.venv`, installe les
+dépendances, indexe les 42 PDF fournis (≈ 3 min la première fois) puis affiche un
+diagnostic OK/KO (`python qa.py diagnostic`). Option `--assistant claude|copilot|gemini|tous`.
+Procédure pas à pas, par assistant (Claude Code, GitHub Copilot, Gemini CLI) :
+**[docs/installation.md](docs/installation.md)**. Lancer ensuite l'assistant venv activé
+(`source .venv/bin/activate`).
 
 Ajouter d'autres documents : `python qa.py importer chemin/vers/fichiers/` ; nouvelles
 versions officielles : `python qa.py catalogue --verifier` puis `telecharger <code>`.
@@ -85,6 +90,7 @@ La CLI reste utilisable directement (`python qa.py --help`) :
 | Syllabus manquants | `manquants [--langue fr]` · skills `/bibliotheque` (maintenance) et `/ajouter-syllabus` |
 | Bibliothèque | `catalogue [--verifier]` · `telecharger` · `importer` · `actualiser` · `inventaire` · `corriger` · `retirer` |
 | Qualité de la recherche | `evaluer --jeu controle` |
+| Contrôle de l'installation | `diagnostic [--assistant claude\|copilot\|gemini\|tous]` |
 
 ## Utiliser avec GitHub Copilot
 
@@ -192,8 +198,11 @@ Documentation consultée (2026-10-22) :
 | `connaissances/connaissances.jsonl` — les idées | `connaissances/base.db` — reconstruite depuis le JSONL |
 | `connaissances/journal.jsonl` — l'historique | `bibliotheque/index.db` — reconstruit par `actualiser` |
 | `bibliotheque/manifeste.json` — métadonnées des documents | |
-| `bibliotheque/sources/` — les PDF (≈ 33 Mo) | |
+| `bibliotheque/sources/` — les PDF (≈ 33 Mo) | `bibliotheque/prive/` — documents internes (`importer --prive`) |
 | `referentiel/` (taxonomie, thésaurus), `catalogue/`, `eval/` | |
+
+Le dépôt est **public** : anonymiser toute idée (ni client, ni personne, ni projet, ni
+montant) et importer les documents internes avec `importer --prive`, jamais dans `sources/`.
 
 Après une session de capitalisation : commiter `connaissances/` (et
 `referentiel/taxonomie.json` si un thème a été ajouté). Sur un autre poste, un `git pull`
@@ -231,9 +240,11 @@ qu'avec l'accord de l'utilisateur.
   terme ISTQB anglais. Recherche sémantique (embeddings Hugging Face) évaluée et
   non retenue : elle baisse les mesures ; prototype optionnel `--semantique`
   ([docs/architecture.md](docs/architecture.md)).
-- Pas d'OCR (PDF scanné = « illisible »). Certains PDF FR produisent des espaces parasites
-  dans les mots (« sélecti on ») : la recherche reste correcte dans l'ensemble mais une
-  expression exacte peut être manquée sur ces pages.
+- Pas d'OCR (PDF scanné = « illisible »). Certains PDF produisent des espaces parasites
+  dans les mots (« sélecti on ») : l'extraction recolle les fragments quand le mot réuni
+  existe dans le document (≈ 80 % des coupures) ; une expression exacte peut encore être
+  manquée sur les pages restantes. Une faute de frappe dans la question (« priorisasion »)
+  est corrigée vers le mot connu le plus proche, avec un avertissement.
 - La bibliothèque locale n'est pas l'ensemble des connaissances : l'assistant le dit
   quand elle ne couvre pas une question.
 

@@ -38,10 +38,11 @@ puces, un tableau si l'on compare, « où creuser ensuite » — pour faire éme
 pas pour livrer un texte à recopier. **Toujours** un « Confiance : NN/100 » (grille
 ci-dessous). **Contexte
 projet** (cycle de vie, taille d'équipe, contraintes réglementaires, échéance) : l'utiliser
-s'il est donné, sinon le signaler comme hypothèse et finir par 1-2 questions de cadrage.
-Terminer par « **Par quoi je commencerais** » : 2-3 pistes classées impact / effort.
-Question de **mise en place** (« comment intégrer / déployer X ») : gabarit « mise en
-place » — méthode pas à pas sourcée, exemple fictif marqué interprétation, adaptation par
+s'il est donné, sinon l'écrire en tête (« **Hypothèse :** … ») et finir par 1-2 questions de cadrage
+**à choix** (« **Questions à choix** », options numérotées). Terminer par
+« **Par quoi je commencerais** » : 2-3 pistes classées impact / effort.
+Question de **mise en place** (« comment intégrer / organiser X », même « comment
+l'ISTQB propose-t-il… ») : gabarit « mise en place » — méthode pas à pas sourcée, exemple fictif marqué interprétation, adaptation par
 domaine, questions de cadrage. Gabarit et détails : [reference/strategie.md](reference/strategie.md).
 
 ## Score de confiance (obligatoire, déterministe)
@@ -79,6 +80,10 @@ ailleurs ; jamais bloquant (`claude -p` : hypothèses explicites, questions en f
 - Ne cite **que** ce que tu as lu via `lire`/`section`/`page`. Jamais de numéro de page,
   de section ou de passage inventé. Format : `[CTAL-TM v3.0 FR, §1.3.2, p. 29]`
   (page physique du PDF ; préciser « imprimée » si l'outil l'affiche).
+- **Contrôle avant d'envoyer** : pour chaque `[référence]` de la réponse, retrouve le
+  `lire`/`section`/`page` qui a affiché **cette page de ce document**. Un extrait de
+  `chercher` ne compte pas. Introuvable → lis le passage maintenant, ou retire la
+  référence (au besoin « à lire : §x » sans page, dans « Où creuser »).
 - Distingue toujours : **ISTQB** (passage lu) · **Web** (URL + date) · **base capitalisée**
   (id `QA-xxxx`, avec son statut — une idée en base n'est pas validée pour autant) ·
   **ton raisonnement** (signalé comme interprétation / hypothèse).
@@ -108,6 +113,7 @@ d'expérience argumentés. Note URL et date de consultation pour la capitalisati
 Après une recherche, propose (sans l'imposer) 0 à 3 connaissances **durables et
 réutilisables** : technique, méthode d'amélioration, pattern/anti-pattern, comparaison,
 retour d'expérience, recommandation étayée. Jamais chaque paragraphe ou hypothèse.
+**Dépôt public** : n'enregistre rien qui nomme un client, une personne, un projet ou un montant (anonymiser) ; un document interne s'importe avec `importer --prive` (`bibliotheque/prive/`, jamais versionné).
 N'enregistre qu'avec l'accord de l'utilisateur. Procédure :
 [reference/capitalisation.md](reference/capitalisation.md) — en bref :
 

@@ -299,5 +299,483 @@
   ],
   "citations_non_lues": [],
   "confiance": 72
+ },
+ {
+  "id": "M2-sante",
+  "agent": "thomas",
+  "question": "Je suis Test Manager sur le logiciel d'un dispositif médical. Comment mettre en place la traçabilité des exigences vers les tests et un test basé sur les risques ?",
+  "tours": 6,
+  "cout_usd": 0.163,
+  "commandes_qa": [
+   "python qa.py idee chercher traçabilité risques exigences dispositif médical; python qa.py chercher traçabilité exigences tests; python qa.py chercher risk-based testing risk analysis",
+   "python qa.py lire 11487 --contexte 1; python qa.py section CTAL-TM-3.0-fr 1.3 | head -150; python qa.py chercher IEC 62304 dispositif médical | head -20; python qa.py chercher safety-critical integrity level risk | head -30",
+   "python qa.py lire 6874 --contexte 1; python qa.py lire 11094 --contexte 1; python qa.py lire 11295 --contexte 0; python qa.py lire 8676 --contexte 0"
+  ],
+  "web": [
+   "WebSearch {\"query\": \"IEC 62304 traceability requirements tests ISO 14971 risk control verification software medical device\", \"mode"
+  ],
+  "citations": [
+   {
+    "citation": "CTFL §1.4.4, p. 20-21",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.2, p. 29-30",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.3, p. 30-31",
+    "lue": true
+   },
+   {
+    "citation": "CT-FT §3.3, p. 27",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.4, p. 32",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.4, p. 31",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.1, p. 29",
+    "lue": true
+   },
+   {
+    "citation": "CTFL §1.4.4, p. 21",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.6, p. 34",
+    "lue": true
+   }
+  ],
+  "citations_non_lues": [],
+  "confiance": 55,
+  "criteres": {
+   "methode": true,
+   "etapes_sourcees": true,
+   "exemple": true,
+   "domaines:m[ée]dical|sant[ée]|r[ée]glement": true,
+   "mentions:tra[çc]abilit": true,
+   "non_couvert": true,
+   "confiance": true
+  },
+  "criteres_ko": []
+ },
+ {
+  "id": "M3-web",
+  "agent": "thomas",
+  "question": "Comment mettre en place la stratégie de test et l'automatisation d'une application web e-commerce livrée chaque semaine ?",
+  "tours": 11,
+  "cout_usd": 0.197,
+  "commandes_qa": [
+   "python qa.py idee chercher \"stratégie de test automatisation livraison continue\" ; python qa.py idee chercher \"test automation strategy continuous delivery\"",
+   "python qa.py chercher \"test automation strategy\" ; python qa.py chercher \"stratégie de test basée sur les risques\" ; python qa.py chercher \"pyramide de tests automatisation\" ; python qa.py chercher \"continuous testing DevOps release\"",
+   "for p in 10322 10200 10379 8226 11567 11501; do python qa.py lire $p --contexte 1 | head -60; echo ======; done",
+   "python qa.py section CT-TAS-1.0-en 4 | head -80; echo =====; python qa.py chercher \"regression test approaches agile smoke quality gate\" | head -20; python qa.py chercher \"maintenance of automated tests flaky\" | head -20",
+   "python qa.py lire 10322 --contexte 1 | head -50; echo =====; python qa.py lire 10200 --contexte 1 | head -40; echo =====; python qa.py lire 8226 --contexte 1 | head -40; echo =====; python qa.py lire 8247 --contexte 1 | head -40",
+   "python qa.py idee modele",
+   "python qa.py themes | head -40",
+   "python qa.py idee doublons <<'JSON'\n{\"titre\":\"Stratégie d'automatisation pour livraison hebdomadaire : régression incrémentale, smoke en quality gate, pyramide cible\",\"resume\":\"Pour une appli web livrée chaque semaine, cadrer l'automatisation par une stratégie explicite (objectifs, risques, périmètre, outils, architecture, environnements), une pyramide cible mesurée par rapport à l'existant, et une régression DevOps (smoke en quality gate, tests prioritaires post-déploiement).\",\"probleme\":\"Livraisons hebdomadaires : le temps de test manuel ne suffit plus et l'automatisation sans stratégie dérive en suite UI lente et instable.\",\"principe\":\"Définir la stratégie d'automatisation, dessiner pyramide actuelle vs cible, régression incrémentale basée sur le risque, smoke tests comme quality gate dans le pipeline CI/CD.\",\"theme_principal\":\"strategie-automatisation\",\"themes_secondaires\":[\"cicd\",\"rbt\"],\"domaine_application\":\"Application web e-commerce, livraison hebdomadaire, équipe agile\",\"prerequis\":\"Pipeline CI/CD, environnements de test, testabilité du SUT\",\"benefices\":\"Feedback rapide, délai de mise sur le marché réduit, régression maîtrisée\",\"limites\":\"Investissement initial et maintenance des tests; syllabus sans guide web dédié\",\"maturite\":\"documentee\",\"statut\":\"a_evaluer\",\"provenance\":\"Recherche du 2026-10-22 : mise en place stratégie de test et automatisation web e-commerce livrée chaque semaine\",\"references\":[{\"type\":\"istqb\",\"doc_id\":\"CT-TAS-1.0-en\",\"pages\":\"16\",\"section\":\"1.1.1\",\"extrait\":\"Defining the intended purpose\"},{\"type\":\"istqb\",\"doc_id\":\"CTAL-AT-2.0-en\",\"pages\":\"17\",\"section\":\"1.4\",\"extrait\":\"smoke tests acting as quality gates\"}]}\nJSON"
+  ],
+  "web": [
+   "WebSearch {\"query\": \"Playwright best practices CI test isolation web e-commerce\", \"mode\": \"standard\"}"
+  ],
+  "citations": [
+   {
+    "citation": "CT-TAS §1.1.1, p. 16",
+    "lue": true
+   },
+   {
+    "citation": "CT-TAS §3.1.1, p. 25",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-AT §1.4, p. 17",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-AT §3.1.2, p. 26",
+    "lue": true
+   },
+   {
+    "citation": "CT-TAS §4.1.1, p. 30",
+    "lue": true
+   }
+  ],
+  "citations_non_lues": [],
+  "confiance": 66,
+  "criteres": {
+   "methode": true,
+   "etapes_sourcees": true,
+   "exemple": true,
+   "domaines:web": true,
+   "mentions:automatis": true,
+   "confiance": true
+  },
+  "criteres_ko": []
+ },
+ {
+  "id": "M6-api",
+  "agent": "thomas",
+  "question": "Comment mettre en place les tests d'une API REST utilisée par plusieurs équipes : tests de contrat, test d'intégration et performance ?",
+  "tours": 19,
+  "cout_usd": 0.216,
+  "commandes_qa": [
+   "python qa.py idee chercher \"contrat API\" ; python qa.py idee chercher \"API REST intégration\"; python qa.py idee chercher \"performance API\"",
+   "for q in \"contract testing API\" \"test de contrat\" \"API testing\" \"integration testing approach\" \"tests d'intégration API\" \"performance testing API\" \"test de performance\" \"service virtualization\" \"consumer-driven contract\"; do echo \"=== $q\"; python qa.py chercher \"$q\" 2>&1 | head -30; done",
+   "python qa.py chercher \"contract testing API\" 2>&1 | head -40",
+   "python qa.py chercher \"API testing integration\" 2>&1 | head -40",
+   "python qa.py chercher \"performance testing load API\" 2>&1 | head -40",
+   "python qa.py chercher \"service virtualization test doubles\" 2>&1 | head -40",
+   "python qa.py section CT-QDO-1.0-en 3.2.2 2>&1 | head -80",
+   "python qa.py section CTAL-TAE-2.0-en 5.1.3 2>&1 | head -60",
+   "python qa.py section CTAL-TTA-4.0-en 2.7 2>&1 | head -50",
+   "python qa.py lire 7575 --contexte 1 2>&1 | head -40; python qa.py lire 10338 --contexte 1 2>&1 | head -30",
+   "python qa.py chercher \"performance test objectives metrics load profile\" --doc CT-PT 2>&1 | head -30",
+   "python qa.py chercher \"integration testing strategy big bang incremental interfaces between teams\" 2>&1 | head -30",
+   "python qa.py lire 8859 --contexte 1 2>&1 | head -40",
+   "python qa.py lire 7590 --contexte 1 2>&1 | head -50; python qa.py lire 11304 --contexte 1 2>&1 | head -30",
+   "python qa.py idee modele 2>&1 | head -50",
+   "python qa.py themes 2>&1 | head -60",
+   "python qa.py idee doublons <<'JSON'\n{\n \"titre\": \"Contrats d'API versionnés et vérifiés en CI pour une API partagée par plusieurs équipes\",\n \"resume\": \"Pour une API REST consommée par plusieurs équipes, formaliser le contrat consommateur/fournisseur, le versionner et le vérifier dans chaque pipeline CI/CD.\",\n \"probleme\": \"Les changements d'une API partagée cassent des consommateurs découverts tard, en intégration ou en production.\",\n \"principe\": \"Définir le contrat, écrire des tests de contrat côté consommateur et fournisseur, les exécuter en CI/CD, versionner les contrats sous gestion de configuration.\",\n \"theme_principal\": \"api\",\n \"themes_secondaires\": [\"cicd\", \"shift-left\"],\n \"domaine_application\": \"API REST / microservices consommés par plusieurs équipes\",\n \"prerequis\": \"Standards partagés et outillage de tests de contrat\",\n \"benefices\": \"Retour rapide et isolé, détection des ruptures avant déploiement\",\n \"limites\": \"Ne couvre pas tous les aspects fonctionnels ; coordination entre équipes requise\",\n \"maturite\": \"documentee\",\n \"statut\": \"a_evaluer\",\n \"provenance\": \"Recherche du 2026-10-22 : mise en place des tests d'une API REST multi-équipes\",\n \"references\": [\n  {\"type\": \"istqb\", \"doc_id\": \"CT-QDO-1.0-en\", \"pages\": \"41\", \"section\": \"3.2.2\", \"extrait\": \"contracts should be versioned and stored in version control\"}\n ]\n}\nJSON"
+  ],
+  "web": [],
+  "citations": [
+   {
+    "citation": "CT-TAS §3.1.1, p. 23",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.4.2, p. 37",
+    "lue": true
+   },
+   {
+    "citation": "CT-QDO §3.2.2, p. 40-41",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TAE §5.1.3, p. 36",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TTA §2.7, p. 18",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TTA §2.7, p. 17-18",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TTA §2.7, p. 17",
+    "lue": true
+   },
+   {
+    "citation": "CT-QDO §3.2.2, p. 41",
+    "lue": true
+   },
+   {
+    "citation": "CT-PT §4.1.2, p. 33-34",
+    "lue": true
+   },
+   {
+    "citation": "CT-PT §3.2, p. 27",
+    "lue": true
+   },
+   {
+    "citation": "CT-PT §3.2, p. 26",
+    "lue": true
+   }
+  ],
+  "citations_non_lues": [],
+  "confiance": 80,
+  "criteres": {
+   "methode": true,
+   "etapes_sourcees": true,
+   "exemple": true,
+   "domaines:API": true,
+   "mentions:contrat|contract": true,
+   "mentions:performance": true,
+   "confiance": true
+  },
+  "criteres_ko": []
+ },
+ {
+  "id": "M1-rbt-agile",
+  "agent": "thomas",
+  "question": "Comment l'ISTQB propose-t-il d'intégrer le risk-based testing dans une équipe agile ?",
+  "tours": 7,
+  "cout_usd": 0.166,
+  "commandes_qa": [
+   "python qa.py idee chercher risk-based testing agile; python qa.py chercher risk-based testing agile; python qa.py chercher \"analyse des risques agile itération\"; python qa.py chercher \"risk based testing agile iteration planning\"",
+   "python qa.py lire 9555 --contexte 1; python qa.py lire 9556 --contexte 1; python qa.py lire 11560 --contexte 1; python qa.py lire 8243 --contexte 1; python qa.py lire 11296 --contexte 1; python qa.py lire 8679 --contexte 1",
+   "python qa.py idee modele | head -40; python qa.py idee doublons <<'JSON'\n{\"titre\":\"Analyse des risques qualité à chaque planification d'itération (agile)\",\"description\":\"Risk-storming en planification d'itération, niveau de risque pilote ordre et effort de test, réévaluation à chaque itération.\"}\nJSON",
+   "python qa.py idee modele | head -40",
+   "python qa.py themes | head -40"
+  ],
+  "web": [],
+  "citations": [
+   {
+    "citation": "CTFL-AT §3.2 et §3.2.1, p. 31-32",
+    "lue": true
+   },
+   {
+    "citation": "CTFL §5.1.2, p. 48-49",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-AT §3.1 et §3.1.1, p. 24-25",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TA §2.1.1 et §2.2, p. 27-28",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.6, p. 34",
+    "lue": true
+   },
+   {
+    "citation": "CTFL-AT §3.2.1, p. 31",
+    "lue": true
+   },
+   {
+    "citation": "CTFL-AT §3.2.1, p. 32",
+    "lue": true
+   },
+   {
+    "citation": "CTFL §5.1.2, p. 48",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TA §2.1.1, p. 27",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TA §2.2, p. 28",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-AT §3.1, p. 24",
+    "lue": true
+   }
+  ],
+  "citations_non_lues": [],
+  "confiance": 80,
+  "criteres": {
+   "methode": true,
+   "etapes_sourcees": true,
+   "exemple": true,
+   "domaines:sant[ée]|r[ée]glement": true,
+   "domaines:web": true,
+   "domaines:embarqu": true,
+   "domaines:mobile": true,
+   "domaines:API": true,
+   "cadrage": true,
+   "questions_choix": true,
+   "confiance": true
+  },
+  "criteres_ko": []
+ },
+ {
+  "id": "M4-embarque",
+  "agent": "thomas",
+  "question": "Comment organiser les niveaux de test et le test d'intégration matériel/logiciel d'un système embarqué (calculateur industriel) ?",
+  "tours": 10,
+  "cout_usd": 0.175,
+  "commandes_qa": [
+   "python qa.py idee chercher \"embarqué intégration matériel logiciel niveaux de test\"; python qa.py idee chercher \"embedded hardware software integration\"",
+   "python qa.py chercher \"test levels embedded systems hardware software integration\"; echo ----; python qa.py chercher \"niveaux de test système embarqué intégration matériel logiciel\"; echo ----; python qa.py chercher \"hardware-in-the-loop software-in-the-loop\"; echo ----; python qa.py chercher \"test d'intégration logiciel matériel\"",
+   "python qa.py section CTEL-TM-2011-en 8.3.3; echo ======; python qa.py section CT-AuT-2.1.1-en 2.4.2; echo ======; python qa.py section CT-AuT-2.1.1-en 3.2.4.3; echo =====; python qa.py section CT-AuT-2.1.1-en 3.2.3.2",
+   "python qa.py lire 10502 --contexte 1; echo =====; python qa.py lire 8889 --contexte 1",
+   "python qa.py idee modele",
+   "python qa.py themes | head -60",
+   "python qa.py idee doublons <<'JSON'\n{\"titre\":\"Laboratoire d'intégration matériel/firmware avec critère de « graduation » avant le test système\",\"resume\":\"Isoler le matériel et le firmware non testés de l'environnement de test logiciel dans un labo d'intégration ; ils n'entrent en test système qu'après avoir « gradué ».\",\"probleme\":\"Les changements répétés de matériel/firmware/logiciel provoquent des ré-intégrations qui cassent l'avancement de l'équipe de test.\",\"principe\":\"Labo d'intégration séparé, critères de sortie explicites, planning de livraison des composants coordonné par le Test Manager.\",\"theme_principal\":\"environnements\",\"themes_secondaires\":[\"test-management\"],\"domaine_application\":\"Systèmes embarqués / combinaisons matériel-logiciel (calculateur industriel)\",\"prerequis\":\"Équipes matériel, firmware et logiciel qui partagent un planning de livraisons\",\"benefices\":\"Moins d'arrêts dus aux équipements prototypes, test système plus stable\",\"limites\":\"Source ancienne (CTEL-TM 2011) ; coût d'un second banc\",\"maturite\":\"documentee\",\"statut\":\"a_evaluer\",\"provenance\":\"Recherche du 2026-10-22 : niveaux de test et intégration matériel/logiciel d'un calculateur industriel\",\"references\":[{\"type\":\"istqb\",\"doc_id\":\"CTEL-TM-2011-en\",\"pages\":\"65\",\"section\":\"8.3.3\",\"extrait\":\"An integration test lab is often used to separate the untested equipment/firmware from the software testing environment.\"}]}\nJSON",
+   "python qa.py idee chercher \"laboratoire d'intégration matériel firmware graduate système\"; python qa.py idee chercher \"HiL SiL niveaux de test calculateur ECU\""
+  ],
+  "web": [],
+  "citations": [
+   {
+    "citation": "CT-AUT §2.4.2, p. 30-31",
+    "lue": true
+   },
+   {
+    "citation": "CT-AUT §3.2.4.3, p. 40",
+    "lue": true
+   },
+   {
+    "citation": "CT-AUT §3.2.3.2, p. 37",
+    "lue": true
+   },
+   {
+    "citation": "CTEL-TM §8.3.3, p. 65",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TTA §4.1, p. 28",
+    "lue": true
+   }
+  ],
+  "citations_non_lues": [],
+  "confiance": 68,
+  "criteres": {
+   "methode": true,
+   "etapes_sourcees": true,
+   "exemple": true,
+   "domaines:embarqu": true,
+   "mentions:int[ée]gration": true,
+   "mentions:mat[ée]riel|hardware|HiL": true,
+   "confiance": true
+  },
+  "criteres_ko": []
+ },
+ {
+  "id": "C1-ambigu",
+  "agent": null,
+  "question": "Comment on gère les risques ?",
+  "tours": 4,
+  "cout_usd": 0.123,
+  "commandes_qa": [
+   "python qa.py idee chercher \"gestion des risques\" 2>&1 | head -40; python qa.py chercher \"gestion des risques produit\" 2>&1 | head -60",
+   "python qa.py section CTAL-TM-3.0-fr 1.3.1 2>&1 | head -70; python qa.py section CTAL-TM-3.0-fr 1.3.5 2>&1 | head -50; python qa.py chercher \"risk-based testing\" --doc CTFL 2>&1 | head -25"
+  ],
+  "web": [],
+  "citations": [
+   {
+    "citation": "CTAL-TM §1.3.1, p. 29",
+    "lue": true
+   }
+  ],
+  "citations_non_lues": [],
+  "confiance": 82,
+  "criteres": {
+   "questions_choix": true,
+   "hypotheses": true,
+   "confiance": true
+  },
+  "criteres_ko": []
+ },
+ {
+  "id": "M5-mobile",
+  "agent": "thomas",
+  "question": "Comment mettre en place les tests d'une application mobile iOS et Android : choix des appareils, risques, automatisation ?",
+  "tours": 9,
+  "cout_usd": 0.197,
+  "commandes_qa": [
+   "python qa.py idee chercher mobile appareils automatisation; python qa.py chercher \"mobile testing devices\" | head -60; python qa.py chercher \"tests mobiles appareils\" | head -60",
+   "python qa.py section CT-MAT-2019-fr 1.6; python qa.py lire 10808 --contexte 1; python qa.py chercher \"mobile app automation emulators cloud device farm\" | head -30",
+   "python qa.py section CT-MAT-2019-fr 5.4; python qa.py section CT-MAT-2019-fr 4.3",
+   "python qa.py section CT-MAT-2019-fr 5.2 --max-caracteres 5000; python qa.py section CT-MAT-2019-fr 4.4 --max-caracteres 5000; python qa.py idee modele | head -40",
+   "python qa.py confiance --base 86 --lus 5 --syllabus 3 2>&1 | tail -5; python qa.py confiance --help | head -20",
+   "python qa.py confiance --base 86 --lus 5 --concordants 2 --raisonnement 1; python qa.py idee doublons <<'JSON'\n{\"titre\":\"Choisir la stratégie d'appareils mobiles selon les données d'usage\",\"resume\":\"Réduire la matrice d'appareils iOS/Android à une sélection représentative issue des analytics, complétée par émulateurs en amont et laboratoire distant.\",\"theme_principal\":\"strategie\",\"references\":[]}\nJSON",
+   "python qa.py confiance --base 86 --lus 5 --concordants 2 --raisonnement 1; python qa.py themes | head -40"
+  ],
+  "web": [],
+  "citations": [
+   {
+    "citation": "CT-MAT §1.6, p. 17",
+    "lue": true
+   },
+   {
+    "citation": "CT-MAT §1.8, p. 20",
+    "lue": true
+   },
+   {
+    "citation": "CT-MAT §1.6, p. 18",
+    "lue": true
+   },
+   {
+    "citation": "CT-MAT §4.4, p. 46",
+    "lue": true
+   },
+   {
+    "citation": "CT-MAT §4.3.1-4.3.2, p. 45-46",
+    "lue": true
+   },
+   {
+    "citation": "CT-MAT §4.3.1, p. 45",
+    "lue": true
+   },
+   {
+    "citation": "CT-MAT §4.4, p. 46-47",
+    "lue": true
+   },
+   {
+    "citation": "CT-MAT §5.2, p. 49-50",
+    "lue": true
+   },
+   {
+    "citation": "CT-MAT §5.4, p. 51-52",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TAE §4.2.1, p. 34",
+    "lue": true
+   }
+  ],
+  "citations_non_lues": [],
+  "confiance": 72,
+  "criteres": {
+   "methode": true,
+   "etapes_sourcees": true,
+   "exemple": true,
+   "domaines:mobile": true,
+   "mentions:CT-MAT": true,
+   "confiance": true
+  },
+  "criteres_ko": [],
+  "echec": []
+ },
+ {
+  "id": "S3-reglemente",
+  "agent": "sylvie",
+  "question": "Pour le logiciel de notre dispositif médical, je prévois : une matrice de traçabilité exigences → tests tenue dans un tableur, une analyse de risques faite une seule fois en début de projet, et des tests système manuels avant chaque release. Est-ce aligné ISTQB ? Quel niveau de maturité ?",
+  "tours": 8,
+  "cout_usd": 0.159,
+  "commandes_qa": [
+   "python qa.py chercher \"risk-based testing identification évaluation atténuation\" 2>&1 | head -60",
+   "python qa.py chercher \"traceability requirements test cases coverage\" 2>&1 | head -50",
+   "python qa.py chercher \"risk analysis regular review risk register product risk\" 2>&1 | head -50",
+   "python qa.py section CTAL-TM-3.0-fr 1.3 2>&1 | head -120; echo ======; python qa.py section CTFL-4.0.1-en 1.4.4 2>&1 | head -40; echo =====; python qa.py section CTFL-4.0.1-en 5.2.4 2>&1 | head -40",
+   "python qa.py chercher \"regression testing automation manual repeated release system testing\" 2>&1 | head -30; python qa.py section CTAL-TM-3.0-fr 1.3.4 2>&1 | head -40; python qa.py section CTFL-4.0.1-en 5.2.3 2>&1 | head -30",
+   "python qa.py section CTFL-4.0.1-en 2.2.3 2>&1 | head -25"
+  ],
+  "web": [],
+  "citations": [
+   {
+    "citation": "CTAL-TM §1.3.1, p. 29",
+    "lue": true
+   },
+   {
+    "citation": "CTFL §5.2.4, p. 53",
+    "lue": true
+   },
+   {
+    "citation": "CTAL-TM §1.3.4, p. 32",
+    "lue": true
+   },
+   {
+    "citation": "CTFL §1.4.4, p. 21",
+    "lue": true
+   },
+   {
+    "citation": "CTFL §2.2.3, p. 31",
+    "lue": true
+   }
+  ],
+  "citations_non_lues": [],
+  "confiance": 72,
+  "criteres": {
+   "mentions:tra[çc]abilit": true,
+   "mentions:risque": true,
+   "questions_choix": true,
+   "non_couvert": true,
+   "confiance": true
+  },
+  "criteres_ko": [],
+  "echec": []
  }
 ]

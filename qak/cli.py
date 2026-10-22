@@ -131,7 +131,7 @@ def cmd_importer(a):
                 _ecrire(f"{x} : introuvable")
                 rc = 2
                 continue
-            r = bibliotheque.importer(x, meta, remplacer=a.remplacer, motif=a.motif)
+            r = bibliotheque.importer(x, meta, remplacer=a.remplacer, motif=a.motif, prive=a.prive)
             if r["etat"] in ("echec", "refuse"):
                 rc = 2
             _ecrire(f"{x.name} → {r['etat']} {r.get('doc_id', '')} — {r['message']}")
@@ -551,6 +551,18 @@ def cmd_journal(a):
                 _ecrire(f"      {ligne}")
 
 
+def cmd_diagnostic(a):
+    from . import diagnostic
+    noms = list(diagnostic.ASSISTANTS) if a.assistant == "tous" else [a.assistant] if a.assistant else []
+    etats = diagnostic.diagnostic(noms)
+    for etat, sujet, detail in etats:
+        _ecrire(f"{etat:3} {sujet:26} {detail}")
+    ko = sum(e[0] == "KO" for e in etats)
+    _ecrire(f"\nDiagnostic : {'OK' if not ko else f'KO ({ko} point(s) bloquant(s))'}")
+    if ko:
+        raise SystemExit(1)
+
+
 def cmd_evaluer(a):
     from . import evaluation
     r = evaluation.evaluer(a.k, {"reglage": False, "controle": True}.get(a.jeu), semantique=a.semantique)
@@ -630,6 +642,8 @@ def analyseur() -> argparse.ArgumentParser:
     x.add_argument("--remplacer", action="store_true",
                    help="confirmer le nouveau contenu d'un fichier modifié sur place (avec --motif, journalisé)")
     x.add_argument("--motif", help="raison du remplacement (obligatoire avec --remplacer)")
+    x.add_argument("--prive", action="store_true",
+                   help="document interne : copié dans bibliotheque/prive/ (jamais versionné), pas dans sources/")
     x.set_defaults(f=cmd_importer)
     x = sp.add_parser("actualiser", help="réindexation incrémentale de bibliotheque/sources/")
     x.add_argument("--forcer", action="store_true", help="tout réextraire")
@@ -746,6 +760,10 @@ def analyseur() -> argparse.ArgumentParser:
     x.add_argument("-n", type=int, default=30)
     x.add_argument("--details", action="store_true", help="détails de chaque entrée (avant/après, anomalies)")
     x.set_defaults(f=cmd_journal)
+    x = sp.add_parser("diagnostic", help="contrôle de l'installation (index, recherche témoin, intégrations)")
+    x.add_argument("--assistant", choices=["claude", "copilot", "gemini", "tous"],
+                   help="vérifie aussi les fichiers et la CLI de cet assistant")
+    x.set_defaults(f=cmd_diagnostic)
     x = sp.add_parser("evaluer", help="mesure la qualité de la recherche sur eval/requetes.json")
     x.add_argument("-k", type=_entier_positif, default=5)
     x.add_argument("--jeu", choices=["tout", "reglage", "controle"], default="tout",

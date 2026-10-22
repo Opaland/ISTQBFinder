@@ -130,3 +130,16 @@ def test_recollage_prudent():
     assert extraction._recoller("in to the test", vocab) == "in to the test"
     assert extraction._recoller("que l’approche", vocab) == "que l’approche"
     assert extraction._recoller("Test a nd", vocab) == "Test and"
+
+
+def test_mots_coupes_recolles_dans_les_passages(tmp_path):
+    # Issue #106 : « utilisabilit é » (espace parasite d'un PDF FR) est recollé dans le texte
+    # des passages, pas seulement dans les titres ; deux vrais mots voisins restent séparés.
+    f = tmp_path / "doc.txt"
+    f.write_text("1 Utilisabilité\n" + "L'utilisabilité compte. " * 3
+                 + "\nIl existe deux types d'évaluation de l'utilisabilit é et de la convivial ité.\n"
+                 + "La convivialité aussi. " * 3 + "\nOn va in to the test, into it, in it, to it.\n",
+                 encoding="utf-8")
+    texte = " ".join(p.texte for p in extraction.passages(extraction.extraire(f)))
+    assert "utilisabilité et de la convivialité." in texte
+    assert "in to the test" in texte

@@ -113,7 +113,8 @@ tout est versionné dans le dépôt.
 - **Permissions** : l'équivalent de l'allowlist en lecture seule de `.claude/settings.json`
   n'est pas versionnable. VS Code : réglage `chat.tools.terminal.autoApprove` (clés =
   préfixes de commande, valeur `true`), par exemple
-  `{"python qa.py chercher": true, "python qa.py lire": true, "python qa.py section": true}` ;
+  `{"python qa.py chercher": true, "python qa.py lire": true, "python qa.py section": true,
+  "python qa.py confiance": true, "python qa.py diagnostic": true}` ;
   une valeur `false` redemande confirmation. Copilot CLI : approuver à la demande, ou
   `--allow-tool 'shell(python qa.py chercher)'` pour la session. Ne pré-approuvez jamais les
   commandes qui écrivent (`idee ajouter`, `importer`, `actualiser`…, liste dans `AGENTS.md`).

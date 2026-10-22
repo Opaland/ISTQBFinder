@@ -78,3 +78,24 @@ def test_essais_par_domaine_presents():
               "non_couvert", "confiance", "domaines", "mentions"}
     for e in essais.values():
         assert set(e.get("criteres", {})) <= connus, e["id"]
+
+
+def test_citation_non_lue_fait_echouer_l_essai():
+    """#127 : une citation dont la page n'a pas été lue n'est plus un simple indicateur."""
+    lues = {("CTAL-TM", 29)}
+    reponse = "Pistes [CTAL-TM v3.0 FR, §1.3.2, p. 29] et [CTAL-TAE v2.0 EN, §4.2.1, p. 32]."
+    citations = essais_agents.verifier_citations(reponse, lues)
+    bilan = {"citations": citations, "citations_non_lues": [c["citation"] for c in citations if not c["lue"]],
+             "criteres_ko": []}
+    motifs = essais_agents.motifs_echec(bilan)
+    assert len(motifs) == 1 and "CTAL-TAE" in motifs[0]
+    assert essais_agents.motifs_echec({"citations_non_lues": [], "criteres_ko": []}) == []
+    assert essais_agents.motifs_echec({"erreur": "x"}) == ["erreur d'exécution"]
+
+
+def test_consigne_controle_avant_d_envoyer():
+    """#127 : liste de contrôle des références avant la réponse finale (skill et agents)."""
+    from test_agents import AGENTS, SKILL, corps
+    assert "Contrôle avant d'envoyer" in corps(SKILL) and "retire la" in corps(SKILL)
+    for nom in ("thomas", "sylvie"):
+        assert "contrôle avant" in corps(AGENTS / f"{nom}.md"), nom

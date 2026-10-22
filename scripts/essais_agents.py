@@ -9,7 +9,9 @@ Sylvie) via `claude -p`, puis contrôle automatiquement chaque réponse.
 Prérequis : CLI `claude` connectée, index construit (`python qa.py actualiser`).
 Coût indicatif : 0,10 à 0,50 $ par question. Résultats : eval/essais-resultats/<date>/.
 
-Contrôles automatiques (le jugement de fond reste humain, voir docs/essais-reponses.md) :
+Contrôles automatiques (le jugement de fond reste humain, voir docs/essais-reponses.md) ;
+un essai ÉCHOUE (code retour 1) dès qu'une citation n'a pas été lue ou qu'un critère
+manque (#127) :
 - commandes `qa.py` réellement exécutées par l'agent (lues dans le transcript) ;
 - citations `[DOC …, §x.y, p. N]` : la page N du document a-t-elle été LUE pendant la
   conversation (présente dans la sortie d'un `lire`, `section` ou `page`) ? ;
@@ -145,6 +147,16 @@ def verifier_citations(reponse: str, lues: set) -> list[dict]:
     return out
 
 
+def motifs_echec(bilan: dict) -> list[str]:
+    """Raisons d'échec d'un essai (#127) : une citation dont la page n'a pas été lue fait
+    échouer l'essai (règle « lire avant de citer »), comme un critère non satisfait."""
+    if "erreur" in bilan:
+        return ["erreur d'exécution"]
+    motifs = [f"citation non lue : {c}" for c in bilan.get("citations_non_lues", [])]
+    motifs += [f"critère : {c}" for c in bilan.get("criteres_ko", [])]
+    return motifs
+
+
 def lancer(essai: dict, dossier: Path) -> dict:
     session = str(uuid.uuid4())
     cmd = ["claude", "-p", essai["question"], "--output-format", "json", "--session-id", session,
@@ -174,6 +186,7 @@ def lancer(essai: dict, dossier: Path) -> dict:
     if essai.get("criteres"):
         bilan["criteres"] = controler(reponse, essai["criteres"])
         bilan["criteres_ko"] = [c for c, ok in bilan["criteres"].items() if not ok]
+    bilan["echec"] = motifs_echec(bilan)
     criteres_md = ""
     if bilan.get("criteres"):
         criteres_md = (f" · **critères** : {sum(bilan['criteres'].values())}/{len(bilan['criteres'])}"
@@ -181,7 +194,7 @@ def lancer(essai: dict, dossier: Path) -> dict:
     (dossier / f"{essai['id']}.md").write_text(
         f"# {essai['id']} — {essai.get('agent') or 'skill'}\n\n**Question** : {essai['question']}\n\n"
         f"**Tours** : {bilan['tours']} · **coût** : {bilan['cout_usd']} $ · **confiance annoncée** : "
-        f"{bilan['confiance']} · **citations** : {len(citations) - len(bilan['citations_non_lues'])}/"
+        f"{bilan['confiance']} · **verdict** : {'ÉCHEC' if bilan['echec'] else 'réussi'} · **citations** : {len(citations) - len(bilan['citations_non_lues'])}/"
         f"{len(citations)} lues · **Web** : {len(bilan['web'])}{criteres_md}\n\n## Réponse\n\n{reponse}\n\n"
         "## Commandes exécutées\n\n" + "\n".join(f"- `{c[:200]}`" for c in commandes) + "\n",
         encoding="utf-8")
@@ -201,11 +214,13 @@ def main() -> int:
         b = lancer(e, dossier)
         bilans.append(b)
         if "erreur" in b:
+            b["echec"] = motifs_echec(b)
             print(f"  ERREUR : {b['erreur']}")
             continue
         print(f"  {b['tours']} tours · {b['cout_usd']} $ · confiance {b['confiance']} · citations "
               f"{len(b['citations']) - len(b['citations_non_lues'])}/{len(b['citations'])} lues · web {len(b['web'])}"
               + (f" · critères {sum(b['criteres'].values())}/{len(b['criteres'])} {b['criteres_ko'] or ''}" if b.get("criteres") else ""))
+        print("  ÉCHEC — " + " ; ".join(b["echec"]) if b["echec"] else "  réussi")
     # Un lancement partiel complète le bilan du jour au lieu de l'écraser.
     fichier = dossier / "bilan.json"
     anciens = json.loads(fichier.read_text(encoding="utf-8")) if fichier.exists() else []
@@ -213,7 +228,10 @@ def main() -> int:
     bilans = [b for b in anciens if b.get("id") not in nouveaux] + bilans
     fichier.write_text(json.dumps(bilans, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"Résultats : {dossier}")
-    return 0
+    echecs = [b["id"] for b in bilans if b.get("id") in nouveaux and b.get("echec")]
+    if echecs:
+        print(f"Essais en échec : {', '.join(echecs)}")
+    return 1 if echecs else 0
 
 
 if __name__ == "__main__":

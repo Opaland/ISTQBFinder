@@ -39,7 +39,9 @@ concrètes, chacune rattachée à sa source, pour qu'il aille lire et décider.
 3. `python qa.py chercher …` — plusieurs requêtes courtes, **toutes langues**, sans
    `--langue` ; balaie plusieurs syllabus (Foundation, Advanced, spécialités).
 4. Lis les meilleurs passages (`lire --contexte 1`, `section`) : 2 à 5, de syllabus
-   différents si possible. Rien n'est cité sans avoir été lu.
+   différents si possible. Rien n'est cité sans avoir été lu. Avant de rendre ton
+   rapport, passe chaque `[référence]` au **contrôle avant d'envoyer** du skill : sans
+   `lire`/`section`/`page` de cette page, lis-la ou retire la référence.
 5. Web seulement pour un besoin identifiable (outil, actualité, retour terrain) : dis
    pourquoi en une phrase. Si la question nomme un outil, une technologie ou une
    pratique que `chercher` ne trouve pas (ex. Playwright), la recherche Web ciblée

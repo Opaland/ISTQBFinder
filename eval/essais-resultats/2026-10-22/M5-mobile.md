@@ -2,146 +2,89 @@
 
 **Question** : Comment mettre en place les tests d'une application mobile iOS et Android : choix des appareils, risques, automatisation ?
 
-**Tours** : 14 · **coût** : 0.197 $ · **confiance annoncée** : 68 · **citations** : 12/13 lues · **Web** : 0 · **critères** : 6/6
+**Tours** : 9 · **coût** : 0.197 $ · **confiance annoncée** : 72 · **verdict** : réussi · **citations** : 10/10 lues · **Web** : 0 · **critères** : 6/6
 
 ## Réponse
 
-Je m'arrête sur la vérification des doublons : le shell a refusé la commande, et la base d'idées n'avait de toute façon rien sur le sujet. Voici le rapport.
+Pour tester une appli iOS et Android, le syllabus ISTQB le plus utile est **CT-MAT 2019 (Mobile Application Testing)**, en FR et en EN. Il traite la stratégie (§1.6), les risques (§1.7-1.8), les émulateurs et laboratoires (§4.3-4.4) et l'automatisation (§5.2, §5.4). CTAL-TAE v2.0 et CT-TAS v1.0 apportent les risques de déploiement de l'automatisation. La base d'idées ne contient rien sur ce sujet.
 
-## Sources retenues
-- **Base d'idées** : `idee chercher` ne renvoie rien sur le mobile. Le contrôle de doublons de la proposition ci-dessous n'a pas pu tourner.
-- **CT-MAT 2019 (Mobile Application Testing), FR et EN** : syllabus dédié, lu en §1.6, 1.7, 1.8, 4.3, 4.4, 5.1, 5.3 et 5.4. Il date de 2019 : le principe est solide, mais les outils cités sont anciens.
-- **CTAL-TAE v2.0 FR** (§4.2.1), **CT-TAS v1.0 FR** (§2.1.2), **CT-FT v1.0 EN** (§6.4) : l'automatisation sur appareils réels et les fermes d'appareils.
-- Je n'ai pas fait de recherche Web : ta question ne nomme aucun outil.
+Aucun outil n'est nommé dans ta question, donc je n'ai pas fait de recherche Web.
 
-**Hypothèse de contexte** : appli native ou hybride, équipe agile, pas de contrainte réglementaire forte, budget limité.
+**Sources retenues**
+- CT-MAT 2019 FR : §1.6, §4.3, §4.4, §5.2, §5.4, lus en entier.
+- CTAL-TAE v2.0 FR : §4.2.1, lu.
+- CT-TAS v1.0 et CT-FT v1.0 : repérés par la recherche, non lus, donc non cités.
+- Base d'idées : aucun résultat.
+- Web : non utilisé.
+
+**Hypothèse de contexte** : appli grand public (e-commerce ou service) livrée en continu, équipe de 5 à 10 personnes, pas de contrainte réglementaire forte.
 
 ## Méthode pas à pas
-1. **Partir des données d'usage.** Le testeur doit pouvoir choisir et prioriser les appareils à partir des analytics (géographie, plateforme, version d'OS, type d'appareil) [CT-MAT 2019 FR, §1.1, p. 10]. Livrable : liste priorisée, par le QA lead et le produit, avant le premier sprint.
-2. **Choisir l'approche de couverture.**
 
-| Approche | Principe | Verdict |
-|---|---|---|
-| Plateforme unique | Un seul appareil, une version d'OS, un opérateur, un type de réseau | Trop étroite |
-| Multiplateforme | Sélection représentative couvrant la majorité des clients, selon les analytics | **Le plus réaliste** |
-| Couverture maximale | Tout couvrir | « Généralement pas économiquement viable » |
-
-   [CT-MAT 2019 FR, §1.6, p. 18]
-3. **Analyser les risques.** Les risques typiques et leur atténuation sont donnés par le syllabus [CT-MAT 2019 FR, §1.8, p. 20] :
-
-| Risque | Atténuation possible |
-|---|---|
-| Fragmentation du marché | Tester les appareils les plus utilisés |
-| Coût de plusieurs plateformes | Ne pas tester celles qui sortent du périmètre |
-| Nouvelles technologies | Utiliser des versions de préproduction |
-| Appareils indisponibles | Accès distant aux appareils ou test de foule |
-| Modèles d'usage attendus | Tests sur le terrain |
-
-   Les défis du §1.7 s'y ajoutent : réseaux variables, faibles ressources, cycles d'approbation des stores. Les méthodes classiques d'analyse de risque restent valables.
-4. **Répartir émulateurs et appareils réels.**
-   - Émulateurs et simulateurs tôt : déploiement rapide, réglage du réseau, du GPS, des interruptions.
-   - Appareils réels ensuite. Un simulateur iOS compile une version différente de l'appli, et certaines fonctions manquent (multitouch, accéléromètre).
-   - [CT-MAT 2019 FR, §1.6 p. 17 ; EN §4.3.1 p. 37 ; FR §4.3.2 p. 46]
-5. **Monter le labo.**
-   - Sur site : appareils choisis selon la diffusion, l'OS, l'écran, le coût et les capteurs [FR §4.4, p. 46].
-   - Distant (cloud) : pour la régression complète, les tests fonctionnels et non fonctionnels [EN §5.4, p. 41].
-   - Les deux se combinent. Un labo sur site bien tenu peut valoir un labo distant.
-   - Les cloud d'appareils sont facturés à l'exécution [CT-TAS FR, §2.1.2, p. 21].
-6. **Automatiser selon le type d'appli.**
-   - Le Web mobile se teste avec les outils web habituels. Les apps natives peuvent exiger des outils spécifiques, ou ceux de la plateforme [CT-MAT FR, §5.1, p. 48-49].
-   - Critères d'évaluation des outils : conditions réseau, données de test, exécution à grande échelle (local ou cloud), intégration CI, nouvelles fonctions comme FaceID ou les empreintes [FR §5.3, p. 50-51].
-   - Pour fiabiliser : localisateurs fiables, attentes explicites, setup/teardown idempotents, matrice appareil/réseau, cloud d'appareils [CT-FT EN, §6.4, p. 46].
-7. **Anticiper le déploiement de l'automatisation.**
-   - Les appareils réels doivent être allumés, chargés, en réseau et joignables [CTAL-TAE FR, §4.2.1, p. 34].
-   - Les mises à jour automatiques d'OS ou d'agents sont un risque courant [CTAL-TAE EN, §4.2.1, p. 32].
-8. **Compléter par du manuel.** Le syllabus couvre les tests sur le terrain, l'approbation des stores et les techniques basées sur l'expérience (personae, tours, SBTM) [CT-MAT FR, plan §3.2-3.3]. Je ne les ai pas lus en détail.
+1. **Collecter les données d'usage.** Qui : QA Lead avec le produit. Quand : avant toute décision. Livrable : répartition des appareils et des versions d'OS par marché cible. L'ISTQB range comme risque typique le fait de ne pas connaître cette répartition. Dans ce cas, on ne peut pas choisir durablement les appareils à tester. [CT-MAT 2019 FR, §1.6, p. 17]
+2. **Analyser les risques propres au mobile.** Livrable : registre de risques. Le syllabus cite la fragmentation du marché, le coût multiplateforme, les nouvelles technologies, l'indisponibilité d'appareils et les usages réels (réseau, déplacement). Chacun a une atténuation proposée. [CT-MAT 2019 FR, §1.8, p. 20]
+3. **Choisir l'approche de couverture des appareils.** Livrable : matrice d'appareils validée. Le syllabus distingue trois approches : plateforme unique, multiplateforme (une sélection représentative selon les analytics) et couverture maximale. Cette dernière est « généralement pas économiquement viable ». [CT-MAT 2019 FR, §1.6, p. 18] Les critères de sélection cités sont :
+   - le rang de diffusion ;
+   - l'OS et sa version ;
+   - la taille et la densité d'écran ;
+   - la disponibilité et le coût ;
+   - les caractéristiques spéciales ;
+   - l'importance pour le public cible. [CT-MAT 2019 FR, §4.4, p. 46]
+4. **Répartir émulateurs/simulateurs et appareils réels par phase.** Émulateurs et simulateurs en début de développement, appareils réels ensuite. [CT-MAT 2019 FR, §1.6, p. 17] Les émulateurs permettent de régler réseau, GPS et orientation. Ils ne remplacent pas un appareil, par exemple pour le multitouch ou l'accéléromètre. [CT-MAT 2019 FR, §4.3.1-4.3.2, p. 45-46] Pour iOS, c'est un simulateur et non un émulateur. Il est compilé dans une version dédiée, donc plus limité. [CT-MAT 2019 FR, §4.3.1, p. 45]
+5. **Combler les manques d'appareils.** Utilise un laboratoire distant, du crowd testing, ton réseau personnel ou une chasse aux défauts. [CT-MAT 2019 FR, §1.6, p. 18] Le laboratoire sur site est meilleur pour les capteurs, la batterie et la sécurité. Le laboratoire distant est rentable en usage ponctuel mais plus cher sur la durée. NFC, Bluetooth et batterie y sont difficiles à tester. [CT-MAT 2019 FR, §4.4, p. 46-47]
+6. **Automatiser en choisissant la méthode d'identification d'objets.** L'identification d'objets est plus rapide et résiste aux changements de mise en page. La comparaison image/OCR échoue dès que la mise en page change. Un objet caché peut aussi donner des faux négatifs. [CT-MAT 2019 FR, §5.2, p. 49-50]
+7. **Monter le laboratoire d'automatisation.** Appareils locaux plus émulateurs au début, laboratoire distant pour la régression complète, fonctionnelle et non fonctionnelle. En CI, la stabilité du laboratoire est essentielle. [CT-MAT 2019 FR, §5.4, p. 51-52] Les appareils réels doivent être allumés, chargés, connectés au réseau et avoir accès au SUT. [CTAL-TAE 2.0 FR, §4.2.1, p. 34]
 
 ## Exemple de mise en œuvre (fictif, interprétation)
-Équipe Scrum de 6 personnes, appli de réservation sortie toutes les 2 semaines, avec 4 mois d'analytics :
-- Les analytics donnent environ 8 modèles couvrant 80 % des utilisateurs (étapes 1-2).
-- Ces appareils sont répartis en 3 iOS et 3 Android sur site, plus un cloud pour les anciennes versions d'OS (étape 5).
-- Chaque merge passe les tests sur émulateur/simulateur en CI. La nuit, un sous-ensemble de bout en bout tourne sur 2 appareils réels, et un cloud sert pour la régression avant release (étapes 4 et 6).
-- Une séance exploratoire par sprint, plus un test de réseau dégradé avant chaque store (étape 8).
+
+Une équipe de 6 personnes livre une appli de réservation toutes les 2 semaines.
+- Elle extrait les analytics (étape 1) et retient environ 8 appareils : 4 Android de marques et tailles d'écran variées, 4 iPhone dont l'OS le plus ancien encore supporté (étape 3).
+- Les développeurs testent sur émulateur/simulateur, la QA sur les 8 appareils réels (étape 4).
+- Le smoke test est automatisé par identification d'objets et tourne en CI sur un petit parc local (étapes 6-7).
+- Avant chaque release, un cloud d'appareils lance la régression sur les modèles manquants (étape 5).
+- Le réseau dégradé et le GPS sont testés par émulation, puis sur le terrain avant la sortie (étape 2).
 
 ## Adaptation par domaine
+
 | Domaine | Ce qui change | Où lire |
 |---|---|---|
-| Mobile (ton cas) | Tout ce qui précède | CT-MAT 2019 |
-| Santé / réglementé | Aucun syllabus dédié. Traçabilité et conformité à ajouter. | Web pour la norme ; CT-FT §2 pour un cas voisin (conformité financière) |
-| Web | Hybride ou web mobile : outils web de bureau, tests basés sur l'agent utilisateur | CT-MAT §5.1 |
-| Embarqué | Objets connectés et wearables comptent parmi les appareils | CT-MAT §1.3 |
-| API | Le back-end est testé séparément ; la virtualisation de service aide | CT-MAT §5.3 (virtualisation côté serveur) ; CTAL-ATT §4.2 |
+| Mobile (ton cas) | Tout ce qui précède | CT-MAT 2019 §1.6, §4.4, §5 |
+| Santé / réglementé | Le laboratoire distant impose une évaluation de la sécurité du fournisseur. La bibliothèque n'a pas de syllabus dispositif médical. | CT-MAT §4.4 ; Web pour la norme |
+| Web / API | Le syllabus mobile ne couvre pas ces domaines | CT-PT §3.2 (risques de performance mobile, non lu) |
+| Embarqué | Capteurs et batterie : privilégier le laboratoire sur site | CT-MAT §4.4 |
 
 ## Par quoi je commencerais
-1. **Matrice d'appareils tirée des analytics** : impact fort, effort faible.
-2. **Émulateurs en CI, puis un petit lot d'appareils réels et un cloud pour la régression** : impact fort, effort moyen.
-3. **Cadrer le risque de déploiement de l'automatisation** (batterie, réseau, mises à jour d'OS) : impact moyen, effort faible.
+
+1. **Matrice d'appareils fondée sur les analytics** : impact fort, effort faible.
+2. **Émulateurs en amont, appareils réels ensuite** : impact fort, effort faible.
+3. **Smoke test automatisé en CI sur parc réduit, puis cloud** : impact moyen à fort, effort moyen.
 
 ## Où creuser ensuite
-- `section CT-MAT-2019-fr 2.1` : tests de compatibilité matériel (capteurs, interruptions, énergie).
-- `section CT-MAT-2019-fr 3.2` : tests sur le terrain et approbation des stores.
+
+- `section CT-MAT-2019-fr 3.1` : types de tests mobiles.
+- `section CT-MAT-2019-fr 4.4` : comparaison complète des laboratoires.
 - `section CTAL-TAE-2.0-fr 4.2` : risques de déploiement de l'automatisation.
-- Je n'ai pas lu §5.2 (méthodes d'automatisation) en détail.
+- CT-TAS §2.1.2 : licences et clouds d'appareils (repéré, non lu).
 
-**Confiance : 68/100 (moyenne)**
-- Base : plusieurs passages lus dans 4 syllabus concordants, avec un syllabus dédié.
-- Je retire des points parce que CT-MAT date de 2019. Il ne cite aucun outil actuel (Appium, XCUITest, Espresso, cloud d'appareils) et ne parle pas d'IA.
-- Je retire aussi pour l'exemple et la ligne santé, qui sont de l'interprétation.
-
-## Questions de cadrage
-- Appli native, hybride ou web mobile ?
-- Contrainte réglementaire (santé, finance) ?
-- Équipe et rythme de livraison ? Y a-t-il déjà des analytics d'usage ?
-
-## À capitaliser ?
-```json
-{
- "titre": "Matrice d'appareils mobiles pilotée par les analytics",
- "resume": "Choisir les appareils et OS à tester selon les données d'usage (approche multiplateforme), avec émulateurs tôt, appareils réels ensuite et labo distant en complément.",
- "probleme": "Fragmentation des appareils : impossible de tout couvrir, coût élevé.",
- "principe": "Sélection représentative des appareils couvrant la majorité des clients, priorisée par les analytics. Émulateurs/simulateurs tôt, appareils réels en régression.",
- "theme_principal": "strategie",
- "themes_secondaires": ["automatisation"],
- "domaine_application": "Application mobile iOS/Android, équipe agile",
- "prerequis": "Accès aux analytics d'usage (géographie, OS, modèles)",
- "benefices": "Couverture ciblée à coût maîtrisé",
- "limites": "Syllabus de 2019 ; la liste d'appareils doit être revue régulièrement",
- "maturite": "documentee",
- "statut": "a_evaluer",
- "provenance": "Recherche du 2026-10-22 : mise en place des tests d'une application mobile iOS et Android",
- "references": [
-  {"type": "istqb", "doc_id": "CT-MAT-2019-fr", "pages": "18", "section": "1.6", "extrait": "Approche multiplateforme"}
- ]
-}
-```
-Je n'ai pas pu lancer `idee doublons`. Relance-le avant `idee ajouter`.
+**Confiance : 72/100 (moyenne)** : base 86 × 0,6 = 52 ; 5 passages lus +20 ; 2 syllabus concordants +10 ; raisonnement sans source −10 (l'exemple fictif). CT-MAT date de 2019, donc rien sur les pratiques récentes des clouds d'appareils.
 
 ## Questions à choix
-1. Que veux-tu approfondir ?
-   1. Les tests de compatibilité matériel (CT-MAT §2.1)
-   2. L'automatisation et le choix d'outils, avec une recherche Web sur Appium, XCUITest et Espresso
-   3. Les tests sur le terrain et l'approbation des stores (§3.2)
-2. Veux-tu capitaliser l'idée proposée ?
-   1. Oui, après vérification des doublons
-   2. Non
-3. Quel est ton domaine ?
-   1. Santé ou réglementé : je cherche la norme sur le Web, la bibliothèque n'a rien
-   2. Grand public
-   3. Autre
+
+1. **Plateforme de l'appli ?** (1) native iOS + Android (2) multiplateforme (Flutter, React Native) (3) hybride/web
+2. **Suite ?** (1) approfondir l'automatisation (CTAL-TAE) (2) détailler les types de tests mobiles (§3.1) (3) comparer avec CT-TAS sur clouds d'appareils
+
+## À capitaliser ?
+
+Je n'ai pas fait la vérification de doublons : la commande a été refusée par le sandbox. Je ne te donne donc pas de JSON non vérifié. Pour capitaliser, l'idée serait « Matrice d'appareils mobiles fondée sur les analytics, avec émulateurs en amont ». Elle s'appuierait sur CT-MAT 2019 FR §1.6 p. 18 et §4.4 p. 46. Je peux en produire le JSON si tu le souhaites.
 
 ## Commandes exécutées
 
-- `Read {"file_path": "/tmp/claude-0/-home-user/da9346e2-ce5e-5882-830a-19be129b35c4/scratchpad/wt-90/.claude/skills/qa-knowledg`
-- `python qa.py idee chercher mobile appareils automatisation`
-- `python qa.py chercher mobile application testing devices`
-- `python qa.py chercher tests applications mobiles appareils`
-- `python qa.py section CT-MAT-2019-fr 1.6; python qa.py section CT-MAT-2019-fr 1.8; python qa.py section CT-MAT-2019-fr 1.7 | head -60`
-- `python qa.py lire 10805 --contexte 1; python qa.py lire 10191 --contexte 1; python qa.py lire 6914`
-- `python qa.py chercher "mobile test automation emulator simulator real device" ; python qa.py chercher émulateur simulateur`
-- `python qa.py section CT-MAT-2019-en 5.4 | head -70; python qa.py lire 7352 --contexte 1 | head -50; python qa.py lire 13140 --contexte 1 | head -40`
-- `python qa.py plan CT-MAT-2019-fr | head -60`
-- `python qa.py section CT-MAT-2019-fr 5.1 | head -60; python qa.py section CT-MAT-2019-fr 5.3 | head -40; python qa.py section CT-MAT-2019-fr 1.1 | head -20`
-- `python qa.py idee modele | head -40`
-- `python qa.py themes | grep -i -E "mobile|automat|risque|strat" | head; `
-- `python qa.py idee doublons <<'JSON'
-{"titre":"Matrice d'appareils mobiles pilotée par les données d'usage","resume":"Choisir les appareils/OS à tester à partir des analytics (géographie, OS, modèle), `
+- `Read {"file_path": "/tmp/claude-0/-home-user/da9346e2-ce5e-5882-830a-19be129b35c4/scratchpad/wt-127/.claude/skills/qa-knowled`
+- `python qa.py idee chercher mobile appareils automatisation; python qa.py chercher "mobile testing devices" | head -60; python qa.py chercher "tests mobiles appareils" | head -60`
+- `python qa.py section CT-MAT-2019-fr 1.6; python qa.py lire 10808 --contexte 1; python qa.py chercher "mobile app automation emulators cloud device farm" | head -30`
+- `python qa.py section CT-MAT-2019-fr 5.4; python qa.py section CT-MAT-2019-fr 4.3`
+- `python qa.py section CT-MAT-2019-fr 5.2 --max-caracteres 5000; python qa.py section CT-MAT-2019-fr 4.4 --max-caracteres 5000; python qa.py idee modele | head -40`
+- `python qa.py confiance --base 86 --lus 5 --syllabus 3 2>&1 | tail -5; python qa.py confiance --help | head -20`
+- `python qa.py confiance --base 86 --lus 5 --concordants 2 --raisonnement 1; python qa.py idee doublons <<'JSON'
+{"titre":"Choisir la stratégie d'appareils mobiles selon les données d'usage","resume":"R`
+- `python qa.py confiance --base 86 --lus 5 --concordants 2 --raisonnement 1; python qa.py themes | head -40`

@@ -14,7 +14,7 @@ from .textes import normaliser
 # Toute modification de l'extraction, du découpage ou de la détection des métadonnées doit
 # incrémenter ce numéro :
 # l'actualisation réindexe alors les documents extraits par une version antérieure.
-VERSION_EXTRACTEUR = 10
+VERSION_EXTRACTEUR = 11
 
 TAILLE_PASSAGE = 1400   # caractères visés par passage
 PAGE_VIDE = 40          # moins de caractères utiles = page vide (scan, image)
@@ -219,22 +219,76 @@ def _ligne_de_tableau(lignes: list[str], i: int) -> bool:
     return any(RE_LIGNE_CHIFFREE.match(l.strip()) for l in lignes[i + 1:i + 3])
 
 
-def _plan_depuis_texte(pages: list[Page]) -> list[Titre]:
+# Un titre qui se termine par l'un de ces mots est coupé : la suite est sur la ligne suivante
+# (« 8 Appendix A – Learning Objectives/Cognitive Level of » / « Knowledge »).
+MOTS_DE_LIAISON = set("""
+de du des la le les l d et ou à au aux en dans pour par sur avec un une entre sans vers selon
+of the a an and or for to in on with by from at into between its their throughout via – - —
+""".split())
+LETTRES_MOTS = {"a", "à", "y", "i", "o"}   # lettres seules qui sont de vrais mots
+
+
+def _completer_titre(lignes: list[str], i: int, titre: str) -> str:
+    """Complète (au plus deux fois) un titre coupé par la ligne qui le suit."""
+    for j in range(i + 1, min(i + 3, len(lignes))):
+        dernier = titre.split()[-1].lower() if titre.split() else ""
+        suite = lignes[j].strip()
+        if dernier not in MOTS_DE_LIAISON or not suite or len(suite) > 100 \
+                or RE_TITRE.match(suite) or RE_LIGNE_CHIFFREE.match(suite) or suite[0].isdigit():
+            break
+        titre = f"{titre} {suite}"
+    return titre
+
+
+def _vocabulaire(pages: list[Page]) -> Counter:
+    return Counter(m for p in pages for m in re.findall(r"[^\W\d_]+", p.texte.lower()))
+
+
+def _recoller(titre: str, vocab: Counter) -> str:
+    """Recolle prudemment les mots coupés par une espace parasite de l'extraction PDF
+    (« management d es », « Le adership », « Contex t ») : deux fragments voisins sont
+    réunis si le mot réuni existe dans le document et que l'un des fragments n'en est pas un."""
+    def est_mot(m: str) -> bool:
+        m = m.lower()
+        return m in LETTRES_MOTS if len(m) == 1 else vocab[m] >= 3
+
+    mots = titre.split()
+    out: list[str] = []
+    for mot in mots:
+        prec = out[-1] if out else ""
+        # Le second fragment ne porte au plus qu'une ponctuation finale : « l’approche » n'est
+        # pas un fragment (« que l’approche » ne devient pas « quel’approche »).
+        m = re.match(r"^([^\W\d_]+)([.,;:!?)]*)$", mot)
+        if prec.isalpha() and m:
+            reuni = prec + m.group(1)
+            if vocab[reuni.lower()] >= 2 and not (est_mot(prec) and est_mot(m.group(1))):
+                out[-1] = reuni + m.group(2)
+                continue
+        out.append(mot)
+    return " ".join(out)
+
+
+def _plan_depuis_texte(pages: list[Page], vocab: Counter | None = None) -> list[Titre]:
     """Repère les titres numérotés et garde la plus longue suite à numérotation cohérente.
     Cela écarte les listes numérotées (« 1. Aux bureaux nationaux… ») qui ressemblent
     à des titres : elles forment une suite courte qui casse celle des vrais chapitres."""
+    vocab = _vocabulaire(pages) if vocab is None else vocab
     candidats = []
     for p in pages:
-        if p.sommaire:
-            continue
         lignes = p.texte.split("\n")
         for i, ligne in enumerate(lignes):
             l = ligne.strip()
+            # Page de sommaire ou d'index : seul son intitulé (« 11. Index », en tête de page)
+            # peut être un titre ; ses entrées (« 4.2 Black-box Test Techniques 39 ») non.
+            if p.sommaire and (i > 2 or l[-1:].isdigit()):
+                continue
             m = RE_TITRE.match(l)
             if m and not RE_POINTILLES.search(l) and not l.endswith((",", ";", ":")) \
                     and not _ligne_de_tableau(lignes, i):
                 num = [int(x) for x in m.group(1).split(".")]
-                candidats.append((num, Titre(p.numero, i, m.group(1), m.group(2).strip())))
+                # Recoller d'abord : « safety lifecyc le » ne finit pas par l'article « le ».
+                titre = _completer_titre(lignes, i, _recoller(m.group(2).strip(), vocab))
+                candidats.append((num, Titre(p.numero, i, m.group(1), titre)))
     # Les objectifs d'apprentissage en tête de chapitre répètent les titres (« 1.1 Principes… »)
     # quelques pages avant le vrai titre : une occurrence suivie, à moins de 8 pages, d'un titre
     # identique est écartée. Les répétitions lointaines restent : la chaîne la plus longue tranche.
@@ -327,12 +381,15 @@ def extraire(chemin: Path) -> Extraction:
         ext.plan, ext.plan_source = _plan_markdown(ext.pages), "markdown"
     else:
         # Les signets ne sont retenus que s'ils portent une vraie numérotation de sections.
+        vocab = _vocabulaire(ext.pages)
         plan_signets = _plan_depuis_signets(signets, ext.pages) if signets else []
         if sum(bool(t.numero) for t in plan_signets) >= 3:
             ext.plan, ext.plan_source = plan_signets, "signets"
         else:
-            ext.plan = _plan_depuis_texte(ext.pages)
+            ext.plan = _plan_depuis_texte(ext.pages, vocab)
             ext.plan_source = "texte" if ext.plan else ""
+        for t in ext.plan:
+            t.titre = _recoller(t.titre, vocab)
     return ext
 
 

@@ -61,16 +61,21 @@ def test_source_modifiee_detectee(tmp_path, monkeypatch):
                                      encoding="utf-8")
     monkeypatch.setattr(gen, "RACINE", tmp_path)
     monkeypatch.setattr(gen, "AGENTS_CLAUDE", agents)
-    assert gen.ecarts() == ["absent : .github/agents/essai.agent.md"]
+    (tmp_path / ".claude" / "skills").mkdir()
+    monkeypatch.setattr(gen, "SKILLS_CLAUDE", tmp_path / ".claude" / "skills")
+    (tmp_path / ".claude" / "settings.json").write_text('{"permissions": {"allow": []}}', encoding="utf-8")
+    monkeypatch.setattr(gen, "REGLAGES_CLAUDE", tmp_path / ".claude" / "settings.json")
+    generes = {".github/agents/essai.agent.md", ".gemini/agents/essai.md", ".gemini/commands/essai.toml"}
+    assert set(gen.ecarts()) == {f"absent : {g}" for g in generes | {".gemini/settings.json"}}
     gen.generer()
     assert gen.ecarts() == []
     (agents / "essai.md").write_text("---\nname: essai\ndescription: Essai 2.\ntools: Bash\n---\n\nCorps.\n",
                                      encoding="utf-8")
-    assert gen.ecarts() == ["périmé : .github/agents/essai.agent.md"]
+    assert set(gen.ecarts()) == {f"périmé : {g}" for g in generes}
     (agents / "essai.md").unlink()
-    assert gen.ecarts() == ["orphelin : .github/agents/essai.agent.md"]
+    assert set(gen.ecarts()) == {f"orphelin : {g}" for g in generes}
     gen.generer()
-    assert gen.ecarts() == [] and not (tmp_path / ".github" / "agents" / "essai.agent.md").exists()
+    assert gen.ecarts() == [] and not any((tmp_path / g).exists() for g in generes)
 
 
 def test_agents_md_importe_par_claude():
@@ -79,3 +84,53 @@ def test_agents_md_importe_par_claude():
     assert re.search(r"^@AGENTS\.md$", claude, re.M)
     for regle in ("Lire avant de citer", "Confiance : NN/100", "Closes #n", "VERSION_EXTRACTEUR"):
         assert regle in agents
+
+
+# --- Gemini CLI (#71) -------------------------------------------------------------------
+
+GEMINI = RACINE_CODE / ".gemini"
+
+
+@pytest.mark.parametrize("skill", SKILLS, ids=lambda s: s.parent.name)
+def test_skill_gemini_copie_complete(skill):
+    """Copie fidèle (même corps, mêmes fichiers annexes) et liens relatifs valides."""
+    copie = GEMINI / "skills" / skill.parent.name
+    champs_source, corps_source = gen.lire_entete(skill.read_text(encoding="utf-8"))
+    champs, corps = gen.lire_entete((copie / "SKILL.md").read_text(encoding="utf-8"))
+    assert champs.keys() == {"name", "description"}  # allowed-tools : propre à Claude Code
+    assert champs["name"] == champs_source["name"]
+    assert corps.endswith(corps_source)
+    annexes = {f.relative_to(skill.parent) for f in skill.parent.rglob("*") if f.is_file()}
+    assert {f.relative_to(copie) for f in copie.rglob("*") if f.is_file()} == annexes
+    for f in copie.rglob("*.md"):
+        for lien in re.findall(r"\]\(([^)#]+)\)", f.read_text(encoding="utf-8")):
+            if not lien.startswith("http"):
+                assert (f.parent / lien).exists(), f"{f.relative_to(RACINE_CODE)} : lien cassé {lien}"
+
+
+@pytest.mark.parametrize("agent", AGENTS, ids=lambda a: a.stem)
+def test_agent_et_commande_gemini(agent):
+    tomllib = pytest.importorskip("tomllib", reason="Python < 3.11 : lecture TOML non vérifiée")
+    source, corps_source = gen.lire_entete(agent.read_text(encoding="utf-8"))
+    champs, corps = gen.lire_entete((GEMINI / "agents" / agent.name).read_text(encoding="utf-8"))
+    assert champs["name"] == source["name"] and champs["kind"] == "local"
+    assert "write_file" not in champs["tools"] and "replace" not in champs["tools"]
+    assert ("google_web_search" in champs["tools"]) == ("WebSearch" in source["tools"])
+    assert corps.endswith(corps_source)
+    commande = tomllib.loads((GEMINI / "commands" / f"{agent.stem}.toml").read_text(encoding="utf-8"))
+    assert commande["prompt"].rstrip().endswith("{{args}}")
+    assert corps_source.rstrip() in commande["prompt"]
+    # @{…} et !{…} seraient exécutés par Gemini (injection de fichier / commande shell).
+    assert "@{" not in commande["prompt"] and "!{" not in commande["prompt"]
+
+
+def test_reglages_gemini_lecture_seule():
+    import test_permissions
+    reglages = json.loads((GEMINI / "settings.json").read_text(encoding="utf-8"))
+    assert reglages["context"]["fileName"] == ["AGENTS.md"]
+    autorises = reglages["tools"]["allowed"]
+    assert "run_shell_command(python qa.py chercher)" in autorises
+    for regle in autorises:
+        commande = re.fullmatch(r"run_shell_command\((.+)\)", regle).group(1)
+        assert not test_permissions._ecrit(f"Bash({commande}:*)"), regle
+    assert "run_shell_command" not in autorises  # jamais tout le terminal

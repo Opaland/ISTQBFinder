@@ -36,7 +36,11 @@ la comparaison et des recommandations contextualisées.
 **Forme de la réponse** : conversationnelle, des **pistes par syllabus / chapitre** en
 puces, un tableau si l'on compare, « où creuser ensuite » — pour faire émerger des idées,
 pas pour livrer un texte à recopier. **Toujours** un « Confiance : NN/100 » (grille
-ci-dessous). Gabarit et détails : [reference/strategie.md](reference/strategie.md).
+ci-dessous). **Contexte
+projet** (cycle de vie, taille d'équipe, contraintes réglementaires, échéance) : l'utiliser
+s'il est donné, sinon le signaler comme hypothèse et finir par 1-2 questions de cadrage.
+Terminer par « **Par quoi je commencerais** » : 2-3 pistes classées impact / effort.
+Gabarit et détails : [reference/strategie.md](reference/strategie.md).
 
 ## Score de confiance (obligatoire, déterministe)
 

@@ -93,3 +93,25 @@ def test_couverture_lexicale_ne_sature_pas_sur_des_sujets_disperses():
     assert pertinent["score"] == 100 - 10  # un seul syllabus complet : 5/15
     assert disperse["score"] == pertinent["score"] - 30 - 15
     assert any("sujets dispersés" in r for r in disperse["raisons"])
+
+
+def test_notions_des_candidats_identiques_au_match_sur_l_index(bibliotheque_test):
+    # Issue #59 : le calcul restreint aux candidats (index FTS5 en mémoire, même tokeniseur)
+    # doit donner exactement ce que donnait un MATCH sur tout l'index (porter compris).
+    from qak import bibliotheque
+    cx = bibliotheque.connecter()
+    try:
+        for q in ("equivalence partitioning risques", "valeurs limites tests", "risk level determined"):
+            gs = recherche.groupes(q)
+            cand = cx.execute("SELECT id, texte, section_titre FROM passages").fetchall()
+            trouves, en_titre = recherche._notions_des_candidats(cand, gs)
+            for k, g in enumerate(gs):
+                attendu = {r for (r,) in cx.execute("SELECT rowid FROM passages_fts WHERE passages_fts MATCH ?",
+                                                    (g.fts(),))}
+                assert {i for i, ks in trouves.items() if k in ks} == attendu, (q, g.libelle)
+                attendu = {r for (r,) in cx.execute("SELECT rowid FROM passages_fts WHERE passages_fts MATCH ?",
+                                                    (f"section_titre : {g.fts()}",))}
+                assert {i for i, ks in en_titre.items() if k in ks} == attendu, (q, g.libelle)
+            assert any(trouves.values())
+    finally:
+        cx.close()

@@ -429,9 +429,37 @@ def cmd_evaluer(a):
         _ecrire(f"{'OK ' if x['trouve'] else 'KO '} rang {x['rang'] or '-':>2}  {x['requete']}  → attendu {x['attendu']}")
     _ecrire(f"\nRappel@{a.k} : {r['rappel']:.0%} ({r['trouves']}/{r['total']}) · MRR : {r['mrr']:.2f}"
             + (f" · ignorées (document absent) : {r['ignorees']}" if r["ignorees"] else ""))
+    if a.min_rappel is not None:
+        # Seuil de non-régression (CI) : un jeu sans question évaluée n'atteint aucun seuil.
+        if not r["total"]:
+            raise ErreurValidation("aucune question évaluée (bibliothèque vide ou documents attendus absents) : "
+                                   "lancer `actualiser` avant `evaluer --min-rappel`.")
+        if r["rappel"] < a.min_rappel:
+            raise ErreurValidation(f"rappel@{a.k} {r['rappel']:.0%} sous le seuil exigé "
+                                   f"({a.min_rappel:.0%}) : la recherche a régressé.")
 
 
 # ---------------------------------------------------------------- analyseur
+
+def _entier_positif(v: str) -> int:
+    try:
+        n = int(v)
+    except ValueError:
+        n = 0
+    if n < 1:
+        raise argparse.ArgumentTypeError(f"entier ≥ 1 attendu (reçu : {v})")
+    return n
+
+
+def _proportion(v: str) -> float:
+    try:
+        r = float(v.replace(",", "."))
+    except ValueError:
+        r = -1.0
+    if not 0 <= r <= 1:
+        raise argparse.ArgumentTypeError(f"proportion entre 0 et 1 attendue, ex. 0.80 (reçu : {v})")
+    return r
+
 
 def analyseur() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="qa.py", description="QA Knowledge Agent — bibliothèque ISTQB et base QA.")
@@ -475,7 +503,7 @@ def analyseur() -> argparse.ArgumentParser:
 
     x = sp.add_parser("chercher", help="recherche plein texte dans la bibliothèque")
     x.add_argument("requete", nargs="+")
-    x.add_argument("-n", type=int, default=8)
+    x.add_argument("-n", type=_entier_positif, default=8)
     x.add_argument("--doc", action="append", help="code ou doc_id (répétable)")
     x.add_argument("--niveau", choices=["fondation", "avance", "expert", "specialiste"])
     x.add_argument("--langue", choices=["fr", "en"])
@@ -561,9 +589,11 @@ def analyseur() -> argparse.ArgumentParser:
     x.add_argument("-n", type=int, default=30)
     x.set_defaults(f=cmd_journal)
     x = sp.add_parser("evaluer", help="mesure la qualité de la recherche sur eval/requetes.json")
-    x.add_argument("-k", type=int, default=5)
+    x.add_argument("-k", type=_entier_positif, default=5)
     x.add_argument("--jeu", choices=["tout", "reglage", "controle"], default="tout",
                    help="« controle » = questions jamais utilisées pour régler le moteur")
+    x.add_argument("--min-rappel", type=_proportion, metavar="R",
+                   help="code retour 2 si le rappel est sous R (0 à 1) ou si aucune question n'est évaluée")
     x.set_defaults(f=cmd_evaluer)
     return p
 

@@ -29,6 +29,8 @@ pas reproductibles. Défauts suivis dans les issues #18, #22, #30, #49.
 
 ## Campagne du 2026-10-22 (bis) : mise en place par domaine et mode conversationnel (#90, #91, #92)
 
+> Chiffres du premier passage. Les fichiers de `2026-10-22/` ont été régénérés depuis : chiffres à jour dans la campagne du 2026-10-23 (#178).
+
 Nouveaux essais `M*` (mise en place par domaine), `S3` (audit en domaine réglementé) et
 `C1` (question volontairement ambiguë, skill seul en `claude -p`). Chaque essai porte des
 `criteres` contrôlés par `controler()` dans `scripts/essais_agents.py` : méthode en ≥ 4
@@ -147,6 +149,38 @@ Deux questions posées telles quelles par l'utilisateur deviennent des essais ve
 | T7-gherkin | « Je veux rédiger mes critères d'acceptation en Gherkin, j'ai besoin d'aide. » | 11 | 0,16 $ | 90 | 9/9 | 4/4 | Formats de CTFL §4.5.2, règles d'écriture (CT-AcT §2.2.2, CTAL-ATT §2.1.2 signalé en retrait), Example Mapping (CTAL-AT §4.1.3), exemple Gherkin en français, propose de réécrire un critère de l'utilisateur |
 
 Premier passage de M7 en échec : une citation écrite « CTAL-TAS » au lieu de CT-TAS (6/7). La relance est verte ; le défaut récurrent est suivi dans #172.
+
+## Campagne complète du 2026-10-23 (main a93d3fb, avant diffusion)
+
+Tous les essais sur `main` après le lot « avant diffusion » (#156, #158, #159, #161, #163,
+#165, #166, #174). Fichiers : `eval/essais-resultats/2026-10-23/`. Ces chiffres remplacent ceux
+des tableaux du 2026-10-22, dont les fichiers ont été régénérés depuis (#178).
+
+| Essai | Agent | Tours | Coût | Confiance | Citations lues | Web | Critères | Verdict |
+|---|---|---|---|---|---|---|---|---|
+| T1-couverture | thomas | 9 | 0,168 $ | 88 | 8/8 | 0 | — | réussi |
+| T2-rbt-agile | thomas | 8 | 0,148 $ | 81 | 6/6 | 0 | — | réussi |
+| T3-playwright | thomas | 12 | 0,158 $ | 68 | 7/7 | 1 | — | réussi |
+| T4-qualification | thomas | 13 | 0,168 $ | 96 | 12/12 | 0 | — | réussi |
+| T5-priorisation | thomas | 7 | 0,111 $ | 83 | 3/3 | 0 | — | réussi |
+| T6-lacunes | thomas | 4 | 0,079 $ | 70 | 0/0 | 0 | — | réussi |
+| S1-rbt | sylvie | 10 | 0,189 $ | 70 | 10/10 | 0 | — | réussi |
+| S2-automatisation | sylvie | 7 | 0,149 $ | 72 | 11/12 | 0 | — | **ÉCHEC** : citation non lue : CTAL-TA §1.2.4, p. 17 |
+| M1-rbt-agile | thomas | 12 | 0,174 $ | 81 | 6/6 | 0 | 11/11 | réussi |
+| M2-sante | thomas | 9 | 0,196 $ | 73 | 11/11 | 1 | 7/7 | réussi |
+| M3-web | thomas | 10 | 0,138 $ | 83 | 8/8 | 0 | 6/6 | réussi |
+| M4-embarque | thomas | 9 | 0,172 $ | 67 | 6/6 | 0 | 7/7 | réussi |
+| M5-mobile | thomas | 14 | 0,279 $ | 69 | 13/14 | 3 | 6/6 | **ÉCHEC** : citation non lue : CTAL-TAE §4.2.1, lu en partie (le reste est à la p. 35 |
+| M6-api | thomas | 12 | 0,183 $ | 79 | 10/10 | 0 | 7/7 | réussi |
+| S3-reglemente | sylvie | 6 | 0,138 $ | 62 | 9/9 | 0 | 5/5 | réussi |
+| C1-ambigu | skill | 6 | 0,272 $ | 79 | 5/5 | 0 | 3/3 | réussi |
+| M7-shift-left | thomas | 11 | 0,167 $ | 90 | 10/10 | 0 | 7/7 | réussi |
+| T7-gherkin | thomas | 12 | 0,162 $ | 80 | 9/9 | 1 | 4/4 | réussi |
+
+**Synthèse** : 16 essais sur 18 réussis, 144 citations sur 146 lues, coût 3,05 $.
+Les deux échecs sont mineurs. M5 est un faux positif du contrôle : une lecture partielle déclarée
+dans « Sources retenues » est comptée comme une citation (#181). S2 contient une vraie entorse :
+une référence « vue en extrait seulement » est citée entre crochets malgré la règle (#182).
 
 ## Relancer
 

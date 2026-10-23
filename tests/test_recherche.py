@@ -170,3 +170,15 @@ def test_section_au_titre_identique_a_la_requete_d_abord(bibliotheque_test):
             assert [r["section_num"] for r in res[:2]] == ["7.2", "7.1"], q
     finally:
         cx.close()
+
+
+def test_faute_de_frappe_sur_un_mot_de_quatre_lettres(bibliotheque_test):
+    # Issue #166 : « tets » n'était pas corrigé (mots de moins de 5 lettres exclus). Une seule
+    # édition vers un mot du thésaurus suffit, la plus proche l'emporte (« tests », pas « test »).
+    r = recherche.chercher("tets equivalence partitioning")
+    assert any("« tets » compris comme « tests »" in a for a in r["avertissements"])
+    assert recherche._une_edition("tets", "test") and recherche._une_edition("tets", "tests")
+    assert recherche._une_edition("tset", "test") and not recherche._une_edition("tset", "tests")
+    assert recherche._a_une_edition("tets", {"test", "tests"}) == ["tests"]
+    assert recherche._a_une_edition("abcd", {"abce", "abcf"}) == []  # ex æquo : pas de choix arbitraire
+    assert not any("Faute" in a for a in recherche.chercher("zzqx equivalence")["avertissements"])

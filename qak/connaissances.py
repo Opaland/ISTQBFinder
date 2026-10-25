@@ -651,11 +651,42 @@ def _termes_idee(i: dict, champs=("titre", "resume", "probleme", "principe")) ->
     return set().union(*(_termes_distinctifs(str(i.get(c) or "")) for c in champs))
 
 
+BONUS_EXTRAIT, BONUS_PAGES = 0.35, 0.2
+
+
+def _pages_ref(ref: dict) -> set[int]:
+    try:
+        return _pages(str(ref.get("pages") or "")) if str(ref.get("pages") or "").strip() else set()
+    except ErreurValidation:
+        return set()
+
+
+def _bonus_references(a: dict, b: dict) -> float:
+    """Référence ISTQB commune (#160) : une idée traduite garde la même référence alors que
+    ses mots changent. Même document et même extrait (l'un contenu dans l'autre, à la casse
+    et aux accents près) : indice fort ; même document et pages qui se recouvrent (ou même
+    section) : indice moyen. Le seul document commun ne compte pas (CTFL est partout)."""
+    bonus = 0.0
+    refs_b = [r for r in b.get("references") or [] if r.get("type") == "istqb" and r.get("doc_id")]
+    for ra in a.get("references") or []:
+        if ra.get("type") != "istqb" or not ra.get("doc_id"):
+            continue
+        for rb in refs_b:
+            if str(ra["doc_id"]).lower() != str(rb["doc_id"]).lower():
+                continue
+            ea, eb = normaliser(ra.get("extrait") or ""), normaliser(rb.get("extrait") or "")
+            if ea and eb and (ea in eb or eb in ea):
+                return BONUS_EXTRAIT
+            if _pages_ref(ra) & _pages_ref(rb) or (ra.get("section") and ra.get("section") == rb.get("section")):
+                bonus = BONUS_PAGES
+    return bonus
+
+
 def similarite(a: dict, b: dict) -> float:
     """Signatures du thésaurus (titre, contenu), plus deux indices qui manquaient pour une
     même idée reformulée ou traduite (#27) : le thème principal commun et les noms
     propres / sigles partagés absents du thésaurus (Herzberg), surtout s'ils figurent dans les
-    deux titres."""
+    deux titres ; enfin une référence ISTQB commune (#160), qui survit à la traduction."""
     st, sb = _sig_titre(a), _sig_titre(b)
     titre = max(jaccard(st, sb), 0.8 * recouvrement(st, sb))
     contenu = jaccard(_sig_contenu(a), _sig_contenu(b))
@@ -667,6 +698,7 @@ def similarite(a: dict, b: dict) -> float:
     communs = {t for t in _termes_idee(a) & _termes_idee(b) if t not in termes_thesaurus()}
     titres = set(normaliser(a.get("titre", "")).split()) & set(normaliser(b.get("titre", "")).split())
     score += 0.3 if communs & titres else 0.15 if communs else 0.0
+    score += _bonus_references(a, b)
     return round(min(1.0, score), 2)
 
 
@@ -891,6 +923,8 @@ def _descendants(code: str) -> set[str]:
 
 
 def lister(theme: str | None = None, statut: str | None = None) -> list[dict]:
+    if statut and statut not in STATUTS:  # #162 : « validée » ne listait silencieusement rien
+        raise ErreurValidation(f"Statut invalide : {statut} (valeurs acceptées : {', '.join(STATUTS)}).")
     cx = ouvrir()
     try:
         sql, params = "SELECT DISTINCT i.* FROM idees i JOIN idee_themes t ON t.idee_id=i.id WHERE 1=1", []
@@ -907,11 +941,14 @@ def lister(theme: str | None = None, statut: str | None = None) -> list[dict]:
 
 
 def chercher(requete: str, n: int = 10, theme: str | None = None) -> list[dict]:
-    """Recherche plein texte dans les idées, avec l'expansion FR/EN du thésaurus."""
+    """Recherche plein texte dans les idées, avec l'expansion FR/EN du thésaurus. Sans
+    notion cherchable mais avec un thème : toutes les idées du thème (#162), sans score."""
     from .recherche import groupes
     gs = groupes(requete)
     if not gs:
-        return []
+        if not theme:
+            return []
+        return [{**i, "score": None, "extrait": i["resume"] or ""} for i in lister(theme)]
     expr = " OR ".join(g.fts() for g in gs)
     filtre, params = "", []
     if theme:

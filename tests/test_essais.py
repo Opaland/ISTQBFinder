@@ -159,3 +159,86 @@ def test_questions_choix_format_une_option_par_ligne():
     en_ligne = "**Questions à choix**\n- Votre cycle de vie : 1. agile · 2. cascade · 3. mixte ?\n"
     assert essais_agents.controler(sous_liste, {"questions_choix": True}) == {"questions_choix": True}
     assert essais_agents.controler(en_ligne, {"questions_choix": True}) == {"questions_choix": False}
+
+
+# Commandes d'écriture (AGENTS.md, « Aucune écriture sans accord explicite ») : aucune ne
+# doit être pré-approuvée pendant les essais (#157).
+ECRITURES = ["idee ajouter", "idee modifier", "idee statut", "idee retour", "idee lier", "idee retirer",
+             "theme ajouter", "theme obsolete", "telecharger", "importer", "actualiser", "corriger", "retirer"]
+
+
+def test_essais_n_autorisent_aucune_ecriture():
+    """#157 : `--allowedTools` vient des règles `allow` de `.claude/settings.json`, sans
+    règle générique `qa.py:*` ni commande d'écriture."""
+    outils = essais_agents.outils_autorises()
+    allow = json.loads((RACINE / ".claude" / "settings.json").read_text(encoding="utf-8"))["permissions"]["allow"]
+    assert [o for o in outils if o.startswith("Bash(")] == [r for r in allow if r.startswith("Bash(")]
+    assert not {"Write", "Edit", "NotebookEdit"} & set(outils)
+    for py in ("python", "python3"):
+        for commande in ECRITURES:
+            assert not essais_agents.autorise(f"{py} qa.py {commande} QA-0001 --oui", outils), commande
+        # Les lectures, elles, restent possibles sans invite (sinon l'essai ne mesure rien).
+        for commande in ("chercher risque", "lire CTFL-4.0.1-en 40", "section CT-TAS-1.0-en 3.1.3",
+                         "page CTAL-TM-3.0-fr 29", "idee chercher risque", "confiance --base 80"):
+            assert essais_agents.autorise(f"{py} qa.py {commande}", outils), commande
+
+
+def test_autorise_respecte_les_prefixes():
+    regles = ["Bash(python qa.py idee chercher:*)", "Read"]
+    assert essais_agents.autorise("python qa.py idee chercher x", regles)
+    assert essais_agents.autorise("python qa.py idee chercher", regles)
+    assert not essais_agents.autorise("python qa.py idee chercherx", regles)
+    assert not essais_agents.autorise("python qa.py idee ajouter", regles)
+
+
+def test_essais_sur_copie_temporaire_des_donnees(tmp_path):
+    """#157 : les essais tournent sur une copie (QAK_RACINE) ; écrire dans la copie ne
+    touche pas la source."""
+    source = tmp_path / "depot"
+    for rel, contenu in {"bibliotheque/index.db": "x", "bibliotheque/manifeste.json": "{}",
+                         "connaissances/connaissances.jsonl": "", "connaissances/journal.jsonl": "",
+                         "referentiel/taxonomie.json": "{}"}.items():
+        (source / rel).parent.mkdir(parents=True, exist_ok=True)
+        (source / rel).write_text(contenu, encoding="utf-8")
+    (source / "bibliotheque" / "sources").mkdir()
+    copie = essais_agents.racine_temporaire(source)
+    try:
+        assert copie != source and (copie / "bibliotheque" / "index.db").read_text() == "x"
+        assert (copie / "bibliotheque" / "sources").is_dir()
+        (copie / "connaissances" / "connaissances.jsonl").write_text('{"id": "QA-0001"}\n', encoding="utf-8")
+        (copie / "referentiel" / "taxonomie.json").write_text('{"modifie": 1}', encoding="utf-8")
+        assert (source / "connaissances" / "connaissances.jsonl").read_text() == ""
+        assert (source / "referentiel" / "taxonomie.json").read_text() == "{}"
+    finally:
+        import shutil
+        shutil.rmtree(copie)
+
+# Extrait réel : eval/essais-resultats/2026-10-23/M5-mobile.md (Thomas, campagne sur a93d3fb).
+M5_MOBILE = """**Sources retenues**
+- CT-MAT 2019 FR (v2019, 2019-05-03) : §1.1, §1.6, §4.3.2, §4.4, §5.1, §5.3, §5.4 lus.
+- CTAL-TAE v2.0 FR : §4.2.1, lu en partie (le reste est à la p. 35).
+- CT-TAS v1.0 FR : §2.1.2 lu.
+
+**Méthode pas à pas**
+   - Les appareils réels doivent être allumés, chargés, connectés au réseau et avoir accès à l'application sous test. Packaging, logs et mises à jour sont aussi à prévoir [CTAL-TAE v2.0 FR, §4.2.1, p. 34].
+"""
+
+
+def test_lecture_partielle_declaree_dans_sources_retenues():
+    """#181 : « lu en partie (le reste est à la p. 35) » dans « Sources retenues » est une
+    déclaration, pas une citation ; la vraie citation (p. 34, lue) reste contrôlée."""
+    citations = essais_agents.verifier_citations(M5_MOBILE, {("CTAL-TAE", 34)})
+    assert [(c["citation"].split()[0], c["lue"]) for c in citations] == [("CTAL-TAE", True)], citations
+    # Sans la page 34 lue, la citation du corps échoue toujours : seule la déclaration est exclue.
+    assert [c["lue"] for c in essais_agents.verifier_citations(M5_MOBILE, set())] == [False]
+
+
+@pytest.mark.parametrize("reponse", [
+    # Dans le corps de la réponse, « lu en partie » n'excuse rien.
+    "## Méthode\n\nLe §4.2.1, lu en partie (le reste est à la p. 35), impose ceci.",
+    # Dans « Sources retenues », une référence sans déclaration de lecture partielle compte.
+    "**Sources retenues**\n- CTAL-TAE v2.0 FR : §4.2.1 (p. 35) lu.\n",
+])
+def test_lecture_partielle_controle_strict_ailleurs(reponse):
+    citations = essais_agents.verifier_citations("CTAL-TAE v2.0 FR. " + reponse, {("CTAL-TAE", 34)})
+    assert [c["lue"] for c in citations] == [False], citations

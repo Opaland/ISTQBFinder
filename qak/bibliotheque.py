@@ -630,11 +630,7 @@ def _actualiser(forcer: bool) -> dict:
         for sha, entree in manif["documents"].items():
             if sha not in presents and sha not in en_attente:
                 rapport["absents"].append(f"{entree['doc_id']} ({entree['fichier']})")
-                cx.execute("DELETE FROM passages_fts WHERE rowid IN (SELECT id FROM passages WHERE doc_id=?)",
-                           (entree["doc_id"],))
-                cx.execute("DELETE FROM passages WHERE doc_id=?", (entree["doc_id"],))
-                cx.execute("UPDATE documents SET statut_extraction='absent', message_extraction="
-                           "'fichier source introuvable dans bibliotheque/sources/' WHERE sha256=?", (sha,))
+                _marquer_absent(cx, sha, entree["doc_id"], "bibliotheque/sources/")
         # Métadonnées corrigées dans le manifeste versionné (niveau du catalogue, `corriger`
         # sur un autre poste) : reportées dans l'index sans réextraction.
         champs = ("titre", "code", "type", "niveau", "domaine", "version", "langue", "date_publication")
@@ -643,18 +639,36 @@ def _actualiser(forcer: bool) -> dict:
                        (*[entree.get(c) for c in champs], sha))
         # Documents internes déposés dans bibliotheque/prive/ (jamais versionné) : indexés,
         # inscrits au manifeste privé seulement.
-        prives = lire_manifeste(prive=True)["documents"]
+        # Même traitement que le manifeste versionné (#155) : un document interne supprimé
+        # du dossier n'est plus cherchable, un document renommé ou revenu est repris.
+        manif_prive = lire_manifeste(prive=True)
+        prives = manif_prive["documents"]
+        presents_prives: set[str] = set()
         if chemins.prive().is_dir():
             for f in sorted(chemins.prive().iterdir()):
                 sha = empreinte(f) if _est_source(f) else None
+                if not sha or sha in presents_prives:
+                    continue
+                presents_prives.add(sha)
+                entree = prives.get(sha)
+                if entree and entree["fichier"] != f.name and not (chemins.prive() / entree["fichier"]).is_file():
+                    entree["fichier"] = f.name  # fichier renommé
+                    cx.execute("UPDATE documents SET fichier=? WHERE sha256=?", (f.name, sha))
+                    ecrire_manifeste(manif_prive, prive=True)
                 doc = connus.get(sha)
-                if sha and (sha not in prives or forcer or not doc
-                            or doc["version_extracteur"] != extraction.VERSION_EXTRACTEUR):
+                if sha not in prives or forcer or not doc or doc["statut_extraction"] == "absent" \
+                        or doc["version_extracteur"] != extraction.VERSION_EXTRACTEUR:
                     r = importer(f, copier=False, cx=cx, prive=True)
                     (rapport["importes"] if r["etat"] == "importe" else rapport["doublons"]
                      if r["etat"] == "doublon" else rapport["echecs"]).append(
                         f"{r.get('doc_id', f.name)} (privé) : {r['message']}")
-                    prives = lire_manifeste(prive=True)["documents"]
+                    manif_prive = lire_manifeste(prive=True)
+                    prives = manif_prive["documents"]
+        for sha, entree in prives.items():
+            if sha not in presents_prives:
+                rapport["absents"].append(f"{entree['doc_id']} ({entree['fichier']}, privé)")
+                _marquer_absent(cx, sha, entree["doc_id"], "bibliotheque/prive/")
+        presents.update(dict.fromkeys(presents_prives, ""))
         rapport["versions"] = calculer_versions(cx)
         maintenant = datetime.now().isoformat(timespec="seconds")
         cx.executemany("UPDATE documents SET controle_le=? WHERE sha256=?", [(maintenant, s) for s in presents])
@@ -663,6 +677,15 @@ def _actualiser(forcer: bool) -> dict:
     finally:
         cx.close()
     return rapport
+
+
+def _marquer_absent(cx: sqlite3.Connection, sha: str, doc_id: str, dossier: str) -> None:
+    """Fichier source disparu : ses passages quittent l'index (plus cherchables ni citables),
+    le document reste inscrit avec le statut `absent`."""
+    cx.execute("DELETE FROM passages_fts WHERE rowid IN (SELECT id FROM passages WHERE doc_id=?)", (doc_id,))
+    cx.execute("DELETE FROM passages WHERE doc_id=?", (doc_id,))
+    cx.execute("UPDATE documents SET statut_extraction='absent', message_extraction=? WHERE sha256=?",
+               (f"fichier source introuvable dans {dossier}", sha))
 
 
 def _est_source(f: Path) -> bool:
@@ -718,11 +741,13 @@ def controle_index(cx: sqlite3.Connection | None = None) -> dict:
         if sha not in manif and sha not in prives and d["statut_extraction"] != "absent":
             perimes.add(d["doc_id"])
             messages.append(f"{d['doc_id']} : indexé mais absent du manifeste (retiré ailleurs ?)")
-    if dossier.is_dir():
-        connus = {e["fichier"] for e in manif.values()}
-        nouveaux = sorted(f.name for f in dossier.iterdir() if _est_source(f) and f.name not in connus)
-        if nouveaux:
-            messages.append(f"fichiers non indexés : {', '.join(nouveaux[:5])}" + (" …" if len(nouveaux) > 5 else ""))
+    nouveaux = []
+    for rep, entrees, suffixe in ((dossier, manif, ""), (chemins.prive(), prives, " (privé)")):
+        if rep.is_dir():
+            connus = {e["fichier"] for e in entrees.values()}
+            nouveaux += sorted(f.name + suffixe for f in rep.iterdir() if _est_source(f) and f.name not in connus)
+    if nouveaux:
+        messages.append(f"fichiers non indexés : {', '.join(nouveaux[:5])}" + (" …" if len(nouveaux) > 5 else ""))
     return {"perimes": perimes, "messages": messages}
 
 

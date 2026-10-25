@@ -7,6 +7,9 @@ Sylvie) via `claude -p`, puis contrôle automatiquement chaque réponse.
     python scripts/essais_agents.py M                       # préfixe : tous les essais M…
 
 Prérequis : CLI `claude` connectée, index construit (`python qa.py actualiser`).
+Les essais tournent avec les permissions réelles du dépôt (règles `allow` de
+`.claude/settings.json`, aucune écriture pré-approuvée) sur une COPIE temporaire des
+données (`QAK_RACINE`) : la base d'idées et le journal versionnés ne bougent pas (#157).
 Coût indicatif : 0,10 à 0,50 $ par question. Résultats : eval/essais-resultats/<date>/.
 
 Contrôles automatiques (le jugement de fond reste humain, voir docs/essais-reponses.md) ;
@@ -15,8 +18,8 @@ manque (#127) :
 - commandes `qa.py` réellement exécutées par l'agent (lues dans le transcript) ;
 - citations `[DOC …, §x.y, p. N]` : la page N du document a-t-elle été LUE pendant la
   conversation (présente dans la sortie d'un `lire`, `section` ou `page`) ? Une référence
-  que l'agent déclare lui-même non lue ou non citée dans « Confiance », « Limites » ou
-  « Traçabilité » n'est pas une citation (#139) ;
+  que l'agent déclare lui-même non lue, non citée ou lue en partie dans « Confiance »,
+  « Limites », « Traçabilité » ou « Sources retenues » n'est pas une citation (#139, #181) ;
 - présence d'un score de confiance « Confiance : NN/100 » ;
 - recours au Web ;
 - critères propres à l'essai (`"criteres"` dans eval/essais.json, voir `controler()`) :
@@ -26,14 +29,60 @@ manque (#127) :
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 import uuid
 from datetime import date
 from pathlib import Path
 
 RACINE = Path(__file__).resolve().parent.parent
-OUTILS = ["Bash(python qa.py:*)", "Bash(python3 qa.py:*)", "Read", "Skill", "WebSearch", "WebFetch"]
+# Outils hors Bash dont les agents ont besoin (lecture, skill, Web) ; les commandes Bash
+# viennent toutes des règles `allow` du dépôt, rien de plus (#157).
+OUTILS_HORS_BASH = ["Read", "Skill", "WebSearch", "WebFetch"]
+
+
+def outils_autorises(reglages: Path = RACINE / ".claude" / "settings.json") -> list[str]:
+    """`--allowedTools` des essais : les règles `allow` de `.claude/settings.json` (celles
+    qu'un utilisateur a réellement), plus les outils hors Bash. Aucune règle ajoutée."""
+    allow = json.loads(reglages.read_text(encoding="utf-8"))["permissions"]["allow"]
+    return [*allow, *(o for o in OUTILS_HORS_BASH if o not in allow)]
+
+
+def autorise(commande: str, outils: list[str]) -> bool:
+    """La commande Bash est-elle pré-approuvée par une règle `Bash(préfixe:*)` ou `Bash(cmd)` ?"""
+    for regle in outils:
+        if not (regle.startswith("Bash(") and regle.endswith(")")):
+            continue
+        motif = regle[5:-1]
+        if motif.endswith(":*") and (commande == motif[:-2] or commande.startswith(motif[:-2] + " ")):
+            return True
+        if commande == motif:
+            return True
+    return False
+
+
+def racine_temporaire(source: Path = RACINE) -> Path:
+    """Copie de travail des données (index, manifeste, base d'idées, journal, référentiels)
+    pour `QAK_RACINE` : une écriture éventuelle de l'agent n'atteint pas le dépôt (#157).
+    Les PDF sont liés (ou copiés si le lien est impossible) : seul le contrôle « index à
+    jour » les lit."""
+    tmp = Path(tempfile.mkdtemp(prefix="qak-essais-"))
+    for dossier in ("bibliotheque", "connaissances", "referentiel"):
+        (tmp / dossier).mkdir()
+    for rel in ("bibliotheque/index.db", "bibliotheque/manifeste.json", "bibliotheque/vecteurs.npz",
+                "connaissances/connaissances.jsonl", "connaissances/journal.jsonl",
+                "referentiel/taxonomie.json", "referentiel/thesaurus.json"):
+        if (source / rel).exists():
+            shutil.copy2(source / rel, tmp / rel)
+    try:
+        (tmp / "bibliotheque" / "sources").symlink_to(source / "bibliotheque" / "sources")
+    except OSError:
+        shutil.copytree(source / "bibliotheque" / "sources", tmp / "bibliotheque" / "sources")
+    return tmp
+
+
 # Une citation = « §x.y … p. N » ou « … pp. N-M » ; elle se rattache au dernier code de
 # syllabus nommé avant elle (« **CTFL v4.0.1** … (§4.2.1, p. 40) » comme « [CTAL-TM v3.0,
 # §1.3, p. 29] »). Entre « § » et la page, ni « § » ni « ; » : sinon deux références
@@ -131,18 +180,23 @@ def pages_lues(sorties: str) -> set[tuple[str, int]]:
     return lues
 
 
-# Sections de bilan (#139) : l'agent y déclare ce qu'il n'a PAS lu ou PAS cité.
+# Sections de bilan (#139) : l'agent y déclare ce qu'il n'a PAS lu ou PAS cité ;
+# « Sources retenues » en fait partie (#181) : on y déclare aussi une lecture partielle.
 RE_TITRE = re.compile(r"^(?:#{1,6}\s|\*\*)", re.M)
-RE_TITRE_BILAN = re.compile(r"^(?:#{1,6}\s*|\*\*)\s*(?:limites?|tra[çc]abilit[ée]|confiance)\b", re.I | re.M)
+RE_TITRE_BILAN = re.compile(r"^(?:#{1,6}\s*|\*\*)\s*(?:limites?|tra[çc]abilit[ée]|confiance|sources?\s+retenues?)\b",
+                            re.I | re.M)
 RE_PHRASE = re.compile(r"[^\n]+?(?:[.!?](?=\s+[A-ZÀ-Ý«*])|$)", re.M)
 RE_NON_LU = re.compile(r"\bn['’](?:ai|a|ont|est|sont)\s+(?:donc\s+|pas\s+non\s+plus\s+|jamais\s+)?"
                        r"(?:pas\s+(?:non\s+plus\s+|été\s+|encore\s+)?)?(?:lue?s?|consult[ée]e?s?|ouvert|affich[ée]e?s?|cit[ée]e?s?)\b"
-                       r"|\bnon\s+(?:lue?s?|consult[ée]e?s?|cit[ée]e?s?)\b|\bpas\s+(?:été\s+)?(?:lue?s?|cit[ée]e?s?)\b", re.I)
+                       r"|\bnon\s+(?:lue?s?|consult[ée]e?s?|cit[ée]e?s?)\b|\bpas\s+(?:été\s+)?(?:lue?s?|cit[ée]e?s?)\b"
+                       # Lecture partielle déclarée (#181) : « lu en partie (le reste est à la p. 35) ».
+                       r"|\blue?s?\s+(?:en\s+partie|partiellement)\b|\ble\s+reste\s+(?:est\s+)?(?:à|a)\s+la\s+p\.", re.I)
 
 
 def zones_non_lues(reponse: str) -> list[tuple[int, int]]:
-    """Phrases des sections de bilan (« Confiance », « Limites », « Traçabilité ») qui
-    déclarent une référence non lue ou non citée (#139). Le reste de la réponse, et ces
+    """Phrases des sections de bilan (« Confiance », « Limites », « Traçabilité »,
+    « Sources retenues ») qui déclarent une référence non lue, non citée (#139) ou lue
+    en partie (#181). Le reste de la réponse, et ces
     sections hors de telles phrases, restent soumis au contrôle strict."""
     zones, titres = [], [m.start() for m in RE_TITRE.finditer(reponse)] + [len(reponse)]
     for debut, fin in zip(titres, titres[1:]):
@@ -187,14 +241,15 @@ def motifs_echec(bilan: dict) -> list[str]:
     return motifs
 
 
-def lancer(essai: dict, dossier: Path) -> dict:
+def lancer(essai: dict, dossier: Path, donnees: Path) -> dict:
     session = str(uuid.uuid4())
     cmd = ["claude", "-p", essai["question"], "--output-format", "json", "--session-id", session,
-           "--allowedTools", *OUTILS]
+           "--allowedTools", *outils_autorises()]
     if essai.get("agent"):
         cmd[1:1] = ["--agent", essai["agent"]]
     env = {k: v for k, v in os.environ.items() if k not in ("CLAUDE_CODE_SESSION_ID", "CLAUDE_CODE_CHILD_SESSION")}
     env["PATH"] = f"{RACINE / '.venv' / 'bin'}{os.pathsep}{env['PATH']}"
+    env["QAK_RACINE"] = str(donnees)
     proc = subprocess.run(cmd, cwd=RACINE, capture_output=True, text=True, timeout=900, env=env)
     try:
         res = json.loads(proc.stdout)
@@ -237,20 +292,26 @@ def main() -> int:
         demandes = sys.argv[1:]
         essais = [e for e in essais if any(e["id"] == d or e["id"].startswith(d) for d in demandes)]
     dossier = RACINE / "eval" / "essais-resultats" / date.today().isoformat()
+    if not (RACINE / "bibliotheque" / "index.db").exists():
+        sys.exit("Index absent : lancer d'abord `python qa.py actualiser`.")
     dossier.mkdir(parents=True, exist_ok=True)
     bilans = []
-    for e in essais:
-        print(f"… {e['id']}", flush=True)
-        b = lancer(e, dossier)
-        bilans.append(b)
-        if "erreur" in b:
-            b["echec"] = motifs_echec(b)
-            print(f"  ERREUR : {b['erreur']}")
-            continue
-        print(f"  {b['tours']} tours · {b['cout_usd']} $ · confiance {b['confiance']} · citations "
-              f"{len(b['citations']) - len(b['citations_non_lues'])}/{len(b['citations'])} lues · web {len(b['web'])}"
-              + (f" · critères {sum(b['criteres'].values())}/{len(b['criteres'])} {b['criteres_ko'] or ''}" if b.get("criteres") else ""))
-        print("  ÉCHEC — " + " ; ".join(b["echec"]) if b["echec"] else "  réussi")
+    donnees = racine_temporaire()
+    try:
+        for e in essais:
+            print(f"… {e['id']}", flush=True)
+            b = lancer(e, dossier, donnees)
+            bilans.append(b)
+            if "erreur" in b:
+                b["echec"] = motifs_echec(b)
+                print(f"  ERREUR : {b['erreur']}")
+                continue
+            print(f"  {b['tours']} tours · {b['cout_usd']} $ · confiance {b['confiance']} · citations "
+                  f"{len(b['citations']) - len(b['citations_non_lues'])}/{len(b['citations'])} lues · web {len(b['web'])}"
+                  + (f" · critères {sum(b['criteres'].values())}/{len(b['criteres'])} {b['criteres_ko'] or ''}" if b.get("criteres") else ""))
+            print("  ÉCHEC — " + " ; ".join(b["echec"]) if b["echec"] else "  réussi")
+    finally:
+        shutil.rmtree(donnees, ignore_errors=True)
     # Un lancement partiel complète le bilan du jour au lieu de l'écraser.
     fichier = dossier / "bilan.json"
     anciens = json.loads(fichier.read_text(encoding="utf-8")) if fichier.exists() else []

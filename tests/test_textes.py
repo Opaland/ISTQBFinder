@@ -82,3 +82,14 @@ def test_motivation_n_est_plus_absorbee_par_competences():
         return [cid for cid, _ in textes.reperer_concepts(q)[0]]
     assert ids("motivation") == ["motivation"] and ids("facteurs de motivation") == ["motivation"]
     assert ids("compétences et motivation des testeurs") == ["competences", "motivation"]
+
+
+def test_pluriel_en_es_meme_racine_que_le_singulier():
+    """#180 — « exploratoires » donnait « exploratoir » et « exploratoire » restait entier :
+    le mot seul n'était plus rattaché à son concept."""
+    for singulier in ("exploratoire", "unitaire", "fonctionnelle", "technique", "process"):
+        pluriel = singulier + ("es" if singulier.endswith("s") else "s")
+        assert textes.racine(pluriel) == textes.racine(singulier), pluriel
+    assert textes.racine("activities") == "activity" and textes.racine("notes") == textes.racine("note")
+    assert [c for c, _ in textes.reperer_concepts("exploratoires")[0]] == ["exploratoire"]
+    assert textes.signature("chartes exploratoires") == textes.signature("charte exploratoire")

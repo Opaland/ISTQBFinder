@@ -4,6 +4,7 @@
 sans lancer la CLI `claude`."""
 import importlib.util
 import json
+import re
 
 import pytest
 from conftest import RACINE_CODE as RACINE
@@ -311,3 +312,48 @@ def test_consigne_extrait_jamais_entre_crochets():
     # Le contrôle des essais compte bien une telle référence comme citation non lue.
     reponse = "Pratique alignée [CTAL-TA v4.0 EN, §1.2.4, p. 17, vu en extrait seulement]."
     assert [c["lue"] for c in essais_agents.verifier_citations(reponse, set())] == [False]
+
+
+# docs/essais-reponses.md : les tableaux d'une campagne qui désigne ses fichiers
+# (« Fichiers : `eval/essais-resultats/<date>/` ») reprennent les en-têtes de ces
+# fichiers d'essai, sur le modèle de test_exemples.py (#178).
+ESSAIS_REPONSES = (RACINE / "docs" / "essais-reponses.md").read_text(encoding="utf-8")
+RE_ENTETE_ESSAI = re.compile(
+    r"\*\*Tours\*\* : (?P<tours>\d+) · \*\*coût\*\* : (?P<cout>[\d.]+) \$ · \*\*confiance annoncée\*\* : "
+    r"(?P<confiance>\w+) · \*\*verdict\*\* : (?P<verdict>\S+) · \*\*citations\*\* : (?P<citations>\d+/\d+) lues"
+    r" · \*\*Web\*\* : (?P<web>\d+)(?: · \*\*critères\*\* : (?P<criteres>\d+/\d+))?")
+
+
+def campagnes_versionnees():
+    """(titre, dossier, lignes du tableau) des sections qui désignent leurs fichiers."""
+    for section in re.split(r"^(?=## )", ESSAIS_REPONSES, flags=re.M):
+        m = re.search(r"Fichiers : `(eval/essais-resultats/[\d-]+)/`", section)
+        if not m:
+            continue
+        lignes = [l for l in section.splitlines() if l.startswith("| ")]
+        entetes = [c.strip() for c in lignes[0].strip("|").split("|")]
+        rangees = [dict(zip(entetes, (c.strip() for c in l.strip("|").split("|")))) for l in lignes[2:]]
+        yield section.splitlines()[0], m.group(1), rangees
+
+
+def test_essais_reponses_designe_la_campagne_la_plus_recente():
+    dossiers = sorted(p.name for p in (RACINE / "eval" / "essais-resultats").iterdir() if p.is_dir())
+    designes = {d.rsplit("/", 1)[1] for _, d, _ in campagnes_versionnees()}
+    assert dossiers[-1] in designes, f"campagne {dossiers[-1]} absente de docs/essais-reponses.md"
+    assert "2026-10-23" in designes
+
+
+@pytest.mark.parametrize("titre, dossier, rangees", list(campagnes_versionnees()), ids=lambda x: x if
+                         isinstance(x, str) and x.startswith("eval/") else None)
+def test_essais_reponses_d_accord_avec_les_fichiers(titre, dossier, rangees):
+    assert rangees, titre
+    for r in rangees:
+        fichier = RACINE / dossier / f"{r['Essai']}.md"
+        assert fichier.exists(), f"{titre} : {fichier} absent"
+        e = RE_ENTETE_ESSAI.search(fichier.read_text(encoding="utf-8"))
+        assert e, fichier
+        attendu = {"Tours": e["tours"], "Coût": f"{e['cout'].replace('.', ',')} $", "Confiance": e["confiance"],
+                   "Citations lues": e["citations"], "Web": e["web"], "Critères": e["criteres"] or "—"}
+        assert {k: r[k] for k in attendu} == attendu, f"{titre} · {r['Essai']}"
+        verdict = r["Verdict"].replace("*", "")
+        assert verdict.startswith("ÉCHEC" if e["verdict"] == "ÉCHEC" else "réussi"), f"{titre} · {r['Essai']}"

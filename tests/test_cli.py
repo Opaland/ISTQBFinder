@@ -225,3 +225,30 @@ def test_contexte_zero_reste_accepte(bibliotheque_test, capsys):
     pid = recherche.chercher("valeurs limites")["resultats"][0]["id"]
     assert main(["lire", str(pid), "--contexte", "0"]) == 0
     assert main(["journal", "-n", "1"]) == 0
+
+
+def test_filtres_de_la_base_d_idees_jamais_silencieusement_vides(capsys, monkeypatch, racine_isolee):
+    """#162 : `--theme` seul, statut mal orthographié, `doublons` sans champ."""
+    from qak import connaissances
+    idee = {"titre": "Matrice des risques probabilité impact", "resume": "Prioriser les tests par probabilité × impact.",
+            "probleme": "Effort uniforme.", "principe": "Calculer le niveau de risque.", "theme_principal": "rbt"}
+    q1 = connaissances.ajouter(dict(idee))["id"]
+    q2 = connaissances.ajouter({**idee, "titre": "Revue des risques en début de sprint",
+                                "resume": "Revoir le registre des risques à chaque sprint planning.",
+                                "principe": "Atelier court avec le PO."}, forcer=True, motif="variante agile")["id"]
+    capsys.readouterr()
+    assert main(["idee", "chercher", "--theme", "rbt"]) == 0
+    sortie = capsys.readouterr().out
+    assert q1 in sortie and q2 in sortie and "Aucune idée" not in sortie
+    assert {i["id"] for i in connaissances.chercher("", theme="rbt")} == {q1, q2}
+    assert main(["idee", "chercher"]) == 2
+    assert "attend un texte" in capsys.readouterr().err
+    assert main(["idee", "lister", "--statut", "validée"]) == 2
+    err = capsys.readouterr().err
+    assert "Statut invalide" in err and "a_explorer" in err and "validee" in err
+    assert main(["idee", "lister", "--statut", "a_explorer"]) == 0
+    assert q1 in capsys.readouterr().out
+    monkeypatch.setattr("sys.stdin", __import__("io").StringIO(""))
+    assert main(["idee", "doublons", "--theme", "rbt"]) == 2
+    err = capsys.readouterr().err
+    assert "--titre" in err and "JSON invalide" not in err

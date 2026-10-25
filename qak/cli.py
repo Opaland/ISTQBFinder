@@ -70,8 +70,15 @@ def lire_entree_standard() -> str:
                                f"(octet invalide en position {exc.start}).") from exc
 
 
-def _lire_donnees(source: str) -> dict:
+def _lire_donnees(source: str, si_vide: str | None = None) -> dict:
+    """JSON lu sur l'entrée standard (`-`) ou dans un fichier. Rien à lire (terminal
+    interactif, entrée vide) : message explicite plutôt que « JSON invalide » (#162)."""
+    message = si_vide or "Aucune donnée reçue : passer le JSON sur l'entrée standard ou avec --fichier <chemin>."
+    if source == "-" and getattr(sys.stdin, "isatty", lambda: False)():
+        raise ErreurValidation(message)
     brut = lire_entree_standard() if source == "-" else Path(source).read_text(encoding="utf-8-sig")
+    if not brut.strip():
+        raise ErreurValidation(message)
     try:
         return json.loads(brut)
     except json.JSONDecodeError as exc:
@@ -474,7 +481,9 @@ def cmd_idee(a):
         champs = {k: getattr(a, k) for k in CHAMPS_DOUBLONS if getattr(a, k)}
         if champs and a.theme:
             champs["theme_principal"] = a.theme
-        d, _ = connaissances.valider(champs or _lire_donnees(a.fichier), partiel=True)
+        d, _ = connaissances.valider(champs or _lire_donnees(a.fichier, si_vide=(
+            "`idee doublons` attend au moins --titre ou --resume (et --theme), ou le JSON de l'idée "
+            "sur l'entrée standard / avec --fichier <chemin>.")), partiel=True)
         sim = connaissances.doublons(d)
         _ecrire("Aucune idée similaire." if not sim else "Idées similaires :")
         _afficher_doublons(sim)
@@ -916,6 +925,9 @@ def _normaliser_idee(a) -> None:
     if a.action in ("chercher",):
         a.requete = ([a.id] if a.id else []) + (a.requete or [])
         a.id = None
+        if not " ".join(a.requete).strip() and not a.theme:
+            raise ErreurValidation("`idee chercher` attend un texte, un thème (--theme <code>) ou les deux ; "
+                                   "`idee lister` liste toute la base.")
     elif a.action == "statut" and not a.statut and a.requete:
         a.statut = a.requete[0]
     elif a.action == "lier" and not a.cible and a.requete:

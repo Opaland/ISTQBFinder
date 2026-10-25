@@ -99,3 +99,45 @@ def test_aucun_fichier_ignore_n_est_versionne():
         pytest.skip(f"pas un dépôt Git : {r.stderr.strip()}")
     assert r.stdout.splitlines() == [], ("fichiers ignorés par .gitignore mais versionnés : "
                                          "`git rm --cached <fichier>`")
+
+
+def test_document_prive_supprime_n_est_plus_cherchable(racine_isolee):
+    """#155 : un document interne supprimé de bibliotheque/prive/ restait indexé et cité,
+    et l'avertissement « Index périmé » revenait en boucle malgré `actualiser`."""
+    chemins.prive().mkdir(parents=True)
+    note = chemins.prive() / "note-interne.md"
+    note.write_text(TEXTE, encoding="utf-8")
+    assert any("(privé)" in x for x in bibliotheque.actualiser()["importes"])
+    assert recherche.chercher("zygomorphe")["resultats"]
+    note.unlink()
+    assert bibliotheque.controle_index()["perimes"]                       # disparition signalée
+    r = bibliotheque.actualiser()
+    assert any("note-interne.md" in a for a in r["absents"]), r
+    assert not recherche.chercher("zygomorphe")["resultats"]
+    assert bibliotheque.avertissement_index() is None                     # plus de boucle
+    statuts = {d["fichier"]: d["statut_extraction"] for d in bibliotheque.inventaire()}
+    assert statuts["note-interne.md"] == "absent"
+    # Le fichier revient (même contenu) : il est réindexé.
+    note.write_text(TEXTE, encoding="utf-8")
+    assert any("(privé)" in x for x in bibliotheque.actualiser()["importes"])
+    assert recherche.chercher("zygomorphe")["resultats"]
+
+
+def test_document_prive_renomme_reste_indexe(racine_isolee):
+    chemins.prive().mkdir(parents=True)
+    (chemins.prive() / "note.md").write_text(TEXTE, encoding="utf-8")
+    bibliotheque.actualiser()
+    (chemins.prive() / "note.md").rename(chemins.prive() / "bilan.md")
+    r = bibliotheque.actualiser()
+    assert r["absents"] == [] and r["importes"] == [], r
+    assert recherche.chercher("zygomorphe")["resultats"]
+    assert bibliotheque.avertissement_index() is None
+
+
+def test_controle_index_signale_un_nouveau_fichier_prive(racine_isolee):
+    bibliotheque.importer(FIXTURES / "syllabus_v9.pdf")
+    assert bibliotheque.controle_index()["messages"] == []
+    chemins.prive().mkdir(parents=True)
+    (chemins.prive() / "nouvelle-note.md").write_text(TEXTE, encoding="utf-8")
+    messages = bibliotheque.controle_index()["messages"]
+    assert any("nouvelle-note.md (privé)" in m for m in messages), messages

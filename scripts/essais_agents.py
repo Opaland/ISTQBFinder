@@ -7,6 +7,9 @@ Sylvie) via `claude -p`, puis contrôle automatiquement chaque réponse.
     python scripts/essais_agents.py M                       # préfixe : tous les essais M…
 
 Prérequis : CLI `claude` connectée, index construit (`python qa.py actualiser`).
+Les essais tournent avec les permissions réelles du dépôt (règles `allow` de
+`.claude/settings.json`, aucune écriture pré-approuvée) sur une COPIE temporaire des
+données (`QAK_RACINE`) : la base d'idées et le journal versionnés ne bougent pas (#157).
 Coût indicatif : 0,10 à 0,50 $ par question. Résultats : eval/essais-resultats/<date>/.
 
 Contrôles automatiques (le jugement de fond reste humain, voir docs/essais-reponses.md) ;
@@ -26,14 +29,60 @@ manque (#127) :
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 import uuid
 from datetime import date
 from pathlib import Path
 
 RACINE = Path(__file__).resolve().parent.parent
-OUTILS = ["Bash(python qa.py:*)", "Bash(python3 qa.py:*)", "Read", "Skill", "WebSearch", "WebFetch"]
+# Outils hors Bash dont les agents ont besoin (lecture, skill, Web) ; les commandes Bash
+# viennent toutes des règles `allow` du dépôt, rien de plus (#157).
+OUTILS_HORS_BASH = ["Read", "Skill", "WebSearch", "WebFetch"]
+
+
+def outils_autorises(reglages: Path = RACINE / ".claude" / "settings.json") -> list[str]:
+    """`--allowedTools` des essais : les règles `allow` de `.claude/settings.json` (celles
+    qu'un utilisateur a réellement), plus les outils hors Bash. Aucune règle ajoutée."""
+    allow = json.loads(reglages.read_text(encoding="utf-8"))["permissions"]["allow"]
+    return [*allow, *(o for o in OUTILS_HORS_BASH if o not in allow)]
+
+
+def autorise(commande: str, outils: list[str]) -> bool:
+    """La commande Bash est-elle pré-approuvée par une règle `Bash(préfixe:*)` ou `Bash(cmd)` ?"""
+    for regle in outils:
+        if not (regle.startswith("Bash(") and regle.endswith(")")):
+            continue
+        motif = regle[5:-1]
+        if motif.endswith(":*") and (commande == motif[:-2] or commande.startswith(motif[:-2] + " ")):
+            return True
+        if commande == motif:
+            return True
+    return False
+
+
+def racine_temporaire(source: Path = RACINE) -> Path:
+    """Copie de travail des données (index, manifeste, base d'idées, journal, référentiels)
+    pour `QAK_RACINE` : une écriture éventuelle de l'agent n'atteint pas le dépôt (#157).
+    Les PDF sont liés (ou copiés si le lien est impossible) : seul le contrôle « index à
+    jour » les lit."""
+    tmp = Path(tempfile.mkdtemp(prefix="qak-essais-"))
+    for dossier in ("bibliotheque", "connaissances", "referentiel"):
+        (tmp / dossier).mkdir()
+    for rel in ("bibliotheque/index.db", "bibliotheque/manifeste.json", "bibliotheque/vecteurs.npz",
+                "connaissances/connaissances.jsonl", "connaissances/journal.jsonl",
+                "referentiel/taxonomie.json", "referentiel/thesaurus.json"):
+        if (source / rel).exists():
+            shutil.copy2(source / rel, tmp / rel)
+    try:
+        (tmp / "bibliotheque" / "sources").symlink_to(source / "bibliotheque" / "sources")
+    except OSError:
+        shutil.copytree(source / "bibliotheque" / "sources", tmp / "bibliotheque" / "sources")
+    return tmp
+
+
 # Une citation = « §x.y … p. N » ou « … pp. N-M » ; elle se rattache au dernier code de
 # syllabus nommé avant elle (« **CTFL v4.0.1** … (§4.2.1, p. 40) » comme « [CTAL-TM v3.0,
 # §1.3, p. 29] »). Entre « § » et la page, ni « § » ni « ; » : sinon deux références
@@ -192,14 +241,15 @@ def motifs_echec(bilan: dict) -> list[str]:
     return motifs
 
 
-def lancer(essai: dict, dossier: Path) -> dict:
+def lancer(essai: dict, dossier: Path, donnees: Path) -> dict:
     session = str(uuid.uuid4())
     cmd = ["claude", "-p", essai["question"], "--output-format", "json", "--session-id", session,
-           "--allowedTools", *OUTILS]
+           "--allowedTools", *outils_autorises()]
     if essai.get("agent"):
         cmd[1:1] = ["--agent", essai["agent"]]
     env = {k: v for k, v in os.environ.items() if k not in ("CLAUDE_CODE_SESSION_ID", "CLAUDE_CODE_CHILD_SESSION")}
     env["PATH"] = f"{RACINE / '.venv' / 'bin'}{os.pathsep}{env['PATH']}"
+    env["QAK_RACINE"] = str(donnees)
     proc = subprocess.run(cmd, cwd=RACINE, capture_output=True, text=True, timeout=900, env=env)
     try:
         res = json.loads(proc.stdout)
@@ -242,20 +292,26 @@ def main() -> int:
         demandes = sys.argv[1:]
         essais = [e for e in essais if any(e["id"] == d or e["id"].startswith(d) for d in demandes)]
     dossier = RACINE / "eval" / "essais-resultats" / date.today().isoformat()
+    if not (RACINE / "bibliotheque" / "index.db").exists():
+        sys.exit("Index absent : lancer d'abord `python qa.py actualiser`.")
     dossier.mkdir(parents=True, exist_ok=True)
     bilans = []
-    for e in essais:
-        print(f"… {e['id']}", flush=True)
-        b = lancer(e, dossier)
-        bilans.append(b)
-        if "erreur" in b:
-            b["echec"] = motifs_echec(b)
-            print(f"  ERREUR : {b['erreur']}")
-            continue
-        print(f"  {b['tours']} tours · {b['cout_usd']} $ · confiance {b['confiance']} · citations "
-              f"{len(b['citations']) - len(b['citations_non_lues'])}/{len(b['citations'])} lues · web {len(b['web'])}"
-              + (f" · critères {sum(b['criteres'].values())}/{len(b['criteres'])} {b['criteres_ko'] or ''}" if b.get("criteres") else ""))
-        print("  ÉCHEC — " + " ; ".join(b["echec"]) if b["echec"] else "  réussi")
+    donnees = racine_temporaire()
+    try:
+        for e in essais:
+            print(f"… {e['id']}", flush=True)
+            b = lancer(e, dossier, donnees)
+            bilans.append(b)
+            if "erreur" in b:
+                b["echec"] = motifs_echec(b)
+                print(f"  ERREUR : {b['erreur']}")
+                continue
+            print(f"  {b['tours']} tours · {b['cout_usd']} $ · confiance {b['confiance']} · citations "
+                  f"{len(b['citations']) - len(b['citations_non_lues'])}/{len(b['citations'])} lues · web {len(b['web'])}"
+                  + (f" · critères {sum(b['criteres'].values())}/{len(b['criteres'])} {b['criteres_ko'] or ''}" if b.get("criteres") else ""))
+            print("  ÉCHEC — " + " ; ".join(b["echec"]) if b["echec"] else "  réussi")
+    finally:
+        shutil.rmtree(donnees, ignore_errors=True)
     # Un lancement partiel complète le bilan du jour au lieu de l'écraser.
     fichier = dossier / "bilan.json"
     anciens = json.loads(fichier.read_text(encoding="utf-8")) if fichier.exists() else []

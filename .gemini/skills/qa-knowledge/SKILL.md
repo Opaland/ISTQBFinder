@@ -87,8 +87,10 @@ ailleurs ; jamais bloquant (`claude -p` : hypothèses explicites, questions en f
 - **Page affichée** = page d'un en-tête `── <doc> · … · p. N · §x.y` effectivement
   affiché. Ce qui suit « ✂ Sortie tronquée » ou une troncature n'est pas lu, même si la
   section voisine semble évidente.
-- **Code exact du document** : reprends le sigle du `doc_id` affiché (`CT-TAS-1.0-en` →
-  `[CT-TAS v1.0 EN, …]`, jamais « CTAL-TAS ») et la section telle que l'en-tête la donne.
+- **Recopie la ligne `Citer :`** affichée sous chaque en-tête de `lire`/`section`/`page`
+  (ex. `Citer : [CT-TAS v1.0 EN, §3.1.3, p. 24]`) : ne reconstruis jamais le sigle
+  (`CT-TAS`, jamais « CTAL-TAS »), la version ni la section. Plusieurs pages lues d'une
+  même section : une référence par page affichée, ou `pp. N-M` si toutes l'ont été.
   Chaque `[référence]` nomme son document : jamais `[§1.3.4, p. 32]` seul.
 - Une page non affichée ne se cite pas, même assortie de « non lu » ou « d'après la
   grille » : écris « à lire : CTEL-ITP §3.3.2 », sans page.

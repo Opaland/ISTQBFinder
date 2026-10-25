@@ -56,6 +56,17 @@ def _ref_doc(r: dict) -> str:
             f"{etat}" + (f" ⚠ {retrait}" if retrait else ""))
 
 
+def _ref_citation(d: dict, p: dict) -> str:
+    """Référence prête à recopier (#172) : `[CT-TAS v1.0 EN, §3.1.3, p. 24]`. Le sigle vient
+    du document (jamais reconstruit par l'agent) ; une version-année reste nue (`CTFL-AT 2014`)."""
+    v = str(d.get("version") or "")
+    version = v if re.fullmatch(r"\d{4}", v) else (f"v{v}" if v else "")
+    doc = " ".join(x for x in (d.get("code") or p["doc_id"], "BoK" if d.get("type") == "bok" else "",
+                               version, (d.get("langue") or "").upper()) if x)
+    sec = f"§{p['section_num']}, " if p.get("section_num") else ""
+    return f"[{doc}, {sec}{_ref_page(p)}]"
+
+
 def lire_entree_standard() -> str:
     """Entrée standard lue en octets et décodée en UTF-8 : sous Windows, `sys.stdin` suit la
     page de code de la console (cp1252) et corrompait les accents (« Ã‰valuer »). Le BOM
@@ -304,6 +315,7 @@ def _afficher_passages(rows: list[dict], doc: dict | None = None):
         cle = (p["doc_id"], p["page"], sec)
         if cle != courant:
             _ecrire(f"\n── {_ref_doc({**d, 'doc_id': p['doc_id']})} · {_ref_page(p)} · {sec} (passage #{p['id']})")
+            _ecrire(f"Citer : {_ref_citation(d, p)}")
             courant = cle
         _ecrire(p["texte"])
 
@@ -367,6 +379,7 @@ def _afficher_borne(r: dict, maximum: int, json_: bool, par_pages: bool = False)
         reste.insert(0, f"  - pages restantes : `page {doc_id} {min(pages)}-{max(pages)}`"
                         if min(pages) != max(pages) else f"  - page restante : `page {doc_id} {min(pages)}`")
     if json_:
+        affiches = [{**p, "citer": _ref_citation(r["document"], p)} for p in affiches]
         return _json({**r, "passages": affiches, "tronque": bool(restants),
                       "reste_a_lire": [l.strip(" -") for l in reste]})
     _afficher_passages(affiches, r["document"])
@@ -804,21 +817,21 @@ def analyseur() -> argparse.ArgumentParser:
     x.add_argument("passage", type=int)
     x.add_argument("--contexte", type=_entier_naturel, default=0, help="passages voisins à afficher (≥ 0)")
     x.add_argument("--json", action="store_true")
-    x.add_argument("--max-caracteres", type=int, default=MAX_CARACTERES,
+    x.add_argument("--max-caracteres", type=_entier_naturel, default=MAX_CARACTERES,
                    help=f"borne de la sortie (défaut {MAX_CARACTERES} ; 0 = sans limite) : la fin indique quoi lire ensuite")
     x.set_defaults(f=cmd_lire)
     x = sp.add_parser("page", help="lire des pages d'un document (ex. 31 ou 31-33)")
     x.add_argument("doc")
     x.add_argument("pages")
     x.add_argument("--json", action="store_true")
-    x.add_argument("--max-caracteres", type=int, default=MAX_CARACTERES,
+    x.add_argument("--max-caracteres", type=_entier_naturel, default=MAX_CARACTERES,
                    help=f"borne de la sortie (défaut {MAX_CARACTERES} ; 0 = sans limite) : la fin indique quoi lire ensuite")
     x.set_defaults(f=cmd_page)
     x = sp.add_parser("section", help="lire une section entière (sous-sections incluses)")
     x.add_argument("doc")
     x.add_argument("numero")
     x.add_argument("--json", action="store_true")
-    x.add_argument("--max-caracteres", type=int, default=MAX_CARACTERES,
+    x.add_argument("--max-caracteres", type=_entier_naturel, default=MAX_CARACTERES,
                    help=f"borne de la sortie (défaut {MAX_CARACTERES} ; 0 = sans limite) : la fin indique quoi lire ensuite")
     x.set_defaults(f=cmd_section)
     x = sp.add_parser("plan", help="plan (sections) d'un document")

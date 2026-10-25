@@ -41,8 +41,9 @@ ancienne, une seule langue ou aucun syllabus local ne couvre la démarche, propo
    (ex. CTAL-TM §1.3, CTFL §5.2, CTAL-TA §2). Privilégie les versions courantes.
    **Jamais de `| head`** sur `lire`, `section` ou `page` : la partie coupée n'est pas
    lue. Section longue → `--max-caracteres N` ou ses sous-sections une à une
-   (`section CTAL-TM-3.0-fr 1.3.3`). Ne cite que les pages affichées, avec le sigle exact
-   du document affiché (`CT-TAS`, pas « CTAL-TAS »).
+   (`section CTAL-TM-3.0-fr 1.3.3`). Ne cite que les pages affichées, en recopiant la
+   ligne `Citer : [...]` de leur en-tête (jamais de sigle reconstruit : `CT-TAS`, pas
+   « CTAL-TAS »).
 3. **Construis la liste de contrôle** à partir des passages lus : les étapes ou
    conditions que le syllabus décrit (ex. pour le RBT : identification des risques avec
    les parties prenantes, évaluation probabilité × impact, atténuation par le choix des

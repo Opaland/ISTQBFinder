@@ -56,6 +56,17 @@ def _ref_doc(r: dict) -> str:
             f"{etat}" + (f" ⚠ {retrait}" if retrait else ""))
 
 
+def _ref_citation(d: dict, p: dict) -> str:
+    """Référence prête à recopier (#172) : `[CT-TAS v1.0 EN, §3.1.3, p. 24]`. Le sigle vient
+    du document (jamais reconstruit par l'agent) ; une version-année reste nue (`CTFL-AT 2014`)."""
+    v = str(d.get("version") or "")
+    version = v if re.fullmatch(r"\d{4}", v) else (f"v{v}" if v else "")
+    doc = " ".join(x for x in (d.get("code") or p["doc_id"], "BoK" if d.get("type") == "bok" else "",
+                               version, (d.get("langue") or "").upper()) if x)
+    sec = f"§{p['section_num']}, " if p.get("section_num") else ""
+    return f"[{doc}, {sec}{_ref_page(p)}]"
+
+
 def lire_entree_standard() -> str:
     """Entrée standard lue en octets et décodée en UTF-8 : sous Windows, `sys.stdin` suit la
     page de code de la console (cp1252) et corrompait les accents (« Ã‰valuer »). Le BOM
@@ -70,8 +81,15 @@ def lire_entree_standard() -> str:
                                f"(octet invalide en position {exc.start}).") from exc
 
 
-def _lire_donnees(source: str) -> dict:
+def _lire_donnees(source: str, si_vide: str | None = None) -> dict:
+    """JSON lu sur l'entrée standard (`-`) ou dans un fichier. Rien à lire (terminal
+    interactif, entrée vide) : message explicite plutôt que « JSON invalide » (#162)."""
+    message = si_vide or "Aucune donnée reçue : passer le JSON sur l'entrée standard ou avec --fichier <chemin>."
+    if source == "-" and getattr(sys.stdin, "isatty", lambda: False)():
+        raise ErreurValidation(message)
     brut = lire_entree_standard() if source == "-" else Path(source).read_text(encoding="utf-8-sig")
+    if not brut.strip():
+        raise ErreurValidation(message)
     try:
         return json.loads(brut)
     except json.JSONDecodeError as exc:
@@ -297,6 +315,7 @@ def _afficher_passages(rows: list[dict], doc: dict | None = None):
         cle = (p["doc_id"], p["page"], sec)
         if cle != courant:
             _ecrire(f"\n── {_ref_doc({**d, 'doc_id': p['doc_id']})} · {_ref_page(p)} · {sec} (passage #{p['id']})")
+            _ecrire(f"Citer : {_ref_citation(d, p)}")
             courant = cle
         _ecrire(p["texte"])
 
@@ -360,6 +379,7 @@ def _afficher_borne(r: dict, maximum: int, json_: bool, par_pages: bool = False)
         reste.insert(0, f"  - pages restantes : `page {doc_id} {min(pages)}-{max(pages)}`"
                         if min(pages) != max(pages) else f"  - page restante : `page {doc_id} {min(pages)}`")
     if json_:
+        affiches = [{**p, "citer": _ref_citation(r["document"], p)} for p in affiches]
         return _json({**r, "passages": affiches, "tronque": bool(restants),
                       "reste_a_lire": [l.strip(" -") for l in reste]})
     _afficher_passages(affiches, r["document"])
@@ -474,7 +494,9 @@ def cmd_idee(a):
         champs = {k: getattr(a, k) for k in CHAMPS_DOUBLONS if getattr(a, k)}
         if champs and a.theme:
             champs["theme_principal"] = a.theme
-        d, _ = connaissances.valider(champs or _lire_donnees(a.fichier), partiel=True)
+        d, _ = connaissances.valider(champs or _lire_donnees(a.fichier, si_vide=(
+            "`idee doublons` attend au moins --titre ou --resume (et --theme), ou le JSON de l'idée "
+            "sur l'entrée standard / avec --fichier <chemin>.")), partiel=True)
         sim = connaissances.doublons(d)
         _ecrire("Aucune idée similaire." if not sim else "Idées similaires :")
         _afficher_doublons(sim)
@@ -630,8 +652,89 @@ def _proportion(v: str) -> float:
     return r
 
 
+def _entier_naturel(v: str) -> int:
+    try:
+        n = int(v)
+    except ValueError:
+        n = -1
+    if n < 0:
+        raise argparse.ArgumentTypeError(f"entier ≥ 0 attendu (reçu : {v})")
+    return n
+
+
+# Messages d'argparse (anglais, non traduits par gettext sans catalogue) → français (#164).
+TRADUCTIONS_ARGPARSE = [
+    (r"the following arguments are required: (.*)", r"arguments obligatoires manquants : \1"),
+    (r"invalid choice: (.*) \(choose from (.*)\)", r"choix invalide : \1 (valeurs possibles : \2)"),
+    (r"unrecognized arguments: (.*)", r"arguments non reconnus : \1"),
+    (r"invalid int value: (.*)", r"entier attendu (reçu : \1)"),
+    (r"invalid float value: (.*)", r"nombre attendu (reçu : \1)"),
+    (r"invalid \S+ value: (.*)", r"valeur invalide : \1"),
+    (r"expected one argument", "une valeur attendue"),
+    (r"expected at most one argument", "au plus une valeur attendue"),
+    (r"expected at least one argument", "au moins une valeur attendue"),
+    (r"expected (\d+) arguments?", r"\1 valeurs attendues"),
+    (r"not allowed with argument (.*)", r"incompatible avec l'argument \1"),
+    (r"ambiguous option: (\S+) could match (.*)", r"option ambiguë : \1 peut désigner \2"),
+    (r"ignored explicit argument (.*)", r"valeur \1 ignorée : cette option n'en prend pas"),
+    (r"one of the arguments (.*) is required", r"l'un des arguments \1 est obligatoire"),
+    (r"^argument ([^:]+): ", r"argument \1 : "),
+]
+TRADUCTIONS_AIDE = [("usage: ", "usage : "), ("positional arguments:", "arguments positionnels :"),
+                    ("options:", "options :"), ("optional arguments:", "options :"),
+                    ("show this help message and exit", "afficher cette aide et quitter")]
+
+
+def traduire_erreur(message: str) -> str:
+    for motif, remplacement in TRADUCTIONS_ARGPARSE:
+        message = re.sub(motif, remplacement, message)
+    choix = re.search(r"choix invalide : '([^']*)' \(valeurs possibles : (.*)\)", message)
+    if choix:  # valeurs entre apostrophes ou non selon la version de Python
+        import difflib
+        valeurs = [v.strip().strip("'") for v in choix.group(2).split(",")]
+        proches = difflib.get_close_matches(choix.group(1), valeurs, n=1)
+        if proches:
+            message += f" — vouliez-vous dire « {proches[0]} » ?"
+    return message
+
+
+class Analyseur(argparse.ArgumentParser):
+    """ArgumentParser francisé : erreurs en français suivies de l'aide de la sous-commande
+    concernée (c'est aussi ce que lisent les agents), aide aux intitulés traduits."""
+
+    def parse_known_args(self, args=None, namespace=None):
+        self._arguments = list(sys.argv[1:] if args is None else args)
+        return super().parse_known_args(args, namespace)
+
+    def _sous_commande(self) -> argparse.ArgumentParser:
+        """Erreur détectée par l'analyseur principal (« arguments non reconnus ») : l'aide
+        utile est celle de la sous-commande tapée, pas la liste de toutes les commandes."""
+        actions = getattr(self, "_subparsers", None)
+        for action in (actions._group_actions if actions else []):
+            for mot in getattr(self, "_arguments", []):
+                if mot in (action.choices or {}):
+                    return action.choices[mot]
+        return self
+
+    def format_usage(self) -> str:
+        return self._traduire_aide(super().format_usage())
+
+    def format_help(self) -> str:
+        return self._traduire_aide(super().format_help())
+
+    @staticmethod
+    def _traduire_aide(texte: str) -> str:
+        for anglais, francais in TRADUCTIONS_AIDE:
+            texte = texte.replace(anglais, francais)
+        return texte
+
+    def error(self, message: str):
+        cible = self._sous_commande() if "unrecognized arguments" in message else self
+        self.exit(2, f"Erreur ({cible.prog}) : {traduire_erreur(message)}\n\n{cible.format_help()}")
+
+
 def analyseur() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="qa.py", description="QA Knowledge Agent — bibliothèque ISTQB et base QA.")
+    p = Analyseur(prog="qa.py", description="QA Knowledge Agent — bibliothèque ISTQB et base QA.")
     sp = p.add_subparsers(dest="commande", required=True)
 
     def meta(x):
@@ -693,7 +796,7 @@ def analyseur() -> argparse.ArgumentParser:
     x.add_argument("--theme", help="code de thème de la taxonomie")
     x.add_argument("--toutes-versions", action="store_true", help="inclure les versions remplacées")
     x.add_argument("--sommaires", action="store_true", help="inclure tables des matières et index")
-    x.add_argument("--par-doc", type=int, default=3, help="résultats max par document (défaut 3)")
+    x.add_argument("--par-doc", type=_entier_positif, default=3, help="résultats max par document (défaut 3)")
     x.add_argument("--semantique", action="store_true",
                    help="classement hybride BM25 + embeddings (optionnel : actualiser --semantique d'abord)")
     x.add_argument("--json", action="store_true")
@@ -712,23 +815,23 @@ def analyseur() -> argparse.ArgumentParser:
     x.set_defaults(f=cmd_confiance)
     x = sp.add_parser("lire", help="lire un passage (et son contexte)")
     x.add_argument("passage", type=int)
-    x.add_argument("--contexte", type=int, default=0)
+    x.add_argument("--contexte", type=_entier_naturel, default=0, help="passages voisins à afficher (≥ 0)")
     x.add_argument("--json", action="store_true")
-    x.add_argument("--max-caracteres", type=int, default=MAX_CARACTERES,
+    x.add_argument("--max-caracteres", type=_entier_naturel, default=MAX_CARACTERES,
                    help=f"borne de la sortie (défaut {MAX_CARACTERES} ; 0 = sans limite) : la fin indique quoi lire ensuite")
     x.set_defaults(f=cmd_lire)
     x = sp.add_parser("page", help="lire des pages d'un document (ex. 31 ou 31-33)")
     x.add_argument("doc")
     x.add_argument("pages")
     x.add_argument("--json", action="store_true")
-    x.add_argument("--max-caracteres", type=int, default=MAX_CARACTERES,
+    x.add_argument("--max-caracteres", type=_entier_naturel, default=MAX_CARACTERES,
                    help=f"borne de la sortie (défaut {MAX_CARACTERES} ; 0 = sans limite) : la fin indique quoi lire ensuite")
     x.set_defaults(f=cmd_page)
     x = sp.add_parser("section", help="lire une section entière (sous-sections incluses)")
     x.add_argument("doc")
     x.add_argument("numero")
     x.add_argument("--json", action="store_true")
-    x.add_argument("--max-caracteres", type=int, default=MAX_CARACTERES,
+    x.add_argument("--max-caracteres", type=_entier_naturel, default=MAX_CARACTERES,
                    help=f"borne de la sortie (défaut {MAX_CARACTERES} ; 0 = sans limite) : la fin indique quoi lire ensuite")
     x.set_defaults(f=cmd_section)
     x = sp.add_parser("plan", help="plan (sections) d'un document")
@@ -778,7 +881,7 @@ def analyseur() -> argparse.ArgumentParser:
     x.set_defaults(f=cmd_idee)
     x = sp.add_parser("journal", help="historique des modifications")
     x.add_argument("--cible")
-    x.add_argument("-n", type=int, default=30)
+    x.add_argument("-n", type=_entier_positif, default=30, help="nombre d'entrées (≥ 1)")
     x.add_argument("--details", action="store_true", help="détails de chaque entrée (avant/après, anomalies)")
     x.set_defaults(f=cmd_journal)
     x = sp.add_parser("diagnostic", help="contrôle de l'installation (index, recherche témoin, intégrations)")
@@ -835,6 +938,9 @@ def _normaliser_idee(a) -> None:
     if a.action in ("chercher",):
         a.requete = ([a.id] if a.id else []) + (a.requete or [])
         a.id = None
+        if not " ".join(a.requete).strip() and not a.theme:
+            raise ErreurValidation("`idee chercher` attend un texte, un thème (--theme <code>) ou les deux ; "
+                                   "`idee lister` liste toute la base.")
     elif a.action == "statut" and not a.statut and a.requete:
         a.statut = a.requete[0]
     elif a.action == "lier" and not a.cible and a.requete:

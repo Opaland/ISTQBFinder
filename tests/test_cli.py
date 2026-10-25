@@ -1,5 +1,7 @@
 import json
 
+import pytest
+
 from qak.cli import main
 from conftest import FIXTURES
 
@@ -187,3 +189,66 @@ def test_doublons_en_une_ligne_sans_json(capsys, monkeypatch, racine_isolee):
     sortie = capsys.readouterr().out
     assert q1 in sortie and "DOUBLON PROBABLE" in sortie
     assert main(["idee", "doublons", "--titre", "x", "--theme", "inconnu"]) == 2
+
+
+@pytest.mark.parametrize("argv, attendus", [
+    (["idee", "ajoute"], ["choix invalide : 'ajoute'", "valeurs possibles", "« ajouter »", "usage : qa.py idee"]),
+    (["chercher"], ["arguments obligatoires manquants : requete", "usage : qa.py chercher"]),
+    (["chercher", "risque", "--inconnue"], ["arguments non reconnus : --inconnue", "usage : qa.py chercher"]),
+    (["lire", "x"], ["argument passage : entier attendu (reçu : 'x')", "usage : qa.py lire"]),
+    (["lire", "5", "--contexte", "-3"], ["--contexte : entier ≥ 0 attendu (reçu : -3)"]),
+    (["journal", "-n", "-1"], ["-n : entier ≥ 1 attendu (reçu : -1)", "usage : qa.py journal"]),
+    (["journal", "-n", "0"], ["-n : entier ≥ 1 attendu"]),
+    (["chercher", "risque", "--par-doc", "0"], ["--par-doc : entier ≥ 1 attendu"]),
+])
+def test_erreurs_d_arguments_en_francais_avec_l_aide_de_la_sous_commande(argv, attendus, capsys):
+    """#164 : erreurs argparse en anglais, `--contexte -3` et `-n -1` acceptés."""
+    with pytest.raises(SystemExit) as fin:
+        main(argv)
+    assert fin.value.code == 2
+    err = capsys.readouterr().err
+    for attendu in attendus:
+        assert attendu in err, err
+    for anglais in ("error:", "invalid choice", "the following arguments", "unrecognized", "usage:"):
+        assert anglais not in err, err
+
+
+def test_aide_aux_intitules_francais(capsys):
+    with pytest.raises(SystemExit):
+        main(["lire", "--help"])
+    sortie = capsys.readouterr().out
+    assert "usage : qa.py lire" in sortie and "afficher cette aide" in sortie and "options :" in sortie
+
+
+def test_contexte_zero_reste_accepte(bibliotheque_test, capsys):
+    from qak import recherche
+    pid = recherche.chercher("valeurs limites")["resultats"][0]["id"]
+    assert main(["lire", str(pid), "--contexte", "0"]) == 0
+    assert main(["journal", "-n", "1"]) == 0
+
+
+def test_filtres_de_la_base_d_idees_jamais_silencieusement_vides(capsys, monkeypatch, racine_isolee):
+    """#162 : `--theme` seul, statut mal orthographié, `doublons` sans champ."""
+    from qak import connaissances
+    idee = {"titre": "Matrice des risques probabilité impact", "resume": "Prioriser les tests par probabilité × impact.",
+            "probleme": "Effort uniforme.", "principe": "Calculer le niveau de risque.", "theme_principal": "rbt"}
+    q1 = connaissances.ajouter(dict(idee))["id"]
+    q2 = connaissances.ajouter({**idee, "titre": "Revue des risques en début de sprint",
+                                "resume": "Revoir le registre des risques à chaque sprint planning.",
+                                "principe": "Atelier court avec le PO."}, forcer=True, motif="variante agile")["id"]
+    capsys.readouterr()
+    assert main(["idee", "chercher", "--theme", "rbt"]) == 0
+    sortie = capsys.readouterr().out
+    assert q1 in sortie and q2 in sortie and "Aucune idée" not in sortie
+    assert {i["id"] for i in connaissances.chercher("", theme="rbt")} == {q1, q2}
+    assert main(["idee", "chercher"]) == 2
+    assert "attend un texte" in capsys.readouterr().err
+    assert main(["idee", "lister", "--statut", "validée"]) == 2
+    err = capsys.readouterr().err
+    assert "Statut invalide" in err and "a_explorer" in err and "validee" in err
+    assert main(["idee", "lister", "--statut", "a_explorer"]) == 0
+    assert q1 in capsys.readouterr().out
+    monkeypatch.setattr("sys.stdin", __import__("io").StringIO(""))
+    assert main(["idee", "doublons", "--theme", "rbt"]) == 2
+    err = capsys.readouterr().err
+    assert "--titre" in err and "JSON invalide" not in err

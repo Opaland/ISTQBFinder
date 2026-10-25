@@ -46,8 +46,9 @@ concrètes, chacune rattachée à sa source, pour qu'il aille lire et décider.
 4. Lis les meilleurs passages (`lire --contexte 1`, `section`) : 2 à 5, de syllabus
    différents si possible. Rien n'est cité sans avoir été lu. **Jamais de `| head`** sur
    `lire`, `section` ou `page` : `--max-caracteres N` ou la sous-section précise
-   (`section CT-TAS-1.0-en 4.1.2`). Ne cite que les pages affichées, avec le sigle exact
-   du document affiché (`CT-TAS`, pas « CTAL-TAS »). Avant de rendre ton
+   (`section CT-TAS-1.0-en 4.1.2`). Ne cite que les pages affichées, en recopiant la
+   ligne `Citer : [...]` de leur en-tête (jamais de sigle reconstruit : `CT-TAS`, pas
+   « CTAL-TAS »). Avant de rendre ton
    rapport, passe chaque `[référence]` au **contrôle avant d'envoyer** du skill : sans
    `lire`/`section`/`page` de cette page, lis-la ou retire la référence.
 5. Web seulement pour un besoin identifiable (outil, actualité, retour terrain) : dis

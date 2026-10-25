@@ -242,3 +242,72 @@ def test_lecture_partielle_declaree_dans_sources_retenues():
 def test_lecture_partielle_controle_strict_ailleurs(reponse):
     citations = essais_agents.verifier_citations("CTAL-TAE v2.0 FR. " + reponse, {("CTAL-TAE", 34)})
     assert [c["lue"] for c in citations] == [False], citations
+
+
+@pytest.mark.parametrize("doc, passage, attendu", [
+    ({"code": "CT-TAS", "version": "1.0", "langue": "en", "type": "syllabus"},
+     {"doc_id": "CT-TAS-1.0-en", "section_num": "3.1.3", "page": 24}, "[CT-TAS v1.0 EN, §3.1.3, p. 24]"),
+    ({"code": "CTFL-AT", "version": "2014", "langue": "fr", "type": "syllabus"},
+     {"doc_id": "CTFL-AT-2014-fr", "section_num": "3.2.1", "page": 32}, "[CTFL-AT 2014 FR, §3.2.1, p. 32]"),
+    ({"code": "CT-ATLaS", "version": "2.0", "langue": "fr", "type": "bok"},
+     {"doc_id": "CT-ATLaS-BoK-2.0-fr", "section_num": "", "page": 5, "page_imprimee": "3"},
+     "[CT-ATLaS BoK v2.0 FR, p. 5 (imprimée 3)]"),
+])
+def test_reference_a_recopier_format(doc, passage, attendu):
+    """#172 : le sigle, la version, la langue, la section et la page viennent de l'outil."""
+    from qak.cli import _ref_citation
+    assert _ref_citation(doc, passage) == attendu
+
+
+def test_lire_section_page_affichent_la_reference_a_recopier(capsys, racine_isolee):
+    """#172 : chaque en-tête de `lire`/`section`/`page` est suivi de « Citer : [...] », et
+    cette référence recopiée telle quelle passe le contrôle des essais."""
+    from conftest import FIXTURES
+    from qak.cli import main
+    assert main(["importer", str(FIXTURES / "syllabus_v9.pdf")]) == 0
+    capsys.readouterr()
+    assert main(["chercher", "valeurs", "limites", "--json"]) == 0
+    pid = json.loads(capsys.readouterr().out)["resultats"][0]["id"]
+    for args in (["section", "CTFL", "2.1"], ["page", "CTFL", "3-6"], ["lire", str(pid)]):
+        assert main(args) == 0
+        sortie = capsys.readouterr().out
+        lignes = sortie.splitlines()
+        entetes = [i for i, l in enumerate(lignes) if l.startswith("── ")]
+        assert entetes, args
+        for i in entetes:
+            page = lignes[i].split(" · p. ")[1].split()[0]
+            assert lignes[i + 1].startswith("Citer : [CTFL v9.9 EN, ") and f"p. {page}]" in lignes[i + 1], lignes[i + 1]
+        refs = [l.removeprefix("Citer : ") for l in lignes if l.startswith("Citer : ")]
+        citations = essais_agents.verifier_citations(" ".join(refs), essais_agents.pages_lues(sortie))
+        assert citations and all(c["lue"] for c in citations), citations
+    assert main(["section", "CTFL", "2.1", "--json"]) == 0
+    r = json.loads(capsys.readouterr().out)
+    assert all(p["citer"].startswith("[CTFL v9.9 EN, §2.1") for p in r["passages"])
+
+
+def test_consigne_recopier_la_reference():
+    """#172 : le skill et les agents demandent de recopier la ligne « Citer : »."""
+    from test_agents import AGENTS, SKILL, corps
+    assert "Recopie la ligne `Citer :`" in corps(SKILL)
+    for nom in ("thomas", "sylvie"):
+        assert "ligne `Citer : [...]`" in corps(AGENTS / f"{nom}.md"), nom
+
+
+@pytest.mark.parametrize("args", [["lire", "1"], ["page", "CTFL", "3"], ["section", "CTFL", "1"]])
+def test_max_caracteres_negatif_refuse(capsys, racine_isolee, args):
+    """`--max-caracteres -5` était accepté (sortie sans borne) : entier ≥ 0 exigé, 0 = sans limite."""
+    from qak.cli import main
+    with pytest.raises(SystemExit) as fin:  # argparse : rc=2, message en français (#164)
+        main([*args, "--max-caracteres", "-5"])
+    assert fin.value.code == 2 and "entier ≥ 0 attendu" in capsys.readouterr().err
+
+
+def test_consigne_extrait_jamais_entre_crochets():
+    """#182 (S2-automatisation, 2026-10-23) : une référence vue seulement en extrait ne
+    s'écrit pas entre crochets ; elle est lue ou renvoyée sans crochets à « Où creuser »."""
+    from test_agents import AGENTS, SKILL, corps
+    for texte in (corps(SKILL), corps(AGENTS / "sylvie.md")):
+        assert "Vu en extrait = jamais entre crochets" in texte and "Où creuser ensuite" in texte
+    # Le contrôle des essais compte bien une telle référence comme citation non lue.
+    reponse = "Pratique alignée [CTAL-TA v4.0 EN, §1.2.4, p. 17, vu en extrait seulement]."
+    assert [c["lue"] for c in essais_agents.verifier_citations(reponse, set())] == [False]

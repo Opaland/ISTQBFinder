@@ -87,8 +87,10 @@ ailleurs ; jamais bloquant (`claude -p` : hypothèses explicites, questions en f
 - **Page affichée** = page d'un en-tête `── <doc> · … · p. N · §x.y` effectivement
   affiché. Ce qui suit « ✂ Sortie tronquée » ou une troncature n'est pas lu, même si la
   section voisine semble évidente.
-- **Code exact du document** : reprends le sigle du `doc_id` affiché (`CT-TAS-1.0-en` →
-  `[CT-TAS v1.0 EN, …]`, jamais « CTAL-TAS ») et la section telle que l'en-tête la donne.
+- **Recopie la ligne `Citer :`** affichée sous chaque en-tête de `lire`/`section`/`page`
+  (ex. `Citer : [CT-TAS v1.0 EN, §3.1.3, p. 24]`) : ne reconstruis jamais le sigle
+  (`CT-TAS`, jamais « CTAL-TAS »), la version ni la section. Plusieurs pages lues d'une
+  même section : une référence par page affichée, ou `pp. N-M` si toutes l'ont été.
   Chaque `[référence]` nomme son document : jamais `[§1.3.4, p. 32]` seul.
 - Une page non affichée ne se cite pas, même assortie de « non lu » ou « d'après la
   grille » : écris « à lire : CTEL-ITP §3.3.2 », sans page.
@@ -96,6 +98,11 @@ ailleurs ; jamais bloquant (`claude -p` : hypothèses explicites, questions en f
   `lire`/`section`/`page` qui a affiché **cette page de ce document** (même sigle). Un extrait de
   `chercher` ne compte pas. Introuvable → lis le passage maintenant, ou retire la
   référence (au besoin « à lire : §x » sans page, dans « Où creuser »).
+- **Vu en extrait = jamais entre crochets** : une référence vue seulement dans un extrait
+  de `chercher` n'apparaît pas entre crochets dans la réponse, même assortie de « vu en
+  extrait seulement » ou « je ne m'appuie pas dessus ». Lis-la (`section`/`page`), ou
+  mentionne-la sans crochets ni page dans « Où creuser ensuite » (« à lire : CTAL-TA
+  v4.0 EN §1.2.4 »).
 - Distingue toujours : **ISTQB** (passage lu) · **Web** (URL + date) · **base capitalisée**
   (id `QA-xxxx`, avec son statut — une idée en base n'est pas validée pour autant) ·
   **ton raisonnement** (signalé comme interprétation / hypothèse).

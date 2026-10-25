@@ -213,3 +213,32 @@ def test_essais_sur_copie_temporaire_des_donnees(tmp_path):
         import shutil
         shutil.rmtree(copie)
 
+# Extrait réel : eval/essais-resultats/2026-10-23/M5-mobile.md (Thomas, campagne sur a93d3fb).
+M5_MOBILE = """**Sources retenues**
+- CT-MAT 2019 FR (v2019, 2019-05-03) : §1.1, §1.6, §4.3.2, §4.4, §5.1, §5.3, §5.4 lus.
+- CTAL-TAE v2.0 FR : §4.2.1, lu en partie (le reste est à la p. 35).
+- CT-TAS v1.0 FR : §2.1.2 lu.
+
+**Méthode pas à pas**
+   - Les appareils réels doivent être allumés, chargés, connectés au réseau et avoir accès à l'application sous test. Packaging, logs et mises à jour sont aussi à prévoir [CTAL-TAE v2.0 FR, §4.2.1, p. 34].
+"""
+
+
+def test_lecture_partielle_declaree_dans_sources_retenues():
+    """#181 : « lu en partie (le reste est à la p. 35) » dans « Sources retenues » est une
+    déclaration, pas une citation ; la vraie citation (p. 34, lue) reste contrôlée."""
+    citations = essais_agents.verifier_citations(M5_MOBILE, {("CTAL-TAE", 34)})
+    assert [(c["citation"].split()[0], c["lue"]) for c in citations] == [("CTAL-TAE", True)], citations
+    # Sans la page 34 lue, la citation du corps échoue toujours : seule la déclaration est exclue.
+    assert [c["lue"] for c in essais_agents.verifier_citations(M5_MOBILE, set())] == [False]
+
+
+@pytest.mark.parametrize("reponse", [
+    # Dans le corps de la réponse, « lu en partie » n'excuse rien.
+    "## Méthode\n\nLe §4.2.1, lu en partie (le reste est à la p. 35), impose ceci.",
+    # Dans « Sources retenues », une référence sans déclaration de lecture partielle compte.
+    "**Sources retenues**\n- CTAL-TAE v2.0 FR : §4.2.1 (p. 35) lu.\n",
+])
+def test_lecture_partielle_controle_strict_ailleurs(reponse):
+    citations = essais_agents.verifier_citations("CTAL-TAE v2.0 FR. " + reponse, {("CTAL-TAE", 34)})
+    assert [c["lue"] for c in citations] == [False], citations

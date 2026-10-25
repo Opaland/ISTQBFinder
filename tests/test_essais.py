@@ -159,3 +159,57 @@ def test_questions_choix_format_une_option_par_ligne():
     en_ligne = "**Questions à choix**\n- Votre cycle de vie : 1. agile · 2. cascade · 3. mixte ?\n"
     assert essais_agents.controler(sous_liste, {"questions_choix": True}) == {"questions_choix": True}
     assert essais_agents.controler(en_ligne, {"questions_choix": True}) == {"questions_choix": False}
+
+
+# Commandes d'écriture (AGENTS.md, « Aucune écriture sans accord explicite ») : aucune ne
+# doit être pré-approuvée pendant les essais (#157).
+ECRITURES = ["idee ajouter", "idee modifier", "idee statut", "idee retour", "idee lier", "idee retirer",
+             "theme ajouter", "theme obsolete", "telecharger", "importer", "actualiser", "corriger", "retirer"]
+
+
+def test_essais_n_autorisent_aucune_ecriture():
+    """#157 : `--allowedTools` vient des règles `allow` de `.claude/settings.json`, sans
+    règle générique `qa.py:*` ni commande d'écriture."""
+    outils = essais_agents.outils_autorises()
+    allow = json.loads((RACINE / ".claude" / "settings.json").read_text(encoding="utf-8"))["permissions"]["allow"]
+    assert [o for o in outils if o.startswith("Bash(")] == [r for r in allow if r.startswith("Bash(")]
+    assert not {"Write", "Edit", "NotebookEdit"} & set(outils)
+    for py in ("python", "python3"):
+        for commande in ECRITURES:
+            assert not essais_agents.autorise(f"{py} qa.py {commande} QA-0001 --oui", outils), commande
+        # Les lectures, elles, restent possibles sans invite (sinon l'essai ne mesure rien).
+        for commande in ("chercher risque", "lire CTFL-4.0.1-en 40", "section CT-TAS-1.0-en 3.1.3",
+                         "page CTAL-TM-3.0-fr 29", "idee chercher risque", "confiance --base 80"):
+            assert essais_agents.autorise(f"{py} qa.py {commande}", outils), commande
+
+
+def test_autorise_respecte_les_prefixes():
+    regles = ["Bash(python qa.py idee chercher:*)", "Read"]
+    assert essais_agents.autorise("python qa.py idee chercher x", regles)
+    assert essais_agents.autorise("python qa.py idee chercher", regles)
+    assert not essais_agents.autorise("python qa.py idee chercherx", regles)
+    assert not essais_agents.autorise("python qa.py idee ajouter", regles)
+
+
+def test_essais_sur_copie_temporaire_des_donnees(tmp_path):
+    """#157 : les essais tournent sur une copie (QAK_RACINE) ; écrire dans la copie ne
+    touche pas la source."""
+    source = tmp_path / "depot"
+    for rel, contenu in {"bibliotheque/index.db": "x", "bibliotheque/manifeste.json": "{}",
+                         "connaissances/connaissances.jsonl": "", "connaissances/journal.jsonl": "",
+                         "referentiel/taxonomie.json": "{}"}.items():
+        (source / rel).parent.mkdir(parents=True, exist_ok=True)
+        (source / rel).write_text(contenu, encoding="utf-8")
+    (source / "bibliotheque" / "sources").mkdir()
+    copie = essais_agents.racine_temporaire(source)
+    try:
+        assert copie != source and (copie / "bibliotheque" / "index.db").read_text() == "x"
+        assert (copie / "bibliotheque" / "sources").is_dir()
+        (copie / "connaissances" / "connaissances.jsonl").write_text('{"id": "QA-0001"}\n', encoding="utf-8")
+        (copie / "referentiel" / "taxonomie.json").write_text('{"modifie": 1}', encoding="utf-8")
+        assert (source / "connaissances" / "connaissances.jsonl").read_text() == ""
+        assert (source / "referentiel" / "taxonomie.json").read_text() == "{}"
+    finally:
+        import shutil
+        shutil.rmtree(copie)
+

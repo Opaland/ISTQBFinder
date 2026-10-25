@@ -98,6 +98,11 @@ ailleurs ; jamais bloquant (`claude -p` : hypothèses explicites, questions en f
   `lire`/`section`/`page` qui a affiché **cette page de ce document** (même sigle). Un extrait de
   `chercher` ne compte pas. Introuvable → lis le passage maintenant, ou retire la
   référence (au besoin « à lire : §x » sans page, dans « Où creuser »).
+- **Vu en extrait = jamais entre crochets** : une référence vue seulement dans un extrait
+  de `chercher` n'apparaît pas entre crochets dans la réponse, même assortie de « vu en
+  extrait seulement » ou « je ne m'appuie pas dessus ». Lis-la (`section`/`page`), ou
+  mentionne-la sans crochets ni page dans « Où creuser ensuite » (« à lire : CTAL-TA
+  v4.0 EN §1.2.4 »).
 - Distingue toujours : **ISTQB** (passage lu) · **Web** (URL + date) · **base capitalisée**
   (id `QA-xxxx`, avec son statut — une idée en base n'est pas validée pour autant) ·
   **ton raisonnement** (signalé comme interprétation / hypothèse).

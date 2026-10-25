@@ -300,3 +300,14 @@ def test_max_caracteres_negatif_refuse(capsys, racine_isolee, args):
     with pytest.raises(SystemExit) as fin:  # argparse : rc=2, message en français (#164)
         main([*args, "--max-caracteres", "-5"])
     assert fin.value.code == 2 and "entier ≥ 0 attendu" in capsys.readouterr().err
+
+
+def test_consigne_extrait_jamais_entre_crochets():
+    """#182 (S2-automatisation, 2026-10-23) : une référence vue seulement en extrait ne
+    s'écrit pas entre crochets ; elle est lue ou renvoyée sans crochets à « Où creuser »."""
+    from test_agents import AGENTS, SKILL, corps
+    for texte in (corps(SKILL), corps(AGENTS / "sylvie.md")):
+        assert "Vu en extrait = jamais entre crochets" in texte and "Où creuser ensuite" in texte
+    # Le contrôle des essais compte bien une telle référence comme citation non lue.
+    reponse = "Pratique alignée [CTAL-TA v4.0 EN, §1.2.4, p. 17, vu en extrait seulement]."
+    assert [c["lue"] for c in essais_agents.verifier_citations(reponse, set())] == [False]

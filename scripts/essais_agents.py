@@ -15,8 +15,8 @@ manque (#127) :
 - commandes `qa.py` réellement exécutées par l'agent (lues dans le transcript) ;
 - citations `[DOC …, §x.y, p. N]` : la page N du document a-t-elle été LUE pendant la
   conversation (présente dans la sortie d'un `lire`, `section` ou `page`) ? Une référence
-  que l'agent déclare lui-même non lue ou non citée dans « Confiance », « Limites » ou
-  « Traçabilité » n'est pas une citation (#139) ;
+  que l'agent déclare lui-même non lue, non citée ou lue en partie dans « Confiance »,
+  « Limites », « Traçabilité » ou « Sources retenues » n'est pas une citation (#139, #181) ;
 - présence d'un score de confiance « Confiance : NN/100 » ;
 - recours au Web ;
 - critères propres à l'essai (`"criteres"` dans eval/essais.json, voir `controler()`) :
@@ -131,18 +131,23 @@ def pages_lues(sorties: str) -> set[tuple[str, int]]:
     return lues
 
 
-# Sections de bilan (#139) : l'agent y déclare ce qu'il n'a PAS lu ou PAS cité.
+# Sections de bilan (#139) : l'agent y déclare ce qu'il n'a PAS lu ou PAS cité ;
+# « Sources retenues » en fait partie (#181) : on y déclare aussi une lecture partielle.
 RE_TITRE = re.compile(r"^(?:#{1,6}\s|\*\*)", re.M)
-RE_TITRE_BILAN = re.compile(r"^(?:#{1,6}\s*|\*\*)\s*(?:limites?|tra[çc]abilit[ée]|confiance)\b", re.I | re.M)
+RE_TITRE_BILAN = re.compile(r"^(?:#{1,6}\s*|\*\*)\s*(?:limites?|tra[çc]abilit[ée]|confiance|sources?\s+retenues?)\b",
+                            re.I | re.M)
 RE_PHRASE = re.compile(r"[^\n]+?(?:[.!?](?=\s+[A-ZÀ-Ý«*])|$)", re.M)
 RE_NON_LU = re.compile(r"\bn['’](?:ai|a|ont|est|sont)\s+(?:donc\s+|pas\s+non\s+plus\s+|jamais\s+)?"
                        r"(?:pas\s+(?:non\s+plus\s+|été\s+|encore\s+)?)?(?:lue?s?|consult[ée]e?s?|ouvert|affich[ée]e?s?|cit[ée]e?s?)\b"
-                       r"|\bnon\s+(?:lue?s?|consult[ée]e?s?|cit[ée]e?s?)\b|\bpas\s+(?:été\s+)?(?:lue?s?|cit[ée]e?s?)\b", re.I)
+                       r"|\bnon\s+(?:lue?s?|consult[ée]e?s?|cit[ée]e?s?)\b|\bpas\s+(?:été\s+)?(?:lue?s?|cit[ée]e?s?)\b"
+                       # Lecture partielle déclarée (#181) : « lu en partie (le reste est à la p. 35) ».
+                       r"|\blue?s?\s+(?:en\s+partie|partiellement)\b|\ble\s+reste\s+(?:est\s+)?(?:à|a)\s+la\s+p\.", re.I)
 
 
 def zones_non_lues(reponse: str) -> list[tuple[int, int]]:
-    """Phrases des sections de bilan (« Confiance », « Limites », « Traçabilité ») qui
-    déclarent une référence non lue ou non citée (#139). Le reste de la réponse, et ces
+    """Phrases des sections de bilan (« Confiance », « Limites », « Traçabilité »,
+    « Sources retenues ») qui déclarent une référence non lue, non citée (#139) ou lue
+    en partie (#181). Le reste de la réponse, et ces
     sections hors de telles phrases, restent soumis au contrôle strict."""
     zones, titres = [], [m.start() for m in RE_TITRE.finditer(reponse)] + [len(reponse)]
     for debut, fin in zip(titres, titres[1:]):

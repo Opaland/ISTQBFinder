@@ -291,3 +291,12 @@ def test_consigne_recopier_la_reference():
     assert "Recopie la ligne `Citer :`" in corps(SKILL)
     for nom in ("thomas", "sylvie"):
         assert "ligne `Citer : [...]`" in corps(AGENTS / f"{nom}.md"), nom
+
+
+@pytest.mark.parametrize("args", [["lire", "1"], ["page", "CTFL", "3"], ["section", "CTFL", "1"]])
+def test_max_caracteres_negatif_refuse(capsys, racine_isolee, args):
+    """`--max-caracteres -5` était accepté (sortie sans borne) : entier ≥ 0 exigé, 0 = sans limite."""
+    from qak.cli import main
+    with pytest.raises(SystemExit) as fin:  # argparse : rc=2, message en français (#164)
+        main([*args, "--max-caracteres", "-5"])
+    assert fin.value.code == 2 and "entier ≥ 0 attendu" in capsys.readouterr().err

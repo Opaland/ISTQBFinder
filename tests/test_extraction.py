@@ -143,3 +143,17 @@ def test_mots_coupes_recolles_dans_les_passages(tmp_path):
     texte = " ".join(p.texte for p in extraction.passages(extraction.extraire(f)))
     assert "utilisabilité et de la convivialité." in texte
     assert "in to the test" in texte
+
+
+def test_introduction_de_chapitre_rattachee_au_chapitre():
+    """#177 — pages 24-25 réelles du CTAL-TA v4.0 EN (avec leurs signets) : l'introduction du
+    chapitre 2 contient « …involves risk analysis and risk control… » avant le titre
+    « 2.1 Risk Analysis » ; elle était rangée sous §2.1, l'agent citait une section fausse."""
+    x = extraction.extraire(FIXTURES / "ctal-ta-v4.0-en-p24-25.pdf")
+    assert x.plan_source == "signets"
+    ps = extraction.passages(x)
+    intro = [p for p in ps if "once per iteration" in p.texte]
+    assert len(intro) == 1 and intro[0].page == 2 and intro[0].section_num == "2"
+    assert "2.1 Risk Analysis" not in intro[0].texte
+    analyse = [p for p in ps if "Risk analysis involves risk identification" in p.texte][0]
+    assert analyse.section_num == "2.1" and analyse.texte.startswith("2.1 Risk Analysis")

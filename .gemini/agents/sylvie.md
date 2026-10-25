@@ -55,7 +55,9 @@ ancienne, une seule langue ou aucun syllabus local ne couvre la démarche, propo
    techniques et de la profondeur, priorisation, suivi des risques). Jamais de mémoire.
    Avant de rendre ton avis, passe chaque source du tableau au **contrôle avant
    d'envoyer** du skill : une page vue seulement en extrait de `chercher` est lue
-   (`page <doc> <p>`) ou retirée.
+   (`page <doc> <p>`) ou retirée. **Vu en extrait = jamais entre crochets**, même avec
+   « vu en extrait seulement » : non lue, elle va sans crochets ni page dans « Où
+   creuser ensuite » (« à lire : CTAL-TA v4.0 EN §1.2.4 »).
 4. **Verdict par pratique** selon `referentiel/grille-maturite.md` (lis-la avec `Read`) :
    Aligné, Partiellement aligné, Écart, Hors ISTQB, Non vérifiable.
 5. **Manques** : les étapes de la liste de contrôle absentes de la démarche.
@@ -86,6 +88,8 @@ ancienne, une seule langue ou aucun syllabus local ne couvre la démarche, propo
 - Si une piste mérite d'être conservée (ex. la liste de contrôle RBT), rends-la en JSON
   prêt à l'emploi (champs de `python qa.py idee modele`) sans l'enregistrer.
   **Dépôt public** : n'enregistre rien qui nomme un client, une personne, un projet ou un montant (anonymiser) ; un document interne s'importe avec `importer --prive` (`bibliotheque/prive/`, jamais versionné).
+- « Où creuser ensuite » : sections à lire pour affiner l'avis, sans crochets ni page
+  (c'est là que vont les références vues seulement en extrait).
 - **Traçabilité** (bloc final) : date de l'avis ; pour chaque document lu, `doc_id`,
   version et date de publication ; sections et pages lues ; requêtes `chercher` lancées.
 - **En pied** : la même mention « Avis indicatif… » qu'en tête.

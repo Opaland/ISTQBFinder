@@ -43,10 +43,20 @@ def motif_sous_sections(numero: str) -> str:
 
 
 def racine(mot: str) -> str:
-    """Racinisation minimale FR/EN (pluriels) : suffisante pour comparer des titres."""
-    for suf in ("ies", "es", "s", "x"):
-        if len(mot) > 4 and mot.endswith(suf):
-            return mot[: -len(suf)] + ("y" if suf == "ies" else "")
+    """Racinisation minimale FR/EN (pluriels) : suffisante pour comparer des titres.
+
+    Marque du pluriel (« s », « x ») puis « e » final retirés l'un après l'autre (#180) :
+    singulier et pluriel d'un mot en « -e » ont la même racine (« exploratoire » et
+    « exploratoires » → « exploratoir », « techniques » → « techniqu »), comme les pluriels
+    anglais en « -es » (« processes » → « process »). Retirer « es » d'un bloc séparait
+    « exploratoires » (« exploratoir ») de « exploratoire » (inchangé). Un mot en « -ss »
+    n'est pas un pluriel (« process », « class ») : il garde son « s »."""
+    if len(mot) > 4 and mot.endswith("ies"):
+        return mot[:-3] + "y"
+    if len(mot) > 4 and mot[-1] in "sx" and not mot.endswith("ss"):
+        mot = mot[:-1]
+    if len(mot) > 4 and mot.endswith("e"):
+        mot = mot[:-1]
     return mot
 
 

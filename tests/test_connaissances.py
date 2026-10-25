@@ -545,3 +545,47 @@ def test_migration_base_sans_colonne_empreinte():
     cx.close()
     connaissances.modifier(q1, {"references": [{"type": "web", "url": "https://exemple.org/b"}]})
     assert len(connaissances.voir(q1)["references"]) == 2
+
+
+TRADUITE = {"titre": "Likelihood-impact grid to rank test effort",
+            "resume": "Score each product risk on likelihood and impact, then order testing accordingly.",
+            "probleme": "Testing effort spread evenly although risks differ.",
+            "principe": "Risk level = likelihood x impact; drives test depth and sequence.",
+            "theme_principal": "rbt"}
+REF_P6 = {"type": "istqb", "doc_id": "CTFL", "pages": "6",
+          "extrait": "Risk level is determined by risk likelihood and risk impact"}
+
+
+def test_doublon_traduit_citant_le_meme_extrait_istqb(bibliotheque_test):
+    """#160 : traduite en anglais avec la même référence, l'idée n'était que « proche » (0.37)."""
+    assert connaissances.similarite(IDEE, TRADUITE) < connaissances.SEUIL_DOUBLON  # sans référence
+    q1 = connaissances.ajouter({**IDEE, "references": [dict(REF_P6)]})["id"]
+    r = connaissances.ajouter({**TRADUITE, "references": [dict(REF_P6)]})
+    assert r["etat"] == "refuse" and r["doublons"][0]["id"] == q1
+    assert r["doublons"][0]["verdict"] == "doublon probable"
+    # Extrait plus court contenu dans l'autre, casse différente : même indice.
+    court = {**REF_P6, "extrait": "risk level is determined by risk likelihood"}
+    assert connaissances.similarite({**IDEE, "references": [REF_P6]}, {**TRADUITE, "references": [court]}) \
+        >= connaissances.SEUIL_DOUBLON
+
+
+@pytest.mark.parametrize("ref_b, bonus", [
+    ({"type": "istqb", "doc_id": "CTFL", "pages": "5-7"}, connaissances.BONUS_PAGES),   # pages recouvertes
+    ({"type": "istqb", "doc_id": "CTFL", "pages": "9"}, 0.0),                           # autres pages
+    ({"type": "istqb", "doc_id": "CTAL-TM", "pages": "6",
+      "extrait": REF_P6["extrait"]}, 0.0),                                              # autre document
+    ({"type": "web", "url": "https://exemple.org", "pages": "6"}, 0.0),                 # pas ISTQB
+])
+def test_bonus_de_reference_commune(ref_b, bonus):
+    a = {"references": [REF_P6]}
+    assert connaissances._bonus_references(a, {"references": [ref_b]}) == bonus
+    assert connaissances._bonus_references({"references": [ref_b]}, a) == bonus
+
+
+def test_meme_extrait_sans_contenu_commun_reste_seulement_proche():
+    """Deux idées distinctes peuvent s'appuyer sur le même passage : signalées, pas bloquées."""
+    autre = {"titre": "Entretiens annuels des testeurs", "resume": "Préparer les entretiens individuels.",
+             "probleme": "Entretiens bâclés.", "principe": "Grille d'objectifs et de compétences.",
+             "theme_principal": "competences", "references": [REF_P6]}
+    s = connaissances.similarite({**IDEE, "references": [REF_P6]}, autre)
+    assert connaissances.SEUIL_PROCHE <= s < connaissances.SEUIL_DOUBLON

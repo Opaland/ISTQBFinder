@@ -71,6 +71,7 @@ Aucun serveur, aucune interface graphique, aucune clé d'API. Dépendance unique
 | #106 fautes de frappe corrigées, mots coupés recollés à l'extraction | 100 % (0,91) → 100 % (0,92) | 72 % → 82 % (40 q.) |
 | #165 titre de section identique à la question (signature puis mots), « partitionnement d'équivalence » au thésaurus | 100 % (0,92) → 100 % (0,94) | 79 % (34/43, 0,70) → 88 % (38/43, 0,79) |
 | #166 faute de frappe sur un mot de 4 lettres (« tets ») | 100 % (0,94) → 100 % (0,94) | 84 % (38/45, 0,75) → 89 % (40/45, 0,78) |
+| #177 extraction : introduction de chapitre rattachée au chapitre et non à sa 1re sous-section (17 titres replacés, éloigné 20 % → 20 %) | 100 % (0,94) → 100 % (0,94) | 89 % (40/45, 0,78) → 89 % (40/45, 0,78) |
 | **État actuel** (moteur lexical ; #59 : mêmes classements, ≈ 8 × plus rapide) | **100 % (MRR 0,94)** | **89 % (40/45, MRR 0,78)** |
 
 Le 100 % du jeu de réglage est optimiste par construction ; le chiffre honnête est celui

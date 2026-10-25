@@ -14,7 +14,7 @@ from .textes import normaliser
 # Toute modification de l'extraction, du découpage ou de la détection des métadonnées doit
 # incrémenter ce numéro :
 # l'actualisation réindexe alors les documents extraits par une version antérieure.
-VERSION_EXTRACTEUR = 12
+VERSION_EXTRACTEUR = 13
 
 TAILLE_PASSAGE = 1400   # caractères visés par passage
 PAGE_VIDE = 40          # moins de caractères utiles = page vide (scan, image)
@@ -319,10 +319,22 @@ def _plan_depuis_texte(pages: list[Page], vocab: Counter | None = None) -> list[
 
 
 def _ligne_du_titre(lignes: list[str], num: str, libelle: str) -> int:
-    """Ligne où commence le titre d'un signet : titre complet, titre coupé sur deux lignes,
-    puis numéro seul en début de ligne. 0 (début de page) en dernier recours."""
+    """Ligne où commence le titre d'un signet : ligne qui commence par le numéro puis le
+    titre, ligne qui commence par le titre, titre contenu dans une ligne, titre coupé sur
+    deux lignes, puis numéro seul en début de ligne. 0 (début de page) en dernier recours.
+
+    Les deux premiers essais passent avant la simple inclusion (#177) : « Risk Analysis »
+    figure aussi dans une phrase de l'introduction du chapitre (« …involves risk analysis
+    and risk control… ») ; s'arrêter sur cette phrase rangeait l'introduction sous §2.1."""
     cle = normaliser(libelle)[:30]
     norm = [normaliser(l) for l in lignes]
+    if cle:
+        for i, l in enumerate(norm):
+            if num and l.startswith(f"{normaliser(num)} {cle}"):
+                return i
+        for i, l in enumerate(norm):
+            if l.startswith(cle):
+                return i
     for i, l in enumerate(norm):
         if cle and cle in l:
             return i

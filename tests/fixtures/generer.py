@@ -4,7 +4,11 @@ Les PDF produits sont versionnés ; ce script documente comment ils ont été fa
 permet de les régénérer (reportlab requis, uniquement pour cette génération).
 Ils reproduisent les pièges rencontrés dans les vrais syllabus : en-tête répété avec
 « Page N of M », table des matières à pointillés, liste numérotée dans le préambule,
-objectifs d'apprentissage qui répètent les titres, index final."""
+objectifs d'apprentissage qui répètent les titres, index final.
+
+`ctal-ta-v4.0-en-p24-25.pdf` n'est pas généré : c'est un extrait réel (pages 24-25, avec
+leurs signets) de « ISTQB® Certified Tester Advanced Level Test Analyst (CTAL-TA) v4.0 »,
+© ISTQB®, copié sans modification depuis `bibliotheque/sources/` pour le test de #177."""
 from pathlib import Path
 
 from reportlab.lib.pagesizes import A4

@@ -891,6 +891,8 @@ def _descendants(code: str) -> set[str]:
 
 
 def lister(theme: str | None = None, statut: str | None = None) -> list[dict]:
+    if statut and statut not in STATUTS:  # #162 : « validée » ne listait silencieusement rien
+        raise ErreurValidation(f"Statut invalide : {statut} (valeurs acceptées : {', '.join(STATUTS)}).")
     cx = ouvrir()
     try:
         sql, params = "SELECT DISTINCT i.* FROM idees i JOIN idee_themes t ON t.idee_id=i.id WHERE 1=1", []
@@ -907,11 +909,14 @@ def lister(theme: str | None = None, statut: str | None = None) -> list[dict]:
 
 
 def chercher(requete: str, n: int = 10, theme: str | None = None) -> list[dict]:
-    """Recherche plein texte dans les idées, avec l'expansion FR/EN du thésaurus."""
+    """Recherche plein texte dans les idées, avec l'expansion FR/EN du thésaurus. Sans
+    notion cherchable mais avec un thème : toutes les idées du thème (#162), sans score."""
     from .recherche import groupes
     gs = groupes(requete)
     if not gs:
-        return []
+        if not theme:
+            return []
+        return [{**i, "score": None, "extrait": i["resume"] or ""} for i in lister(theme)]
     expr = " OR ".join(g.fts() for g in gs)
     filtre, params = "", []
     if theme:

@@ -4,8 +4,15 @@ Questions posées en conditions réelles (`claude -p --agent …`) par `scripts/
 sur `eval/essais.json`. Réponses complètes et commandes exécutées :
 `eval/essais-resultats/<date>/<id>.md`. Le harnais vérifie automatiquement que chaque
 citation « §x, p. N » (ou « pp. N-M ») correspond à une page **lue** pendant la
-conversation ; une référence que l'agent déclare lui-même non lue dans « Confiance »,
-« Limites » ou « Traçabilité » n'est pas une citation. Le jugement de fond ci-dessous est humain.
+conversation ; une référence que l'agent déclare lui-même non lue (ou lue en partie) dans
+« Confiance », « Limites », « Traçabilité » ou « Sources retenues » n'est pas une citation.
+Les essais tournent avec les permissions réelles du dépôt (règles `allow` de
+`.claude/settings.json`, aucune écriture pré-approuvée) sur une copie temporaire des
+données (`QAK_RACINE`). Le jugement de fond ci-dessous est humain.
+
+Les tableaux d'une campagne qui désigne ses fichiers (« Fichiers : `eval/…/<date>/` »)
+reprennent les en-têtes de ces fichiers ; `tests/test_essais.py` vérifie l'accord (#178).
+Les tableaux plus anciens sont historiques : leurs fichiers ont pu être régénérés depuis.
 
 ## Campagne du 2026-10-22 (main après #17)
 
@@ -181,6 +188,27 @@ des tableaux du 2026-10-22, dont les fichiers ont été régénérés depuis (#1
 Les deux échecs sont mineurs. M5 est un faux positif du contrôle : une lecture partielle déclarée
 dans « Sources retenues » est comptée comme une citation (#181). S2 contient une vraie entorse :
 une référence « vue en extrait seulement » est citée entre crochets malgré la règle (#182).
+
+## Relance ciblée du 2026-10-25 (main d73630d : #157, #172, #181, #182)
+
+Relance des essais touchés par le lot : M5 et S2 (échecs du 2026-10-23), M3, M7 et S3
+(sigle reconstruit, #172). Fichiers : `eval/essais-resultats/2026-10-25/`. Premiers
+passages, aucune relance nécessaire.
+
+| Essai | Agent | Tours | Coût | Confiance | Citations lues | Web | Critères | Verdict |
+|---|---|---|---|---|---|---|---|---|
+| S2-automatisation | sylvie | 8 | 0,164 $ | 74 | 10/10 | 0 | — | réussi (23/10 : ÉCHEC, 11/12) |
+| M3-web | thomas | 9 | 0,191 $ | 83 | 7/7 | 0 | 6/6 | réussi (23/10 : réussi, 8/8) |
+| M5-mobile | thomas | 8 | 0,164 $ | 72 | 8/8 | 0 | 6/6 | réussi (23/10 : ÉCHEC, 13/14) |
+| S3-reglemente | sylvie | 4 | 0,133 $ | 62 | 11/11 | 0 | 5/5 | réussi (23/10 : réussi, 9/9) |
+| M7-shift-left | thomas | 8 | 0,162 $ | 90 | 9/9 | 0 | 7/7 | réussi (23/10 : réussi, 10/10) |
+
+**Synthèse** : 5 essais sur 5 réussis, 45 citations sur 45 lues (avant : 3 sur 5, 49/53).
+Aucun sigle reconstruit (« CTAL-TAS » : 0 occurrence) ; 69 des 77 références entre crochets
+sont la copie exacte d'une ligne `Citer :` affichée (les autres regroupent des pages, `pp. N-M`). Aucune référence vue en extrait
+entre crochets : S2 renvoie à « Où creuser ensuite ». Les essais ont tourné sans
+écriture pré-approuvée, sur une copie des données ; les permissions réelles suffisent
+(aucune commande de lecture refusée). Coût : 0,81 $.
 
 ## Relancer
 

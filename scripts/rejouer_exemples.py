@@ -15,9 +15,11 @@ import re
 import shutil
 import subprocess
 import sys
-import tempfile
 from datetime import date
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import commun  # noqa: E402
 
 RACINE = Path(__file__).resolve().parent.parent
 
@@ -87,17 +89,10 @@ def affichage(args):
 def main():
     if not (RACINE / "bibliotheque" / "index.db").exists():
         sys.exit("Index absent : lancer d'abord `python qa.py actualiser`.")
-    tmp = Path(tempfile.mkdtemp(prefix="qak-exemples-"))
+    # Base d'idées vide : seuls l'index et le manifeste sont copiés.
+    tmp = commun.racine_temporaire(RACINE, ("bibliotheque/index.db", "bibliotheque/manifeste.json"),
+                                   "qak-exemples-")
     try:
-        (tmp / "bibliotheque").mkdir()
-        (tmp / "connaissances").mkdir()
-        for nom in ("index.db", "manifeste.json"):
-            shutil.copy2(RACINE / "bibliotheque" / nom, tmp / "bibliotheque" / nom)
-        # Les PDF servent au contrôle « index à jour » des références (copie si pas de lien).
-        try:
-            (tmp / "bibliotheque" / "sources").symlink_to(RACINE / "bibliotheque" / "sources")
-        except OSError:
-            shutil.copytree(RACINE / "bibliotheque" / "sources", tmp / "bibliotheque" / "sources")
         env = dict(os.environ, QAK_RACINE=str(tmp), PYTHONIOENCODING="utf-8")
         ident = None
         lignes = [f"# Sorties CLI des exemples — {date.today().isoformat()}", "",

@@ -2,11 +2,7 @@ name: Essai formes lanceur (#203, jetable)
 on: push
 jobs:
   essai:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -16,12 +12,21 @@ jobs:
         with:
           node-version: '22'
       - run: pip install -r requirements.txt -r requirements-mcp.txt
-      - run: npm install -g @anthropic-ai/claude-code && claude --version
-      - shell: bash
+      - run: npm install -g @anthropic-ai/claude-code; claude --version
+        shell: pwsh
+      - name: Avec Git Bash
+        shell: pwsh
         run: |
-          python essai/fabriquer.py "$RUNNER_TEMP/essai-plugin"
-          claude plugin validate "$RUNNER_TEMP/essai-plugin" || true
-          claude plugin marketplace add "$RUNNER_TEMP/essai-plugin"
+          python essai/fabriquer.py "$env:RUNNER_TEMP/essai-plugin"
+          claude plugin marketplace add "$env:RUNNER_TEMP/essai-plugin"
           claude plugin install essai@essai-mkt
-          claude mcp list || true
-          echo "--- where"; which python python3 py sh || true
+          claude mcp list
+          Get-Content "$env:TEMP/marques-essai.txt" -ErrorAction SilentlyContinue
+          Remove-Item "$env:TEMP/marques-essai.txt" -ErrorAction SilentlyContinue
+      - name: Sans Git Bash
+        shell: pwsh
+        run: |
+          foreach ($f in "C:\Program Files\Git\bin\bash.exe","C:\Program Files\Git\bin\sh.exe","C:\Program Files\Git\usr\bin\bash.exe","C:\Program Files\Git\usr\bin\sh.exe") { if (Test-Path $f) { Rename-Item $f "$f.cache" } }
+          Get-Command bash, sh -ErrorAction SilentlyContinue | Format-List Source
+          claude mcp list
+          Get-Content "$env:TEMP/marques-essai.txt" -ErrorAction SilentlyContinue

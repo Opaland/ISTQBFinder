@@ -50,9 +50,16 @@ def racine(mot: str) -> str:
     « exploratoires » → « exploratoir », « techniques » → « techniqu »), comme les pluriels
     anglais en « -es » (« processes » → « process »). Retirer « es » d'un bloc séparait
     « exploratoires » (« exploratoir ») de « exploratoire » (inchangé). Un mot en « -ss »
-    n'est pas un pluriel (« process », « class ») : il garde son « s »."""
+    n'est pas un pluriel (« process », « class ») : il garde son « s ».
+
+    « -ies » et « -ie » donnent tous deux « -y » (#196) : la règle anglaise « strategies »
+    → « strategy » s'appliquait aussi au pluriel français « stratégies », séparé de
+    « stratégie » (« strategi ») ; singulier et pluriel, français et anglais, se rejoignent
+    (« strategy »)."""
     if len(mot) > 4 and mot.endswith("ies"):
         return mot[:-3] + "y"
+    if len(mot) > 4 and mot.endswith("ie"):
+        return mot[:-2] + "y"
     if len(mot) > 4 and mot[-1] in "sx" and not mot.endswith("ss"):
         mot = mot[:-1]
     if len(mot) > 4 and mot.endswith("e"):

@@ -1,0 +1,27 @@
+name: Essai formes lanceur (#203, jetable)
+on: push
+jobs:
+  essai:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: pip install -r requirements.txt -r requirements-mcp.txt
+      - run: npm install -g @anthropic-ai/claude-code && claude --version
+      - shell: bash
+        run: |
+          python essai/fabriquer.py "$RUNNER_TEMP/essai-plugin"
+          claude plugin validate "$RUNNER_TEMP/essai-plugin" || true
+          claude plugin marketplace add "$RUNNER_TEMP/essai-plugin"
+          claude plugin install essai@essai-mkt
+          claude mcp list || true
+          echo "--- where"; which python python3 py sh || true

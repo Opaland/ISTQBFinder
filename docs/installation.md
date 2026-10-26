@@ -109,6 +109,88 @@ Vérifier : `./installer.sh --assistant copilot`.
 
 Vérifier : `./installer.sh --assistant gemini`. Limites : README, « Utiliser avec Gemini CLI ».
 
+### Serveur MCP local en lecture seule (optionnel)
+
+`python qa.py mcp` lance un serveur [MCP](https://modelcontextprotocol.io) sur stdio. Il
+expose les commandes de **lecture** à tout client MCP (Claude Code, Claude Desktop, VS Code…),
+y compris quand l'assistant n'est pas ouvert dans le clone :
+
+| Outil MCP | Commande équivalente |
+|---|---|
+| `chercher` | `chercher <notions> [--doc] [--langue] [--section] [--theme] …` |
+| `lire`, `section`, `page` | mêmes commandes ; la sortie garde la ligne `Citer : […]` à recopier et la borne `max_caracteres` |
+| `plan` | `plan <doc>` |
+| `idee_chercher`, `idee_voir` | `idee chercher`, `idee voir` |
+| `confiance` | `confiance --base … --lus … --concordants …` ; rappelle en plus combien de passages le serveur a vu lire |
+| `passages_lus` | propre au serveur : références lues dans la session, ou « LU / NON LU » pour une citation donnée |
+
+Chaque outil appelle la CLI (`qak/cli.py`) : mêmes vérifications, mêmes messages d'erreur
+en français. Le serveur **n'écrit rien** : capitaliser une idée, importer ou télécharger un
+document reste dans la CLI, avec l'accord de l'utilisateur. Il relève chaque passage
+affiché par `lire`, `section` ou `page` (en mémoire, pour la durée de la session, et une
+ligne sur stderr, c'est-à-dire dans le journal du client MCP) : « lire avant de citer » se
+vérifie avec `passages_lus`.
+
+Installation (dans le venv du clone ; le SDK `mcp` ≥ 2.3 est **optionnel**, `pypdf` reste
+la seule dépendance obligatoire) :
+
+```bash
+.venv/bin/python -m pip install -r requirements-mcp.txt     # Windows : .venv\Scripts\python -m pip …
+.venv/bin/python qa.py mcp                                   # test : attend un client sur stdio (Ctrl+C)
+```
+
+Sans le SDK, `python qa.py mcp` répond « Le serveur MCP demande le SDK Python `mcp` … » et
+s'arrête (code 2).
+
+**Claude Code** — chemins **absolus** vers le Python du venv et vers `qa.py` (le serveur
+trouve la bibliothèque à côté de `qa.py`, quel que soit le dossier ouvert) :
+
+```bash
+claude mcp add istqbfinder --scope user -- /chemin/ISTQBFinder/.venv/bin/python /chemin/ISTQBFinder/qa.py mcp
+claude mcp list                     # « istqbfinder: … - ✓ Connected »
+```
+
+`--scope user` : disponible dans tous les projets ; `--scope local` (défaut) : ce projet
+seulement ; `--scope project` écrit un `.mcp.json` à la racine du projet, de la forme :
+
+```json
+{"mcpServers": {"istqbfinder": {"command": "/chemin/ISTQBFinder/.venv/bin/python",
+                                "args": ["/chemin/ISTQBFinder/qa.py", "mcp"]}}}
+```
+
+Claude Code demande d'approuver un serveur de `.mcp.json` au premier lancement interactif.
+Les outils apparaissent sous les noms `mcp__istqbfinder__chercher`, `mcp__istqbfinder__lire`…
+(à autoriser à la demande, ou par une règle `allow` qui ne nomme que ces outils de lecture).
+Dans le clone lui-même, la CLI suffit : le serveur sert surtout **hors du clone**.
+
+**Claude Desktop** (onglet Chat de l'appli de bureau) — menu Claude → Settings… → Developer
+→ Edit Config, qui ouvre `claude_desktop_config.json`
+(macOS : `~/Library/Application Support/Claude/claude_desktop_config.json` ;
+Windows : `%APPDATA%\Claude\claude_desktop_config.json`), puis quitter et relancer l'appli :
+
+```json
+{
+  "mcpServers": {
+    "istqbfinder": {
+      "command": "C:\\chemin\\ISTQBFinder\\.venv\\Scripts\\python.exe",
+      "args": ["C:\\chemin\\ISTQBFinder\\qa.py", "mcp"]
+    }
+  }
+}
+```
+
+(macOS : `"/chemin/ISTQBFinder/.venv/bin/python"` et `"/chemin/ISTQBFinder/qa.py"`.) Le journal
+du serveur, dont le relevé des lectures, est dans `mcp-server-istqbfinder.log` (macOS :
+`~/Library/Logs/Claude`, Windows : `%APPDATA%\Claude\logs`). Sans le skill, Claude Desktop
+reçoit les règles (ordre de recherche, lire avant de citer, confiance) par les
+`instructions` du serveur MCP ; il ne connaît ni Thomas ni Sylvie. **Non essayé en réel** :
+pas d'appli de bureau dans l'environnement de développement.
+
+**Paquet `.mcpb`** (extension Claude Desktop installable en un clic) : non produit pour
+l'instant. Il ne peut pas embarquer les PDF (autorisation propre à ce dépôt, voir
+`NOTICE.md`), devrait donc pointer vers un clone installé, et n'a pas pu être essayé dans
+Claude Desktop : voir #200.
+
 ## Ce qui a été essayé
 
 - `installer.sh` : exécuté sur un clone propre (Linux, Python 3.13) puis relancé
@@ -116,6 +198,8 @@ Vérifier : `./installer.sh --assistant gemini`. Limites : README, « Utiliser a
   avec Python 3.10 (job `installation-linux`).
 - `installer.ps1` : exécuté par la CI sous Windows PowerShell 5.1 (job `installation-windows`) ;
   non essayé sur un poste Windows réel.
+- Serveur MCP : dialogue stdio réel avec le client du SDK officiel `mcp` 2.3.0
+  (`tests/test_mcp.py`, job `tests` de la CI) et avec Claude Code (voir la PR #153).
 - Assistants : chargement des fichiers vérifié avec Copilot CLI 1.0.102 et Gemini CLI 0.65.0 ;
   **aucune réponse obtenue de Copilot ni de Gemini**, faute de compte dans l'environnement
   de développement (voir README).
@@ -126,3 +210,9 @@ Documentation consultée (2026-10-22) :
 [Copilot CLI — skills](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills) ·
 [VS Code — Agent Skills](https://code.visualstudio.com/docs/copilot/customization/agent-skills) ·
 [Gemini CLI — skills](https://geminicli.com/docs/cli/skills/).
+
+Serveur MCP (2026-10-26) :
+[Claude Code — MCP](https://code.claude.com/docs/en/mcp) ·
+[Claude Desktop — serveurs locaux](https://modelcontextprotocol.io/docs/develop/connect-local-servers) ·
+[SDK Python v2 — migration (FastMCP → MCPServer)](https://py.sdk.modelcontextprotocol.io/v2/migration/) ·
+[MCPB — manifeste](https://github.com/modelcontextprotocol/mcpb/blob/main/MANIFEST.md).

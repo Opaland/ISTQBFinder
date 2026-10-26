@@ -29,7 +29,13 @@ métadonnées, doublons, versions, index) · `catalogue` (istqb.org) · `recherc
 thésaurus + reclassement) · `connaissances` (idées, déduplication, références vérifiées) ·
 `taxonomie` · `journal` · `evaluation` · `cli`.
 
-Aucun serveur, aucune interface graphique, aucune clé d'API. Dépendance unique : `pypdf`.
+Aucun serveur réseau, aucune interface graphique, aucune clé d'API. Dépendance unique : `pypdf`.
+
+`serveur_mcp` (#153, optionnel, SDK `mcp` de `requirements-mcp.txt`) : `python qa.py mcp`
+expose les commandes de lecture sur stdio à tout client MCP. Chaque outil appelle
+`cli.main()` et renvoie sa sortie texte (aucune logique dupliquée) ; les passages affichés
+par `lire` / `section` / `page` sont relevés (`cli.LECTURES`) et consultables par l'outil
+`passages_lus`. Aucune écriture n'est exposée.
 
 ## Choix et compromis
 

@@ -307,17 +307,26 @@ def cmd_confiance(a):
     _ecrire(f"\nConfiance : {r['score']}/100 ({r['libelle']})")
 
 
+# Relevé des passages affichés par `lire` / `section` / `page`, tenu par le serveur MCP (#153)
+# pour que « lire avant de citer » reste vérifiable ; None (CLI) : rien n'est relevé.
+LECTURES: list[dict] | None = None
+
+
 def _afficher_passages(rows: list[dict], doc: dict | None = None):
     courant = None
     for p in rows:
         d = doc or p
         sec = f"§{p['section_num']} {p['section_titre']}".strip()
         cle = (p["doc_id"], p["page"], sec)
+        citer = _ref_citation(d, p)
         if cle != courant:
             _ecrire(f"\n── {_ref_doc({**d, 'doc_id': p['doc_id']})} · {_ref_page(p)} · {sec} (passage #{p['id']})")
-            _ecrire(f"Citer : {_ref_citation(d, p)}")
+            _ecrire(f"Citer : {citer}")
             courant = cle
         _ecrire(p["texte"])
+        if LECTURES is not None:
+            LECTURES.append({"passage": p["id"], "doc_id": p["doc_id"], "page": p["page"],
+                             "section": p.get("section_num") or "", "citer": citer})
 
 
 def cmd_lire(a):
@@ -597,6 +606,11 @@ def cmd_diagnostic(a):
     _ecrire(f"\nDiagnostic : {'OK' if not ko else f'KO ({ko} point(s) bloquant(s))'}")
     if ko:
         raise SystemExit(1)
+
+
+def cmd_mcp(a):
+    from . import serveur_mcp
+    serveur_mcp.lancer()
 
 
 def cmd_evaluer(a):
@@ -888,6 +902,8 @@ def analyseur() -> argparse.ArgumentParser:
     x.add_argument("--assistant", choices=["claude", "copilot", "gemini", "tous"],
                    help="vérifie aussi les fichiers et la CLI de cet assistant")
     x.set_defaults(f=cmd_diagnostic)
+    x = sp.add_parser("mcp", help="serveur MCP local en lecture seule, sur stdio (SDK optionnel : requirements-mcp.txt)")
+    x.set_defaults(f=cmd_mcp)
     x = sp.add_parser("evaluer", help="mesure la qualité de la recherche sur eval/requetes.json")
     x.add_argument("-k", type=_entier_positif, default=5)
     x.add_argument("--jeu", choices=["tout", "reglage", "controle", "eloigne"], default="tout",

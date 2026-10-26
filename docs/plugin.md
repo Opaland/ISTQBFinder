@@ -338,18 +338,22 @@ Le lanceur suit ces règles :
   `claude plugin validate --strict` : « Validation passed ».
 - `claude plugin marketplace add <dossier>`, puis `claude plugin install istqbfinder@istqbfinder` :
   installé, version `1.0.0+<commit>`, « Read from: <dossier> » (chargé en place).
-- `bin/qa installer CTFL CTAL-TM`, en 31 s :
+- `bin/qa installer CTFL CTAL-TM`, en 28 s :
   - venv créé dans `~/.claude/plugins/data/istqbfinder-istqbfinder/venv` ;
   - `CTAL-TM importe CTAL-TM-3.0-en — 87 pages`, `CTFL importe CTFL-4.0.1-en — 78 pages`,
     téléchargés depuis istqb.org ;
   - `Diagnostic : OK` (2 documents, 370 passages) ;
-  - rien d'écrit dans le dossier du plugin.
+  - aucun `__pycache__`, PDF ni `.db` dans le dossier du plugin.
 - `claude mcp list` : `plugin:istqbfinder:istqbfinder … bin/qa mcp - ✔ Connected`.
 - `claude -p … --model haiku --max-budget-usd 0.50`, depuis un dossier vide, avec les seuls
-  outils `mcp__plugin_istqbfinder_istqbfinder__*`, 0,006 $ :
-  - appels `chercher` (`doc: ["CTAL-TM"]`), puis `lire` ;
-  - réponse : niveau de risque = probabilité × impact ;
-  - citation recopiée : `Citer : [CTAL-TM v3.0 EN, §1.3.3, p. 30]`.
+  outils `mcp__plugin_istqbfinder_istqbfinder__*`, 0,008 $ :
+  - appels `chercher` (en français puis en anglais), `section CTFL-4.0.1-en 5.2`, puis
+    `confiance` ;
+  - réponse sourcée, `Citer : [CTFL v4.0.1 EN, §5.2, p. 51]` recopié depuis la sortie de
+    `section`, et « Confiance : 77/100 ».
+- Un premier essai sur `CTAL-TM` a donné `chercher` puis `lire`, avec
+  `Citer : [CTAL-TM v3.0 EN, §1.3.3, p. 30]` (0,006 $).
+- `claude plugin uninstall` a bien supprimé `…/data/istqbfinder-istqbfinder/` (§ 6.6).
 - Outil Bash (haiku, 0,004 $) : `qa emplacements` et `qa inventaire` donnent le même
   dossier de données que le serveur MCP, avec les 2 documents.
 - Installation copiée dans le cache, comme depuis GitHub (marketplace de test à source

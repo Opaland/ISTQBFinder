@@ -15,9 +15,17 @@ communes dans `AGENTS.md`. Fichiers générés (à ne jamais modifier à la main
   en lecture seule pré-approuvées, reprises de `.claude/settings.json`).
   `.gemini/skills/` plutôt que `.agents/skills/`, que Copilot lit aussi (skills en double).
 
+- Plugin Claude Code (#184, `docs/plugin.md`) : `plugin/` — manifeste et marketplace locale
+  (`.claude-plugin/`), skills et agents recopiés avec `qa <commande>` à la place de
+  `python qa.py <commande>`, lanceur `bin/qa` (la CLI du clone, avec le Python de son venv)
+  et serveur MCP en lecture seule déclaré. Le plugin ne contient ni la CLI ni les PDF : il
+  se charge en place depuis un clone installé (`installer.sh`).
+
 Le test `tests/test_integrations.py` échoue si un fichier généré n'est pas à jour.
 """
 import json
+import os
+import re
 import sys
 from pathlib import Path
 
@@ -159,6 +167,179 @@ def reglages_gemini() -> str:
     return json.dumps(reglages, ensure_ascii=False, indent=2) + "\n"
 
 
+# ---------------------------------------------------------------- plugin Claude Code (#184)
+
+PLUGIN = "plugin"
+NOM_PLUGIN = "istqbfinder"
+MARKETPLACE = "istqbfinder-local"
+SERVEUR_MCP = "istqbfinder"
+# Nom complet des outils d'un serveur MCP fourni par un plugin :
+# mcp__plugin_<plugin>_<serveur>__<outil> (code.claude.com/docs/en/mcp).
+PREFIXE_MCP = f"mcp__plugin_{NOM_PLUGIN}_{SERVEUR_MCP}__"
+OUTILS_MCP = ("chercher", "lire", "section", "page", "plan", "idee_chercher", "idee_voir", "confiance",
+              "passages_lus")
+DEPOT = "https://github.com/Opaland/ISTQBFinder"
+EXECUTABLES = {f"{PLUGIN}/bin/qa"}  # fichiers générés à rendre exécutables
+
+LANCEUR = """#!/bin/sh
+# {marque} : ne pas modifier, relancer le script.
+# Lanceur du plugin ISTQBFinder : `qa <commande>` = `python qa.py <commande>` du clone,
+# avec le Python de son venv, depuis n'importe quel dossier (bin/ du plugin est dans le PATH
+# de l'outil Bash ; le serveur MCP du plugin est `qa mcp`).
+RACINE=$(cd "$(dirname "$0")/../.." && pwd)
+if [ ! -f "$RACINE/qa.py" ]; then
+  echo "ISTQBFinder : qa.py introuvable dans $RACINE. Le plugin se charge en place depuis un clone" >&2
+  echo "installé : claude plugin marketplace add <clone>/plugin, puis claude plugin install {plugin}@{marketplace}." >&2
+  exit 2
+fi
+for PY in "$RACINE/.venv/bin/python" "$RACINE/.venv/Scripts/python.exe"; do
+  if [ -x "$PY" ]; then exec "$PY" "$RACINE/qa.py" "$@"; fi
+done
+for PY in python3 python; do
+  if command -v "$PY" >/dev/null 2>&1; then exec "$PY" "$RACINE/qa.py" "$@"; fi
+done
+echo "ISTQBFinder : ni venv ($RACINE/.venv) ni Python dans le PATH. Lancer $RACINE/installer.sh." >&2
+exit 2
+"""
+
+
+def vers_plugin(texte: str) -> str:
+    """`python qa.py …` / `python3 qa.py …` → `qa …` (lanceur du plugin)."""
+    return re.sub(r"\bpython3? qa\.py\b", "qa", texte)
+
+
+def outils_skill_plugin(ligne: str) -> str:
+    """`allowed-tools` du skill : règles Bash réécrites pour `qa`, doublons python/python3
+    retirés, outils MCP en lecture seule ajoutés (pré-approuvés pendant le skill)."""
+    regles = []
+    for r in re.findall(r"Bash\([^)]*\)|[A-Za-z_][\w*]*", ligne):
+        r = vers_plugin(r)
+        if r not in regles:
+            regles.append(r)
+    return ", ".join(regles + [PREFIXE_MCP + "*"])
+
+
+def avertissement_plugin(source: str, avec_racine: bool = True) -> str:
+    lignes = [f"<!-- {MARQUE} depuis {source} : ne pas modifier, relancer le script. -->", "",
+              "> **Version plugin** d'ISTQBFinder (Claude Code hors du clone ; source unique : "
+              f"`{source}` du dépôt).",
+              "> - `qa <commande>` remplace `python qa.py <commande>` : lanceur fourni par le plugin, "
+              "utilisable depuis n'importe quel dossier (CLI du clone, Python de son venv).",
+              "> - Lecture : les outils MCP `" + "`, `".join(OUTILS_MCP) + f"` du serveur `{SERVEUR_MCP}` "
+              "donnent les mêmes sorties que les commandes du même nom (`idee_chercher` = `idee chercher`) ; "
+              "`passages_lus` dit si une référence a été lue dans la session. Toute écriture passe par "
+              "`qa`, avec l'accord explicite de l'utilisateur."]
+    if avec_racine:
+        lignes.append("> - Les chemins `bibliotheque/`, `referentiel/`, `connaissances/`, `docs/` sont "
+                      "relatifs au clone : `${CLAUDE_PLUGIN_ROOT}/..`.")
+    return "\n".join(lignes) + "\n\n"
+
+
+def skill_plugin(dossier: Path) -> dict[str, str]:
+    fichiers = {}
+    for f in sorted(p for p in dossier.rglob("*") if p.is_file()):
+        rel = f.relative_to(dossier).as_posix()
+        source = f".claude/skills/{dossier.name}/{rel}"
+        texte = f.read_text(encoding="utf-8").replace("\r\n", "\n")
+        if rel == "SKILL.md":
+            lignes = texte.split("\n")
+            fin = lignes.index("---", 1)
+            entete = [f"allowed-tools: {outils_skill_plugin(l.split(':', 1)[1])}" if l.startswith("allowed-tools:")
+                      else l for l in lignes[1:fin]]
+            corps = "\n".join(lignes[fin + 1:]).lstrip("\n")
+            texte = "\n".join(["---", *entete, "---"]) + "\n" + avertissement_plugin(source) + vers_plugin(corps)
+        elif f.suffix == ".md":
+            # Lus avec Read : ${CLAUDE_PLUGIN_ROOT} n'y serait pas remplacé.
+            texte = avertissement_plugin(source, avec_racine=False) + vers_plugin(texte)
+        fichiers[f"{PLUGIN}/skills/{dossier.name}/{rel}"] = texte
+    return fichiers
+
+
+def agent_plugin(chemin: Path) -> str:
+    lignes = chemin.read_text(encoding="utf-8").replace("\r\n", "\n").split("\n")
+    fin = lignes.index("---", 1)
+    entete = []
+    for l in lignes[1:fin]:
+        if l.startswith("tools:"):
+            # Un sous-agent n'a que les outils listés : on y ajoute ceux du serveur MCP.
+            l += ", " + ", ".join(PREFIXE_MCP + o for o in OUTILS_MCP)
+        elif l.startswith("  - ") and entete and entete[-1].startswith(("skills:", "  - ")):
+            l = f"  - {NOM_PLUGIN}:{l[4:].strip()}"  # skills d'un plugin : <plugin>:<skill>
+        entete.append(l)
+    corps = "\n".join(lignes[fin + 1:]).lstrip("\n")
+    corps = corps.replace(".claude/skills/", "${CLAUDE_PLUGIN_ROOT}/skills/")
+    return ("\n".join(["---", *entete, "---"]) + "\n"
+            + avertissement_plugin(f".claude/agents/{chemin.name}") + vers_plugin(corps))
+
+
+def manifeste_plugin() -> str:
+    manifeste = {
+        "name": NOM_PLUGIN,
+        "displayName": "ISTQBFinder",
+        "version": "0.1.0",
+        "description": "Assistant de connaissances QA : syllabus ISTQB locaux (FR/EN) cités page et section, "
+                       "base d'idées QA capitalisées, agents Thomas (chercheur) et Sylvie (auditrice). "
+                       "Se charge en place depuis un clone installé du dépôt (installer.sh).",
+        "author": {"name": "Opaland", "url": "https://github.com/Opaland"},
+        "homepage": f"{DEPOT}/blob/main/docs/plugin.md",
+        "repository": DEPOT,
+        "license": "MIT",
+        "keywords": ["istqb", "qa", "test", "syllabus", "tmmi"],
+        "mcpServers": {SERVEUR_MCP: {"command": "${CLAUDE_PLUGIN_ROOT}/bin/qa", "args": ["mcp"]}},
+    }
+    return json.dumps(manifeste, ensure_ascii=False, indent=2) + "\n"
+
+
+def marketplace_plugin() -> str:
+    """Marketplace LOCALE : dans `plugin/`, pas à la racine du dépôt, pour qu'elle ne s'ajoute
+    que depuis un clone (`claude plugin marketplace add <clone>/plugin`), jamais depuis GitHub."""
+    m = {"name": MARKETPLACE,
+         "owner": {"name": "Opaland", "url": "https://github.com/Opaland"},
+         "description": "Marketplace locale d'ISTQBFinder, à ajouter depuis un clone installé.",
+         "plugins": [{"name": NOM_PLUGIN, "source": "./",
+                      "description": "Syllabus ISTQB cités, base d'idées QA, agents Thomas et Sylvie (lecture "
+                                     "par serveur MCP, écritures soumises à l'accord de l'utilisateur)."}]}
+    return json.dumps(m, ensure_ascii=False, indent=2) + "\n"
+
+
+def lisez_moi_plugin() -> str:
+    return f"""<!-- {MARQUE} : ne pas modifier, relancer le script. -->
+
+# Plugin Claude Code ISTQBFinder
+
+Skills `qa-knowledge`, `bibliotheque` et `ajouter-syllabus`, agents Thomas (chercheur) et
+Sylvie (auditrice), et serveur MCP local en lecture seule d'ISTQBFinder, utilisables dans
+Claude Code depuis **n'importe quel projet**. Généré depuis `.claude/` par
+`scripts/generer_integrations.py`. Choix, limites et décisions en attente :
+[docs/plugin.md](../docs/plugin.md).
+
+Le plugin ne contient ni la CLI ni les syllabus : il se charge **en place** depuis un clone
+installé avec `installer.sh` (les PDF restent dans ce dépôt, voir `NOTICE.md`).
+
+```bash
+cd /chemin/ISTQBFinder && ./installer.sh
+.venv/bin/python -m pip install -r requirements-mcp.txt
+claude plugin marketplace add /chemin/ISTQBFinder/plugin
+claude plugin install {NOM_PLUGIN}@{MARKETPLACE}
+```
+
+Licence : MIT (code et documentation), comme le dépôt ; les syllabus n'en relèvent pas.
+"""
+
+
+def fichiers_plugin() -> dict[str, str]:
+    fichiers = {f"{PLUGIN}/.claude-plugin/plugin.json": manifeste_plugin(),
+                f"{PLUGIN}/.claude-plugin/marketplace.json": marketplace_plugin(),
+                f"{PLUGIN}/README.md": lisez_moi_plugin(),
+                f"{PLUGIN}/bin/qa": LANCEUR.replace("{marque}", MARQUE).replace("{plugin}", NOM_PLUGIN)
+                                           .replace("{marketplace}", MARKETPLACE)}
+    for chemin in sorted(AGENTS_CLAUDE.glob("*.md")):
+        fichiers[f"{PLUGIN}/agents/{chemin.name}"] = agent_plugin(chemin)
+    for dossier in sorted(d for d in SKILLS_CLAUDE.iterdir() if (d / "SKILL.md").exists()):
+        fichiers.update(skill_plugin(dossier))
+    return fichiers
+
+
 def fichiers_attendus() -> dict[str, str]:
     """Chemin relatif (POSIX) → contenu attendu de chaque fichier généré."""
     attendus = {}
@@ -169,11 +350,12 @@ def fichiers_attendus() -> dict[str, str]:
     for dossier in sorted(d for d in SKILLS_CLAUDE.iterdir() if (d / "SKILL.md").exists()):
         attendus.update(skill_gemini(dossier))
     attendus[".gemini/settings.json"] = reglages_gemini()
+    attendus.update(fichiers_plugin())
     return attendus
 
 
 def dossiers_geres() -> list[Path]:
-    return [RACINE / ".github" / "agents", RACINE / ".gemini"]
+    return [RACINE / ".github" / "agents", RACINE / ".gemini", RACINE / PLUGIN]
 
 
 def orphelins(attendus: dict[str, str]) -> list[str]:
@@ -210,6 +392,8 @@ def generer() -> list[str]:
             f.parent.mkdir(parents=True, exist_ok=True)
             f.write_text(contenu, encoding="utf-8", newline="\n")
             ecrits.append(rel)
+        if rel in EXECUTABLES and os.name != "nt" and not os.access(f, os.X_OK):
+            f.chmod(0o755)
     for rel in orphelins(attendus):
         (RACINE / rel).unlink()
         ecrits.append(f"{rel} (supprimé)")

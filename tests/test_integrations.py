@@ -65,8 +65,11 @@ def test_source_modifiee_detectee(tmp_path, monkeypatch):
     monkeypatch.setattr(gen, "SKILLS_CLAUDE", tmp_path / ".claude" / "skills")
     (tmp_path / ".claude" / "settings.json").write_text('{"permissions": {"allow": []}}', encoding="utf-8")
     monkeypatch.setattr(gen, "REGLAGES_CLAUDE", tmp_path / ".claude" / "settings.json")
-    generes = {".github/agents/essai.agent.md", ".gemini/agents/essai.md", ".gemini/commands/essai.toml"}
-    assert set(gen.ecarts()) == {f"absent : {g}" for g in generes | {".gemini/settings.json"}}
+    generes = {".github/agents/essai.agent.md", ".gemini/agents/essai.md", ".gemini/commands/essai.toml",
+               "plugin/agents/essai.md"}
+    fixes = {".gemini/settings.json", "plugin/.claude-plugin/plugin.json", "plugin/.claude-plugin/marketplace.json",
+             "plugin/README.md", "plugin/bin/qa"}
+    assert set(gen.ecarts()) == {f"absent : {g}" for g in generes | fixes}
     gen.generer()
     assert gen.ecarts() == []
     (agents / "essai.md").write_text("---\nname: essai\ndescription: Essai 2.\ntools: Bash\n---\n\nCorps.\n",

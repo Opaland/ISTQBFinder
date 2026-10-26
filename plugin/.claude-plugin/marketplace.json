@@ -1,0 +1,15 @@
+{
+  "name": "istqbfinder-local",
+  "owner": {
+    "name": "Opaland",
+    "url": "https://github.com/Opaland"
+  },
+  "description": "Marketplace locale d'ISTQBFinder, à ajouter depuis un clone installé.",
+  "plugins": [
+    {
+      "name": "istqbfinder",
+      "source": "./",
+      "description": "Syllabus ISTQB cités, base d'idées QA, agents Thomas et Sylvie (lecture par serveur MCP, écritures soumises à l'accord de l'utilisateur)."
+    }
+  ]
+}

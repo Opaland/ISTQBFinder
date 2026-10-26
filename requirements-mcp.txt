@@ -1,0 +1,4 @@
+# Serveur MCP local en lecture seule OPTIONNEL (issue #153) : `python qa.py mcp`.
+# Jamais requis par l'installation par défaut ; la CI l'installe dans le job `tests`.
+# SDK officiel en version 2 (classe MCPServer, ex-FastMCP) ; Python >= 3.10.
+mcp>=2.3,<3

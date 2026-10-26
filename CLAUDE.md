@@ -2,7 +2,8 @@
 
 Assistant de connaissances QA **conversationnel** pour un Test Manager / QA Lead :
 syllabus ISTQB locaux (FR/EN), base d'idées QA capitalisées, Web seulement si justifié.
-Français partout (messages, commits, commentaires). Pas de serveur ni d'interface.
+Français partout (messages, commits, commentaires). Pas de serveur réseau ni d'interface
+(serveur MCP stdio optionnel en lecture seule : `python qa.py mcp`).
 
 - Point d'entrée : le skill `.claude/skills/qa-knowledge/` (méthode, citations,
   capitalisation) et la CLI `python qa.py <commande>` (garanties : vérifications,

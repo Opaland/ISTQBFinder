@@ -7,7 +7,8 @@ citées), dans une base d'idées QA capitalisées au fil du temps, et sur le Web
 quand c'est justifié. Il ne « s'entraîne » pas : il enrichit une mémoire documentaire
 persistante, vérifiable et versionnée avec Git.
 
-Pas de serveur, pas d'interface graphique, pas de clé d'API. Python ≥ 3.10 + `pypdf`.
+Pas de serveur réseau, pas d'interface graphique, pas de clé d'API. Python ≥ 3.10 + `pypdf`
+(serveur MCP local en lecture seule optionnel : `python qa.py mcp`).
 
 ## Où l'utiliser
 
@@ -18,6 +19,7 @@ Pas de serveur, pas d'interface graphique, pas de clé d'API. Python ≥ 3.10 + 
 | **VS Code + GitHub Copilot Chat** (mode agent) | oui, non essayé en réel | skills lus dans `.claude/skills/`, agents `.github/agents/` générés, consignes `AGENTS.md` — voir [Utiliser avec GitHub Copilot](#utiliser-avec-github-copilot) |
 | **GitHub Copilot CLI** (`copilot`) | oui, chargement vérifié | idem ; réponses non essayées faute de compte Copilot |
 | **Gemini CLI** (`gemini`) | oui, chargement vérifié | skills `.gemini/skills/`, sous-agents `@thomas` / `@sylvie`, commandes `/thomas` / `/sylvie`, tous générés — voir [Utiliser avec Gemini CLI](#utiliser-avec-gemini-cli) |
+| **Claude Desktop, onglet Chat**, et tout client MCP | oui, par le serveur MCP local en lecture seule, non essayé dans l'appli | `python qa.py mcp` (SDK optionnel `requirements-mcp.txt`), outils `chercher`, `lire`, `section`, `page`… — voir [docs/installation.md](docs/installation.md#serveur-mcp-local-en-lecture-seule-optionnel) |
 | **claude.ai** (conversation Web ou appli, onglet Chat) | **non** | voir ci-dessous |
 
 Pourquoi pas claude.ai : le skill n'est pas autonome. Il pilote la CLI `python qa.py`
@@ -91,6 +93,7 @@ La CLI reste utilisable directement (`python qa.py --help`) :
 | Bibliothèque | `catalogue [--verifier]` · `telecharger` · `importer` · `actualiser` · `inventaire` · `corriger` · `retirer` |
 | Qualité de la recherche | `evaluer --jeu controle` |
 | Contrôle de l'installation | `diagnostic [--assistant claude\|copilot\|gemini\|tous]` |
+| Serveur MCP en lecture seule (stdio) | `mcp` (SDK optionnel : `pip install -r requirements-mcp.txt`) |
 
 ## Utiliser avec GitHub Copilot
 

@@ -20,6 +20,7 @@ Pas de serveur réseau, pas d'interface graphique, pas de clé d'API. Python ≥
 | **GitHub Copilot CLI** (`copilot`) | oui, chargement vérifié | idem ; réponses non essayées faute de compte Copilot |
 | **Gemini CLI** (`gemini`) | oui, chargement vérifié | skills `.gemini/skills/`, sous-agents `@thomas` / `@sylvie`, commandes `/thomas` / `/sylvie`, tous générés — voir [Utiliser avec Gemini CLI](#utiliser-avec-gemini-cli) |
 | **Claude Desktop, onglet Chat**, et tout client MCP | oui, par le serveur MCP local en lecture seule, non essayé dans l'appli | `python qa.py mcp` (SDK optionnel `requirements-mcp.txt`), outils `chercher`, `lire`, `section`, `page`… — voir [docs/installation.md](docs/installation.md#serveur-mcp-local-en-lecture-seule-optionnel) |
+| **Claude Code dans un autre projet** (plugin) | oui, Linux essayé | plugin `plugin/` chargé en place depuis le clone, marketplace locale — voir [docs/plugin.md](docs/plugin.md) |
 | **claude.ai** (conversation Web ou appli, onglet Chat) | **non** | voir ci-dessous |
 
 Pourquoi pas claude.ai : le skill n'est pas autonome. Il pilote la CLI `python qa.py`

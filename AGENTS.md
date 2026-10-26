@@ -17,7 +17,8 @@ Français partout (réponses, messages, commits, commentaires).
   `.claude/skills/qa-knowledge/SKILL.md` et applique-le.
 - Fichiers **générés** par `python scripts/generer_integrations.py` (ne jamais les modifier
   à la main ; modifier la source puis relancer le script) : `.github/agents/*.agent.md`,
-  tout le dossier `.gemini/` (skills copiés, sous-agents, commandes `/thomas` et `/sylvie`, réglages).
+  tout le dossier `.gemini/` (skills copiés, sous-agents, commandes `/thomas` et `/sylvie`, réglages),
+  tout le dossier `plugin/` (plugin Claude Code, `docs/plugin.md`).
 
 ## Répondre à une question QA (règles impératives)
 

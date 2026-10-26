@@ -5,6 +5,7 @@
 *.py text eol=lf
 *.toml text eol=lf
 *.sh text eol=lf
+plugin/bin/qa text eol=lf
 
 # Journal en ajout seul : une fusion garde les lignes des deux côtés au lieu d'un conflit.
 connaissances/journal.jsonl merge=union

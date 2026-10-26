@@ -1,0 +1,28 @@
+{
+  "name": "istqbfinder",
+  "displayName": "ISTQBFinder",
+  "version": "0.1.0",
+  "description": "Assistant de connaissances QA : syllabus ISTQB locaux (FR/EN) cités page et section, base d'idées QA capitalisées, agents Thomas (chercheur) et Sylvie (auditrice). Se charge en place depuis un clone installé du dépôt (installer.sh).",
+  "author": {
+    "name": "Opaland",
+    "url": "https://github.com/Opaland"
+  },
+  "homepage": "https://github.com/Opaland/ISTQBFinder/blob/main/docs/plugin.md",
+  "repository": "https://github.com/Opaland/ISTQBFinder",
+  "license": "MIT",
+  "keywords": [
+    "istqb",
+    "qa",
+    "test",
+    "syllabus",
+    "tmmi"
+  ],
+  "mcpServers": {
+    "istqbfinder": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/bin/qa",
+      "args": [
+        "mcp"
+      ]
+    }
+  }
+}

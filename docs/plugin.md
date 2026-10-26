@@ -94,8 +94,11 @@ serveur MCP du clone, et le reste par un lanceur `qa` :
 
 - `plugin/bin/qa` : `qa <commande>` = `python qa.py <commande>` du clone, avec le Python de
   son `.venv`. Le dossier `bin/` étant dans le `PATH` de l'outil Bash, les skills l'appellent
-  depuis n'importe quel dossier.
-- Serveur MCP `istqbfinder` déclaré dans `plugin.json` : `${CLAUDE_PLUGIN_ROOT}/bin/qa mcp`.
+  depuis n'importe quel dossier. Sous Windows, `plugin/bin/qa.cmd` joue le même rôle (#203) :
+  l'outil PowerShell trouve `qa.cmd`, l'outil Bash (Git Bash) trouve `qa`.
+- Serveur MCP `istqbfinder` déclaré dans `plugin.json` : `${CLAUDE_PLUGIN_ROOT}/bin/qa mcp`,
+  une seule déclaration pour les trois systèmes. Sous Windows, Claude Code résout ce chemin
+  sans extension vers `bin/qa.cmd`, avec ou sans Git Bash (voir « Ce qui a été essayé »).
 - Skills et agents recopiés. `python qa.py` y devient `qa`, et un en-tête signale les outils
   MCP. Les agents reçoivent les outils MCP dans `tools:` et le skill
   `istqbfinder:qa-knowledge` dans `skills:`.
@@ -173,15 +176,22 @@ Contrôles :
 - `tests/test_plugin.py` vérifie :
   - aucune écriture pré-approuvée ;
   - aucun PDF ni fichier binaire ;
-  - le lanceur réel, qui démarre la CLI du clone ;
+  - le lanceur réel (`bin/qa`, ou `bin/qa.cmd` sous Windows), qui démarre la CLI du clone et
+    transmet son code retour ;
+  - le serveur MCP démarré par ce lanceur, qui répond à `tools/list` (SDK `mcp` requis) ;
   - `claude plugin validate --strict plugin` quand la CLI `claude` est présente. La CI
-    l'installe dans le job `tests`.
+    l'installe dans les jobs `tests` et `plugin-windows`.
+- Job CI `plugin-windows` (#203) : les mêmes tests sous Windows, puis Git Bash retiré du
+  runner, `claude plugin install` et `claude mcp list`, qui doit montrer le serveur
+  `plugin:istqbfinder:istqbfinder` connecté. Ce contrôle ne demande aucun compte Claude.
 
 Limites :
 
-- **Windows** : le lanceur `bin/qa` est un script `sh`. Le serveur MCP du plugin ne démarre
-  pas sous Windows sans Git Bash, ce qui n'a pas été essayé. Il faut alors déclarer le
-  serveur à la main (`docs/installation.md`).
+- **Windows** : le lanceur cherche le Python du `.venv` du clone, puis `python`, puis
+  `py -3` (3.10 ou plus). L'alias `python` du Microsoft Store, sans Python installé, est
+  écarté par ce contrôle de version. Une question posée à Claude par le plugin sous
+  Windows n'a pas été essayée (pas de compte sur le runner) : seuls le démarrage du
+  serveur et `tools/list` le sont.
 - Le plugin installé **depuis GitHub** (copie dans le cache) ne trouve pas le clone. Le
   lanceur l'explique et s'arrête.
 
@@ -197,7 +207,14 @@ Limites :
 - `claude --agent istqbfinder:thomas -p …` (haiku) : Thomas cherche, lit un passage, cite
   `[CTAL-TA v4.0 FR, §3.4.1, p. 39]` et refuse de citer une section qu'il n'a pas lue
   (0,004 $).
-- Non essayé : Windows, macOS, Claude Desktop.
+- Windows, 2026-10-26, Claude Code 2.1.310, runner `windows-latest` (essai jetable, puis job
+  `plugin-windows`) : un plugin déclarant plusieurs formes de commande MCP, chacune
+  traçant la forme réellement lancée. `${CLAUDE_PLUGIN_ROOT}/bin/qa` démarre **`bin/qa.cmd`**,
+  avec Git Bash comme après son retrait ; `bin/qa.cmd` et `cmd /c …\qa.cmd` aussi. Un fichier
+  `.cmd` polyglotte commençant par `#!/bin/sh` échoue sans Git Bash (ligne recopiée sur
+  stdout). Sous Linux et macOS, la même déclaration lance `bin/qa` (sh) ; un `.cmd` y échoue
+  (`ENOEXEC`).
+- Non essayé : une conversation complète sous Windows ou macOS, Claude Desktop.
 
 ## 5. Décisions laissées à l'utilisateur
 

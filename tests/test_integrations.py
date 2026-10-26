@@ -68,7 +68,7 @@ def test_source_modifiee_detectee(tmp_path, monkeypatch):
     generes = {".github/agents/essai.agent.md", ".gemini/agents/essai.md", ".gemini/commands/essai.toml",
                "plugin/agents/essai.md"}
     fixes = {".gemini/settings.json", "plugin/.claude-plugin/plugin.json", "plugin/.claude-plugin/marketplace.json",
-             "plugin/README.md", "plugin/bin/qa"}
+             "plugin/README.md", "plugin/bin/qa", "plugin/bin/qa.cmd"}
     assert set(gen.ecarts()) == {f"absent : {g}" for g in generes | fixes}
     gen.generer()
     assert gen.ecarts() == []

@@ -83,7 +83,8 @@ l'autre (voir README, « Où l'utiliser »).
 ### Plugin Claude Code (hors du clone)
 
 Pour utiliser les skills, Thomas et Sylvie depuis **n'importe quel projet**, après
-l'installation du clone et du SDK MCP (`.venv/bin/python -m pip install -r requirements-mcp.txt`) :
+l'installation du clone et du SDK MCP (`.venv/bin/python -m pip install -r requirements-mcp.txt`,
+sous Windows `.venv\Scripts\python -m pip install -r requirements-mcp.txt`) :
 
 ```bash
 claude plugin marketplace add /chemin/ISTQBFinder/plugin
@@ -92,7 +93,7 @@ claude plugin install istqbfinder@istqbfinder-local
 
 Le plugin se charge en place depuis le clone (aucune copie, ni des PDF ni de la CLI) :
 `/istqbfinder:qa-knowledge`, `@agent-istqbfinder:thomas`, `@agent-istqbfinder:sylvie`, outils
-MCP en lecture seule. Choix, permissions à ajouter et limites (Windows) :
+MCP en lecture seule. Choix, permissions à ajouter et limites :
 [docs/plugin.md](plugin.md).
 
 ### GitHub Copilot

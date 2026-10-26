@@ -5,8 +5,15 @@ Thomas et Sylvie et la bibliothèque ISTQB depuis **n'importe quel projet**, san
 l'assistant dans le clone, et sans perdre les garanties de la CLI (citations vérifiées,
 écritures soumises à l'accord de l'utilisateur).
 
-Ce document décrit le format réel, puis les choix retenus. Il signale aussi les décisions
-laissées à l'utilisateur. Relevé du 2026-10-26, avec Claude Code 2.1.310
+Deux plugins sortent de la même source `.claude/` :
+
+- `plugin/` (§ 3 et 4) : il se charge **en place depuis un clone** et lit sa bibliothèque ;
+- le **plugin autonome** (§ 6), exporté par `scripts/exporter_plugin.py` pour le dépôt dédié
+  `Opaland/ISTQBFinder-plugin`. Il ne contient aucun PDF et télécharge les syllabus anglais
+  au premier usage.
+
+Ce document décrit le format réel, les choix retenus, les décisions de l'utilisateur (§ 5),
+puis la publication (§ 7). Relevé du 2026-10-26, avec Claude Code 2.1.310
 (`claude plugin --help`, `claude plugin validate --help`) et la documentation officielle
 citée en fin de page.
 
@@ -216,23 +223,216 @@ Limites :
   (`ENOEXEC`).
 - Non essayé : une conversation complète sous Windows ou macOS, Claude Desktop.
 
-## 5. Décisions laissées à l'utilisateur
+## 5. Décisions de l'utilisateur (2026-10-26, #184)
 
-1. **Diffusion publique** : déplacer la marketplace à la racine du dépôt
-   (`claude plugin marketplace add Opaland/ISTQBFinder`) ou la soumettre à un catalogue
-   public. *Recommandation* : pas avant d'avoir réglé la copie des PDF. Une marketplace
-   GitHub clone le dépôt entier, PDF compris, sur chaque poste, ce qui revient à
-   redistribuer hors de ce dépôt (#149). Alternative sans PDF : un dépôt dédié au plugin,
-   qui demande un clone de ce dépôt par `userConfig` (`type: directory`) ou qui télécharge
-   les syllabus anglais à la source (istqb.org), sans les traductions françaises.
-2. **Domaines de téléchargement** : autoriser cftl.fr ou tmmi.org pour que le plugin
-   obtienne seul les traductions françaises. *Recommandation* : non pour l'instant. La
-   règle « istqb.org uniquement » tient, et les traductions restent fournies par
-   l'utilisateur.
-3. **Base d'idées partagée** entre plusieurs utilisateurs : dépôt Git commun, ou
-   `QAK_RACINE` sur un dossier partagé. *Recommandation* : garder une base par clone. Le
-   partage passe déjà par Git (commit de `connaissances/` puis `git pull`). Un dossier
-   partagé en écriture concurrente n'est pas prévu par la base SQLite.
+Les questions posées ici dans la première version (#202) ont reçu ces réponses :
+
+1. **Diffusion** : un **dépôt dédié au plugin**, sans aucun PDF, diffusable publiquement. Les
+   documents s'obtiennent au premier usage, à la source. La marketplace de ce dépôt-ci
+   reste locale (`plugin/`).
+2. **Domaines de téléchargement** : **istqb.org seulement**. Les traductions CFTL et les
+   documents TMMi se déposent à la main, ou s'obtiennent par un clone de ce dépôt.
+3. **Base d'idées** : **une base par clone**, partagée par Git, comme aujourd'hui. Pour le
+   plugin autonome, c'est la base de son dossier de données : une par installation.
+
+## 6. Plugin autonome (dépôt dédié `Opaland/ISTQBFinder-plugin`)
+
+### 6.1 Contenu de l'export
+
+`python scripts/exporter_plugin.py <dossier>` écrit l'arborescence complète du dépôt :
+
+| Chemin | Rôle |
+|---|---|
+| `.claude-plugin/plugin.json` | manifeste. `version` vaut `1.0.0+<commit court>` par défaut, `--version` pour la fixer. Serveur MCP `istqbfinder` = `${CLAUDE_PLUGIN_ROOT}/bin/qa mcp`. `metadata.commit` donne le commit source |
+| `.claude-plugin/marketplace.json` | marketplace `istqbfinder` **à la racine**, plugin `source: "./"`. `claude plugin marketplace add Opaland/ISTQBFinder-plugin`, puis `claude plugin install istqbfinder@istqbfinder` |
+| `skills/`, `agents/` | skills et agents de `.claude/`, produits par le même générateur que `plugin/`, avec un en-tête « autonome » : données dans le dossier de données, `referentiel/` sous `${CLAUDE_PLUGIN_ROOT}`, `docs/` en ligne, pas de commit. S'y ajoute le skill `installer` (premier usage, `disable-model-invocation`) |
+| `bin/qa`, `bin/qa.cmd`, `lanceur.py` | lanceurs (§ 6.3) |
+| `qa.py`, `qak/`, `requirements*.txt`, `catalogue/`, `referentiel/` | le code, tel quel |
+| `README.md`, `LICENSE`, `NOTICE.md` | installation, licence MIT (code seulement), droits des documents téléchargés |
+| `.gitattributes`, `.gitignore` | fins de ligne LF ; `*.pdf` ignoré par sécurité |
+
+**Aucun PDF, aucun fichier de `bibliotheque/sources/`.** Après écriture, `verifier()` contrôle
+l'extension, la signature `%PDF` et l'empreinte SHA-256 de chaque fichier, comparée à celles
+de `bibliotheque/sources/`. Il vérifie aussi les fichiers requis et la validité des JSON. Un
+écart fait échouer l'export, avec le code 1. Le dossier cible doit être vide, un export
+précédent ou un clone du dépôt du plugin. Tout y est remplacé, sauf `.git/`.
+
+### 6.2 Données : `${CLAUDE_PLUGIN_DATA}`, jamais le dossier du plugin
+
+D'après la documentation officielle, relevée le 2026-10-26 (*Plugin manifest reference*,
+« Environment variables » ; *Plugins components*, « Reference plugin paths and store
+data ») :
+
+- `${CLAUDE_PLUGIN_ROOT}` change à chaque mise à jour : « Don't write state there ».
+- `${CLAUDE_PLUGIN_DATA}` vaut `~/.claude/plugins/data/<id>/`. Il est créé au premier usage,
+  **gardé d'une mise à jour à l'autre** et prévu « for `node_modules`, virtual environments,
+  and caches ». Dans `<id>` = `plugin@marketplace`, tout caractère autre que lettre, chiffre,
+  `_` ou `-` devient `-`.
+- La variable est passée au processus d'un serveur MCP stdio, mais **pas à l'outil Bash**.
+- Ce dossier est **supprimé à la désinstallation**, sauf avec
+  `claude plugin uninstall … --keep-data`.
+
+Le lanceur suit ces règles :
+
+- dossier de données : `CLAUDE_PLUGIN_DATA`, sinon le même chemin **recalculé** pour l'outil
+  Bash. La configuration vient de `CLAUDE_CONFIG_DIR` ou de `~/.claude`. La marketplace se
+  lit dans le chemin du cache (`plugins/cache/<marketplace>/istqbfinder/<version>/`), ou
+  dans `.claude-plugin/marketplace.json` pour un plugin chargé en place. Un test vérifie ce
+  calcul. L'essai réel montre que le serveur MCP et l'outil Bash tombent sur le même
+  dossier ;
+- `venv/` (pypdf et SDK MCP) et `donnees/` (`QAK_RACINE` : bibliothèque, index, base
+  d'idées, journal, taxonomie modifiée). Python est lancé avec `PYTHONDONTWRITEBYTECODE=1`,
+  donc il n'y a pas de `__pycache__` dans le plugin ;
+- `QAK_RACINE`, défini par l'utilisateur dans le bloc `env` de `~/.claude/settings.json`,
+  remplace `donnees/`. C'est utile pour garder la base hors du dossier que la
+  désinstallation supprime, ou pour pointer vers un clone de ce dépôt (traductions,
+  base d'idées) ;
+- `qa emplacements` affiche ces chemins.
+
+### 6.3 Lanceurs (Linux, macOS, Windows ; #203)
+
+- `bin/qa` (sh) et `bin/qa.cmd` (Windows) cherchent un Python 3.10 ou plus dans le PATH :
+  `python3` puis `python` avec sh, `python` puis `py -3` avec cmd. Ils passent la main à
+  `lanceur.py` (bibliothèque standard), qui fait le reste. La déclaration MCP unique
+  `${CLAUDE_PLUGIN_ROOT}/bin/qa` vaut pour les trois systèmes (§ 4, essais #203).
+- Premier appel : création du venv dans le dossier de données (`python -m venv`, puis pip).
+  Un verrou de fichier tenu par le **processus** (fcntl ou msvcrt) évite deux préparations
+  simultanées et disparaît si le processus meurt. Un essai l'a montré nécessaire : arrêté
+  par Claude Code, un serveur trop lent laissait un verrou en dossier, et `qa installer`
+  attendait 15 minutes. Une empreinte des `requirements*.txt` relance pip après une mise à
+  jour qui change les dépendances.
+- `qa mcp` sans venv : Claude Code abandonne un serveur au bout de 30 s, et pip dure
+  souvent plus longtemps (environ une minute à froid). La préparation part donc dans un
+  processus détaché (journal `preparation.log`), attendue 20 s. Au-delà, le lanceur
+  s'arrête avec un message. Le serveur se reconnecte dans `/mcp` une fois le venv prêt.
+- Premier usage : `qa installer [codes…]`, ou `/istqbfinder:installer`. Il prépare le venv,
+  lance `telecharger --tous` ou `telecharger <codes>` (**istqb.org seulement**, domaines de
+  `catalogue/istqb.json` contrôlés après redirection), puis `actualiser` et `diagnostic`.
+  Les traductions françaises n'en font pas partie : le README et la fin de la commande
+  renvoient vers `qa importer --prive <fichier>`.
+
+### 6.4 Contrôles
+
+- `tests/test_export_plugin.py` vérifie plusieurs points :
+  - export dans un dossier temporaire, sans PDF, sans fichier de `bibliotheque/sources/`
+    (empreintes et noms), sans `bibliotheque/`, `connaissances/`, `tests/` ni `.claude/` ;
+  - fichiers requis, code complet, manifeste, marketplace, README et NOTICE ;
+  - skills sans écriture pré-approuvée, et skill `installer` réservé à l'utilisateur ;
+  - remplacement d'un export précédent, avec `.git/` gardé, et refus d'un dossier étranger ;
+  - `verifier()` attrape un PDF glissé et un syllabus renommé ;
+  - calcul du dossier de données (chargé en place, cache GitHub, `CLAUDE_PLUGIN_DATA`,
+    `QAK_RACINE`), verrou libéré à la mort du processus, et refus d'un Python 3.9 ;
+  - `claude plugin validate --strict` sur l'export, si la CLI est présente ;
+  - **premier usage réel**, hors réseau ignoré : export, `bin/qa installer CTFL` avec un
+    vrai téléchargement depuis istqb.org, index, recherche, puis serveur MCP lancé comme
+    par Claude Code. Rien ne doit être écrit dans le dossier du plugin. istqb.org
+    injoignable → ignoré avec la raison ; mauvaise réponse → échec. Le test ne tourne
+    qu'avec `QAK_ESSAI_PREMIER_USAGE=1`.
+- Job CI `plugin-export` (Linux, Python 3.10, version minimale) : export,
+  `claude plugin validate --strict` sur l'export, puis ces tests avec
+  `QAK_ESSAI_PREMIER_USAGE=1`.
+
+### 6.5 Essai réel (2026-10-26, Claude Code 2.1.310, Linux)
+
+- `python scripts/exporter_plugin.py <dossier>` : 43 fichiers, aucun PDF.
+  `claude plugin validate --strict` : « Validation passed ».
+- `claude plugin marketplace add <dossier>`, puis `claude plugin install istqbfinder@istqbfinder` :
+  installé, version `1.0.0+<commit>`, « Read from: <dossier> » (chargé en place).
+- `bin/qa installer CTFL CTAL-TM`, en 28 s :
+  - venv créé dans `~/.claude/plugins/data/istqbfinder-istqbfinder/venv` ;
+  - `CTAL-TM importe CTAL-TM-3.0-en — 87 pages`, `CTFL importe CTFL-4.0.1-en — 78 pages`,
+    téléchargés depuis istqb.org ;
+  - `Diagnostic : OK` (2 documents, 370 passages) ;
+  - aucun `__pycache__`, PDF ni `.db` dans le dossier du plugin.
+- `claude mcp list` : `plugin:istqbfinder:istqbfinder … bin/qa mcp - ✔ Connected`.
+- `claude -p … --model haiku --max-budget-usd 0.50`, depuis un dossier vide, avec les seuls
+  outils `mcp__plugin_istqbfinder_istqbfinder__*`, 0,008 $ :
+  - appels `chercher` (en français puis en anglais), `section CTFL-4.0.1-en 5.2`, puis
+    `confiance` ;
+  - réponse sourcée, `Citer : [CTFL v4.0.1 EN, §5.2, p. 51]` recopié depuis la sortie de
+    `section`, et « Confiance : 77/100 ».
+- Un premier essai sur `CTAL-TM` a donné `chercher` puis `lire`, avec
+  `Citer : [CTAL-TM v3.0 EN, §1.3.3, p. 30]` (0,006 $).
+- `claude plugin uninstall` a bien supprimé `…/data/istqbfinder-istqbfinder/` (§ 6.6).
+- Outil Bash (haiku, 0,004 $) : `qa emplacements` et `qa inventaire` donnent le même
+  dossier de données que le serveur MCP, avec les 2 documents.
+- Installation copiée dans le cache, comme depuis GitHub (marketplace de test à source
+  `url` `file://…`) :
+  - le plugin est copié dans `plugins/cache/<marketplace>/istqbfinder/1.0.0-<commit>/` ;
+  - le lanceur retrouve `istqbfinder-<marketplace>`, le dossier que Claude Code a créé ;
+  - premier `claude mcp list` en échec, venv en préparation, prête en 59 s ;
+  - second `claude mcp list` : ✔ Connected.
+
+### 6.6 Limites
+
+- **Pas encore publié** : le dépôt `Opaland/ISTQBFinder-plugin` n'existe pas. Son
+  installation depuis GitHub n'a été essayée que par la marketplace de test à source `url`
+  (§ 6.5).
+- **Première session** : le serveur MCP peut être en échec le temps que le venv se prépare.
+  Il faut le reconnecter dans `/mcp`, ou attendre 15 minutes en `claude -p`.
+- **`--plugin-dir`** : Claude Code donne au plugin l'identifiant `istqbfinder@inline`. Le
+  serveur MCP utilise alors `…/data/istqbfinder-inline`, et l'outil Bash
+  `…/data/istqbfinder-istqbfinder`. Définir `QAK_RACINE` pour les réunir.
+- **Désinstallation** : la base d'idées du dossier de données part avec le plugin, sauf
+  `--keep-data` ou `QAK_RACINE` placé ailleurs. Le README du plugin le dit.
+- **Windows et macOS** : le lanceur et le serveur MCP sont vérifiés en CI (#203). Le premier
+  usage réel n'a été essayé que sous Linux.
+- Le venv demande un accès à PyPI. Sous Debian ou Ubuntu, il faut aussi `python3-venv` ; le
+  lanceur le dit.
+
+## 7. Publication et mises à jour (par l'utilisateur)
+
+### 7.1 Première publication
+
+1. Sur GitHub, créer le dépôt **public** `Opaland/ISTQBFinder-plugin`, vide : sans README,
+   sans licence, sans `.gitignore`.
+2. Depuis un clone à jour de ce dépôt (`main`, CI verte) :
+
+   ```bash
+   git clone https://github.com/Opaland/ISTQBFinder-plugin.git ../ISTQBFinder-plugin
+   python scripts/exporter_plugin.py ../ISTQBFinder-plugin    # « aucun PDF », code 0
+   claude plugin validate --strict ../ISTQBFinder-plugin      # « Validation passed »
+   cd ../ISTQBFinder-plugin
+   git status                                                 # aucun .pdf
+   git add -A
+   git commit -m "Plugin ISTQBFinder <version> (export du commit <commit court>)"
+   git push origin main
+   ```
+
+3. Essai depuis un autre poste, ou après `claude plugin uninstall` de la version locale :
+
+   ```bash
+   claude plugin marketplace add Opaland/ISTQBFinder-plugin
+   claude plugin install istqbfinder@istqbfinder
+   ```
+
+   Puis, dans Claude Code, `/istqbfinder:installer CTFL`, `/mcp` (serveur connecté) et une
+   question à `/istqbfinder:qa-knowledge`.
+4. Facultatif : le README de ce dépôt-ci peut renvoyer vers le dépôt du plugin.
+
+### 7.2 À chaque version
+
+1. Fusionner dans `main` ici les changements voulus (skills, agents, `qak/`, catalogue).
+2. Réexporter dans le clone du dépôt du plugin, puis committer et pousser :
+
+   ```bash
+   cd ../ISTQBFinder-plugin && git pull
+   cd -
+   python scripts/exporter_plugin.py ../ISTQBFinder-plugin
+   claude plugin validate --strict ../ISTQBFinder-plugin
+   cd ../ISTQBFinder-plugin && git add -A && git commit -m "Plugin ISTQBFinder <version>" && git push
+   ```
+
+   L'export remplace tout sauf `.git/`, donc un fichier retiré à la source disparaît aussi.
+   La version par défaut, `1.0.0+<commit court>`, change à chaque commit source : Claude
+   Code voit donc une mise à jour. Pour une version lisible, passer
+   `--version 1.1.0`, toujours croissante.
+3. Côté utilisateurs : `claude plugin marketplace update istqbfinder`, puis
+   `claude plugin update istqbfinder@istqbfinder`. Le venv se complète seul si les
+   `requirements*.txt` ont changé, et les données du dossier de données sont gardées.
+4. Une **nouvelle version d'un syllabus** sur istqb.org demande seulement de mettre
+   `catalogue/istqb.json` à jour ici, puis de publier. Chez l'utilisateur,
+   `/istqbfinder:bibliotheque versions` la propose au téléchargement.
 
 ## Documentation consultée (2026-10-26)
 
@@ -241,4 +441,7 @@ Limites :
 - [Plugin loading reference](https://code.claude.com/docs/en/plugins/loading.md)
 - [MCP dans Claude Code](https://code.claude.com/docs/en/mcp) (serveurs fournis par un plugin)
 - [Permissions](https://code.claude.com/docs/en/permissions) (règles `mcp__…__*`, `allowed-tools`)
+- [Plugins components](https://code.claude.com/docs/en/plugins/components.md) (« Reference plugin paths and store data », `${CLAUDE_PLUGIN_DATA}`)
+- [Plugin commands reference](https://code.claude.com/docs/en/plugins/cli-reference.md) (`plugin uninstall --keep-data`)
+- [Hooks](https://code.claude.com/docs/en/hooks) (formes exec et shell, Windows sans Git Bash) ; [variables d'environnement](https://code.claude.com/docs/en/env-vars) (`MCP_TIMEOUT`, `CLAUDE_CONFIG_DIR`)
 - `claude plugin --help`, `claude plugin validate --help` (Claude Code 2.1.310)

@@ -100,6 +100,37 @@ jobs:
             Write-Error "Le serveur MCP du plugin ne démarre pas sous Windows."; exit 1
           }
 
+  # Issue #184 : plugin autonome destiné au dépôt dédié Opaland/ISTQBFinder-plugin.
+  # Export (aucun PDF), `claude plugin validate --strict`, puis premier usage RÉEL : venv,
+  # un syllabus téléchargé depuis istqb.org, index, recherche, serveur MCP (test ignoré avec
+  # sa raison si istqb.org bloque le runner, en échec si la réponse est mauvaise).
+  plugin-export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'   # version minimale annoncée par le plugin
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-mcp.txt
+      - name: Installer les dépendances
+        run: pip install -r requirements.txt -r requirements-mcp.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Claude Code
+        run: npm install -g @anthropic-ai/claude-code && claude --version
+      - name: Export du plugin
+        run: python scripts/exporter_plugin.py "$RUNNER_TEMP/ISTQBFinder-plugin"
+      - name: claude plugin validate --strict sur l'export
+        run: claude plugin validate --strict "$RUNNER_TEMP/ISTQBFinder-plugin"
+      - name: Tests de l'export et premier usage réel
+        env:
+          QAK_ESSAI_PREMIER_USAGE: '1'
+        run: python -m pytest tests/test_export_plugin.py -q -rs
+
   installation-linux:
     runs-on: ubuntu-latest
     steps:

@@ -17,7 +17,8 @@ communes dans `AGENTS.md`. Fichiers générés (à ne jamais modifier à la main
 
 - Plugin Claude Code (#184, `docs/plugin.md`) : `plugin/` — manifeste et marketplace locale
   (`.claude-plugin/`), skills et agents recopiés avec `qa <commande>` à la place de
-  `python qa.py <commande>`, lanceur `bin/qa` (la CLI du clone, avec le Python de son venv)
+  `python qa.py <commande>`, lanceurs `bin/qa` et `bin/qa.cmd` (Windows, #203 : la CLI du
+  clone, avec le Python de son venv)
   et serveur MCP en lecture seule déclaré. Le plugin ne contient ni la CLI ni les PDF : il
   se charge en place depuis un clone installé (`installer.sh`).
 
@@ -179,13 +180,19 @@ PREFIXE_MCP = f"mcp__plugin_{NOM_PLUGIN}_{SERVEUR_MCP}__"
 OUTILS_MCP = ("chercher", "lire", "section", "page", "plan", "idee_chercher", "idee_voir", "confiance",
               "passages_lus")
 DEPOT = "https://github.com/Opaland/ISTQBFinder"
-EXECUTABLES = {f"{PLUGIN}/bin/qa"}  # fichiers générés à rendre exécutables
+EXECUTABLES = {f"{PLUGIN}/bin/qa"}  # bin/qa.cmd : Windows, sans bit exécutable  # fichiers générés à rendre exécutables
+
+# Lanceurs (#203). Le manifeste déclare `${CLAUDE_PLUGIN_ROOT}/bin/qa` sur tous les systèmes :
+# sous Windows, Claude Code résout ce chemin sans extension vers `bin/qa.cmd`, avec ou sans
+# Git Bash (essai CI du 2026-10-26, Claude Code 2.1.310, docs/plugin.md § 4). L'outil Bash
+# (Git Bash) trouve `qa`, l'outil PowerShell `qa.cmd`.
+VERIF_PYTHON = "import sys; sys.exit(sys.version_info < (3, 10))"
 
 LANCEUR = """#!/bin/sh
 # {marque} : ne pas modifier, relancer le script.
 # Lanceur du plugin ISTQBFinder : `qa <commande>` = `python qa.py <commande>` du clone,
 # avec le Python de son venv, depuis n'importe quel dossier (bin/ du plugin est dans le PATH
-# de l'outil Bash ; le serveur MCP du plugin est `qa mcp`).
+# de l'outil Bash ; le serveur MCP du plugin est `qa mcp`). Windows : bin/qa.cmd.
 RACINE=$(cd "$(dirname "$0")/../.." && pwd)
 if [ ! -f "$RACINE/qa.py" ]; then
   echo "ISTQBFinder : qa.py introuvable dans $RACINE. Le plugin se charge en place depuis un clone" >&2
@@ -195,11 +202,37 @@ fi
 for PY in "$RACINE/.venv/bin/python" "$RACINE/.venv/Scripts/python.exe"; do
   if [ -x "$PY" ]; then exec "$PY" "$RACINE/qa.py" "$@"; fi
 done
+# Python 3.10 ou plus seulement (l'alias « python3 » du Microsoft Store, sans Python, échoue ici).
 for PY in python3 python; do
-  if command -v "$PY" >/dev/null 2>&1; then exec "$PY" "$RACINE/qa.py" "$@"; fi
+  if "$PY" -c "{verif}" >/dev/null 2>&1; then exec "$PY" "$RACINE/qa.py" "$@"; fi
 done
-echo "ISTQBFinder : ni venv ($RACINE/.venv) ni Python dans le PATH. Lancer $RACINE/installer.sh." >&2
+echo "ISTQBFinder : ni venv ($RACINE/.venv) ni Python 3.10+ dans le PATH. Lancer $RACINE/installer.sh." >&2
 exit 2
+"""
+
+# Fins de ligne LF (.gitattributes) : pas d'étiquette ni de `goto`, que cmd.exe lit mal en LF.
+# Aucune expansion de chemin dans un bloc ( ) : une « ) » du chemin le fermerait.
+# `@echo off` en tête : rien d'autre que la sortie de qa.py sur stdout (protocole MCP).
+LANCEUR_CMD = """@echo off
+rem {marque} : ne pas modifier, relancer le script.
+rem Lanceur Windows du plugin ISTQBFinder (#203) : meme role que bin/qa (sh), sans Git Bash.
+setlocal
+set "RACINE=%~dp0..\\.."
+if not exist "%RACINE%\\qa.py" (
+  echo ISTQBFinder : qa.py introuvable deux dossiers au-dessus de bin\\. Le plugin se charge en place depuis un clone installe : claude plugin marketplace add ^<clone^>/plugin, puis claude plugin install {plugin}@{marketplace}. 1>&2
+  exit /b 2
+)
+set "PY="
+set "OPT="
+if exist "%RACINE%\\.venv\\Scripts\\python.exe" set "PY=%RACINE%\\.venv\\Scripts\\python.exe"
+if not defined PY python -c "{verif}" >nul 2>nul && set "PY=python"
+if not defined PY py -3 -c "{verif}" >nul 2>nul && set "PY=py" && set "OPT=-3"
+if not defined PY (
+  echo ISTQBFinder : ni venv .venv dans le clone ni Python 3.10+ dans le PATH. Lancer installer.ps1 dans le clone. 1>&2
+  exit /b 2
+)
+"%PY%" %OPT% "%RACINE%\\qa.py" %*
+exit /b %ERRORLEVEL%
 """
 
 
@@ -314,11 +347,12 @@ Claude Code depuis **n'importe quel projet**. Généré depuis `.claude/` par
 [docs/plugin.md](../docs/plugin.md).
 
 Le plugin ne contient ni la CLI ni les syllabus : il se charge **en place** depuis un clone
-installé avec `installer.sh` (les PDF restent dans ce dépôt, voir `NOTICE.md`).
+installé avec `installer.sh` ou `installer.ps1` (les PDF restent dans ce dépôt, voir
+`NOTICE.md`). Lanceur `bin/qa` (Linux, macOS) ou `bin/qa.cmd` (Windows).
 
 ```bash
 cd /chemin/ISTQBFinder && ./installer.sh
-.venv/bin/python -m pip install -r requirements-mcp.txt
+.venv/bin/python -m pip install -r requirements-mcp.txt   # Windows : .venv\\Scripts\\python
 claude plugin marketplace add /chemin/ISTQBFinder/plugin
 claude plugin install {NOM_PLUGIN}@{MARKETPLACE}
 ```
@@ -327,12 +361,17 @@ Licence : MIT (code et documentation), comme le dépôt ; les syllabus n'en rel�
 """
 
 
+def lanceur(modele: str) -> str:
+    return (modele.replace("{marque}", MARQUE).replace("{plugin}", NOM_PLUGIN)
+            .replace("{marketplace}", MARKETPLACE).replace("{verif}", VERIF_PYTHON))
+
+
 def fichiers_plugin() -> dict[str, str]:
     fichiers = {f"{PLUGIN}/.claude-plugin/plugin.json": manifeste_plugin(),
                 f"{PLUGIN}/.claude-plugin/marketplace.json": marketplace_plugin(),
                 f"{PLUGIN}/README.md": lisez_moi_plugin(),
-                f"{PLUGIN}/bin/qa": LANCEUR.replace("{marque}", MARQUE).replace("{plugin}", NOM_PLUGIN)
-                                           .replace("{marketplace}", MARKETPLACE)}
+                f"{PLUGIN}/bin/qa": lanceur(LANCEUR),
+                f"{PLUGIN}/bin/qa.cmd": lanceur(LANCEUR_CMD)}
     for chemin in sorted(AGENTS_CLAUDE.glob("*.md")):
         fichiers[f"{PLUGIN}/agents/{chemin.name}"] = agent_plugin(chemin)
     for dossier in sorted(d for d in SKILLS_CLAUDE.iterdir() if (d / "SKILL.md").exists()):

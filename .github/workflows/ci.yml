@@ -59,6 +59,47 @@ jobs:
 
   # Issue #73 : installation depuis un clone propre, comme un utilisateur (venv,
   # dépendances, indexation, diagnostic OK/KO dont la recherche témoin).
+  # Issue #203 : le plugin sous Windows, sans Git Bash. Claude Code résout la commande MCP
+  # `${CLAUDE_PLUGIN_ROOT}/bin/qa` vers `bin/qa.cmd` ; on vérifie que le serveur démarre et
+  # répond (tools/list par le SDK, puis `claude mcp list`, sans compte Claude).
+  plugin-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-mcp.txt
+      - name: Installer les dépendances
+        run: pip install -r requirements.txt -r requirements-mcp.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Claude Code
+        run: npm install -g @anthropic-ai/claude-code; claude --version
+      - name: Tests du plugin (lanceur qa.cmd, tools/list, claude plugin validate)
+        run: python -m pytest tests/test_plugin.py tests/test_integrations.py -q -rs
+      - name: Git Bash retiré (cas d'un poste Windows sans Git)
+        shell: pwsh
+        run: |
+          foreach ($f in "C:\Program Files\Git\bin\bash.exe", "C:\Program Files\Git\bin\sh.exe",
+                         "C:\Program Files\Git\usr\bin\bash.exe", "C:\Program Files\Git\usr\bin\sh.exe") {
+            if (Test-Path $f) { Rename-Item $f "$f.retire" }
+          }
+      - name: Serveur MCP du plugin démarré par Claude Code
+        shell: pwsh
+        run: |
+          claude plugin marketplace add "$env:GITHUB_WORKSPACE/plugin"
+          claude plugin install istqbfinder@istqbfinder-local
+          $sortie = claude mcp list | Out-String
+          Write-Output $sortie
+          if ($sortie -notmatch "plugin:istqbfinder:istqbfinder: .*bin/qa mcp - .*Connected") {
+            Write-Error "Le serveur MCP du plugin ne démarre pas sous Windows."; exit 1
+          }
+
   installation-linux:
     runs-on: ubuntu-latest
     steps:

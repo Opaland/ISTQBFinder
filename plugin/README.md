@@ -9,11 +9,12 @@ Claude Code depuis **n'importe quel projet**. Généré depuis `.claude/` par
 [docs/plugin.md](../docs/plugin.md).
 
 Le plugin ne contient ni la CLI ni les syllabus : il se charge **en place** depuis un clone
-installé avec `installer.sh` (les PDF restent dans ce dépôt, voir `NOTICE.md`).
+installé avec `installer.sh` ou `installer.ps1` (les PDF restent dans ce dépôt, voir
+`NOTICE.md`). Lanceur `bin/qa` (Linux, macOS) ou `bin/qa.cmd` (Windows).
 
 ```bash
 cd /chemin/ISTQBFinder && ./installer.sh
-.venv/bin/python -m pip install -r requirements-mcp.txt
+.venv/bin/python -m pip install -r requirements-mcp.txt   # Windows : .venv\Scripts\python
 claude plugin marketplace add /chemin/ISTQBFinder/plugin
 claude plugin install istqbfinder@istqbfinder-local
 ```

@@ -32,10 +32,12 @@ import re
 import shutil
 import subprocess
 import sys
-import tempfile
 import uuid
 from datetime import date
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import commun  # noqa: E402
 
 RACINE = Path(__file__).resolve().parent.parent
 # Outils hors Bash dont les agents ont besoin (lecture, skill, Web) ; les commandes Bash
@@ -63,24 +65,16 @@ def autorise(commande: str, outils: list[str]) -> bool:
     return False
 
 
+# Copiés dans la racine temporaire des essais : une écriture de l'agent n'atteint pas le dépôt (#157).
+FICHIERS_ESSAIS = ("bibliotheque/index.db", "bibliotheque/manifeste.json", "bibliotheque/vecteurs.npz",
+                   "connaissances/connaissances.jsonl", "connaissances/journal.jsonl",
+                   "referentiel/taxonomie.json", "referentiel/thesaurus.json")
+
+
 def racine_temporaire(source: Path = RACINE) -> Path:
     """Copie de travail des données (index, manifeste, base d'idées, journal, référentiels)
-    pour `QAK_RACINE` : une écriture éventuelle de l'agent n'atteint pas le dépôt (#157).
-    Les PDF sont liés (ou copiés si le lien est impossible) : seul le contrôle « index à
-    jour » les lit."""
-    tmp = Path(tempfile.mkdtemp(prefix="qak-essais-"))
-    for dossier in ("bibliotheque", "connaissances", "referentiel"):
-        (tmp / dossier).mkdir()
-    for rel in ("bibliotheque/index.db", "bibliotheque/manifeste.json", "bibliotheque/vecteurs.npz",
-                "connaissances/connaissances.jsonl", "connaissances/journal.jsonl",
-                "referentiel/taxonomie.json", "referentiel/thesaurus.json"):
-        if (source / rel).exists():
-            shutil.copy2(source / rel, tmp / rel)
-    try:
-        (tmp / "bibliotheque" / "sources").symlink_to(source / "bibliotheque" / "sources")
-    except OSError:
-        shutil.copytree(source / "bibliotheque" / "sources", tmp / "bibliotheque" / "sources")
-    return tmp
+    pour `QAK_RACINE` (#157), voir `commun.racine_temporaire()`."""
+    return commun.racine_temporaire(source, FICHIERS_ESSAIS, "qak-essais-")
 
 
 # Une citation = « §x.y … p. N » ou « … pp. N-M » ; elle se rattache au dernier code de

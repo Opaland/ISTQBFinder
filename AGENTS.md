@@ -25,6 +25,9 @@ Français partout (réponses, messages, commits, commentaires).
   langue), puis Web seulement si un besoin identifiable le justifie.
 - **Lire avant de citer** : ne cite que ce que tu as lu via `lire`, `section` ou `page`.
   Jamais de page, de section ou de passage inventé. Format : `[CTAL-TM v3.0 FR, §1.3.2, p. 29]`.
+- **Recopie telle quelle la ligne `Citer :`** affichée sous chaque en-tête de `lire`,
+  `section` et `page` (ex. `Citer : [CT-TAS v1.0 EN, §3.1.3, p. 24]`) : ne reconstruis
+  jamais toi-même le sigle, la version, la section ou la page.
 - Distingue toujours ISTQB (passage lu), Web (URL + date), base capitalisée (`QA-xxxx`
   et son statut) et ton raisonnement (signalé comme hypothèse).
 - Toujours un « **Confiance : NN/100** » justifié (grille de

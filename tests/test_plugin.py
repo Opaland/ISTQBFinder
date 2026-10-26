@@ -118,7 +118,8 @@ def test_serveur_mcp_par_le_lanceur_repond_a_tools_list(tmp_path):
 
 @pytest.mark.skipif(not shutil.which("claude"), reason="CLI `claude` absente : `claude plugin validate` non lancé")
 def test_claude_plugin_validate_strict():
-    r = subprocess.run(["claude", "plugin", "validate", "--strict", str(PLUGIN)],
+    # shutil.which : sous Windows, npm installe `claude.cmd`, que subprocess ne trouve pas seul.
+    r = subprocess.run([shutil.which("claude"), "plugin", "validate", "--strict", str(PLUGIN)],
                        capture_output=True, text=True, timeout=120, encoding="utf-8")
     assert r.returncode == 0, r.stdout + r.stderr
     assert "Validation passed" in r.stdout

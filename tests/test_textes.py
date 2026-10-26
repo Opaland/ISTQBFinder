@@ -93,3 +93,15 @@ def test_pluriel_en_es_meme_racine_que_le_singulier():
     assert textes.racine("activities") == "activity" and textes.racine("notes") == textes.racine("note")
     assert [c for c, _ in textes.reperer_concepts("exploratoires")[0]] == ["exploratoire"]
     assert textes.signature("chartes exploratoires") == textes.signature("charte exploratoire")
+
+
+def test_pluriel_francais_en_ies_meme_racine_que_le_singulier():
+    """#196 — la règle anglaise « -ies » → « -y » s'appliquait à « stratégies »
+    (« strategy ») alors que « stratégie » donnait « strategi » : ni la recherche ni la
+    détection de doublons ne rapprochaient le singulier du pluriel. L'anglais est intact."""
+    for singulier in ("stratégie", "technologie", "méthodologie", "série"):
+        assert textes.racine(textes.normaliser(singulier + "s")) == textes.racine(textes.normaliser(singulier)), singulier
+    assert textes.racine("strategies") == textes.racine("strategy") == textes.racine("strategie")
+    assert textes.racine("activities") == "activity"
+    assert [c for c, _ in textes.reperer_concepts("stratégies de test")[0]] == ["strategie"]
+    assert textes.signature("stratégies de test") == textes.signature("stratégie de test")

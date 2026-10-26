@@ -73,6 +73,7 @@ Aucun serveur, aucune interface graphique, aucune clé d'API. Dépendance unique
 | #166 faute de frappe sur un mot de 4 lettres (« tets ») | 100 % (0,94) → 100 % (0,94) | 84 % (38/45, 0,75) → 89 % (40/45, 0,78) |
 | #177 extraction : introduction de chapitre rattachée au chapitre et non à sa 1re sous-section (17 titres replacés, éloigné 20 % → 20 %) | 100 % (0,94) → 100 % (0,94) | 89 % (40/45, 0,78) → 89 % (40/45, 0,78) |
 | #180 pluriels en « -es » : même racine que le singulier (« exploratoires »), mots en « -ss » gardés (éloigné 20 % → 20 %) | 100 % (0,94) → 100 % (0,94) | 87 % (40/46, 0,76) → 89 % (41/46, 0,77) |
+| #196 « -ie » et « -ies » → « -y » : « stratégie(s) » et « strategy/strategies » ont la même racine (aucune question du contrôle n'échouait sur ce point ; mêmes classements sur les trois jeux, éloigné 20 % → 20 %) | 100 % (0,94) → 100 % (0,94) | 89 % (41/46, 0,77) → 89 % (41/46, 0,77) |
 | **État actuel** (moteur lexical ; #59 : mêmes classements, ≈ 8 × plus rapide) | **100 % (MRR 0,94)** | **89 % (41/46, MRR 0,77)** |
 
 Le 100 % du jeu de réglage est optimiste par construction ; le chiffre honnête est celui

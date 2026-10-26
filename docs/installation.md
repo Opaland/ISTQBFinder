@@ -96,6 +96,11 @@ Le plugin se charge en place depuis le clone (aucune copie, ni des PDF ni de la 
 MCP en lecture seule. Choix, permissions à ajouter et limites :
 [docs/plugin.md](plugin.md).
 
+**Sans clone** : le plugin autonome, exporté par `scripts/exporter_plugin.py` pour le dépôt
+dédié `Opaland/ISTQBFinder-plugin`, ne contient aucun PDF. Il télécharge les syllabus anglais
+depuis istqb.org au premier usage (`/istqbfinder:installer`), sans les traductions
+françaises. Voir [docs/plugin.md](plugin.md), § 6 et 7.
+
 ### GitHub Copilot
 
 Skills lus directement dans `.claude/skills/`, agents `.github/agents/*.agent.md` et consignes

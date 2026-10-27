@@ -66,6 +66,14 @@ def test_codes_retour_et_validations(capsys, racine_isolee, tmp_path):
     for pages in ("abc", "0", "5-3"):
         assert main(["page", "CTFL", pages]) == 2
         assert "Pages attendues" in capsys.readouterr().err
+    # #207 : section ou page hors du document → refus rc=2, message sur stderr
+    assert main(["section", "CTFL", "99.9"]) == 2
+    assert "Section 99.9 introuvable" in capsys.readouterr().err
+    for pages in ("999", "6-999"):
+        assert main(["page", "CTFL", pages]) == 2
+        err = capsys.readouterr().err
+        assert "Page 999 inexistante dans CTFL-9.9-en" in err and "pages)" in err
+    assert main(["section", "CTFL", "99.9", "--json"]) == 2
     for options in (["--date", "hier soir"], ["--niveau", "n'importe"], ["--langue", "klingon"], ["--type", "x"]):
         with pytest.raises(SystemExit) as exc:  # argparse : rc=2, message d'usage
             main(["corriger", "CTFL-9.9-en", *options])

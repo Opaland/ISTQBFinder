@@ -81,11 +81,12 @@ par `lire` / `section` / `page` sont relevés (`cli.LECTURES`) et consultables p
 | #180 pluriels en « -es » : même racine que le singulier (« exploratoires »), mots en « -ss » gardés (éloigné 20 % → 20 %) | 100 % (0,94) → 100 % (0,94) | 87 % (40/46, 0,76) → 89 % (41/46, 0,77) |
 | #196 « -ie » et « -ies » → « -y » : « stratégie(s) » et « strategy/strategies » ont la même racine (aucune question du contrôle n'échouait sur ce point ; mêmes classements sur les trois jeux, éloigné 20 % → 20 %) | 100 % (0,94) → 100 % (0,94) | 89 % (41/46, 0,77) → 89 % (41/46, 0,77) |
 | #210 extraction : intertitres de signets sans numéro propre (passages rattachés à la section numérotée), signet numéroté en double écarté (27 numéros en double → 0 ; mêmes classements sur les trois jeux, éloigné 20 % → 20 %) | 100 % (0,94) → 100 % (0,94) | 89 % (41/46, 0,77) → 89 % (41/46, 0,77) |
-| **État actuel** (moteur lexical ; #59 : mêmes classements, ≈ 8 × plus rapide) | **100 % (MRR 0,94)** | **89 % (41/46, MRR 0,77)** |
+| #209 participes : masculin, féminin, singulier et pluriel ont la même racine (« défini/définie » → « definy », « intégré/intégrée » → « integr », « vérifié/vérifiée » → « verify ») ; question « approche d'équipe intégré » ajoutée au contrôle avant correctif (éloigné 20 % → 20 %) | 100 % (0,94) → 100 % (0,94) | 87 % (41/47, 0,75) → 89 % (42/47, 0,77) |
+| **État actuel** (moteur lexical ; #59 : mêmes classements, ≈ 8 × plus rapide) | **100 % (MRR 0,94)** | **89 % (42/47, MRR 0,77)** |
 
 Le 100 % du jeu de réglage est optimiste par construction ; le chiffre honnête est celui
 du jeu de contrôle. Les questions ajoutées au contrôle l'ont été AVANT la correction qu'elles
-motivent ; le contrôle est passé de 18 à 46 questions, en grande partie des questions
+motivent ; le contrôle est passé de 18 à 47 questions, en grande partie des questions
 difficiles issues des revues (fautes de frappe, questions de Test Manager, formulations loin
 du vocabulaire ISTQB) : sa baisse de 89 % à 82 % (avant #165) vient de ces ajouts, pas d'une régression
 (chaque PR a été mesurée avant/après sur le même jeu). Les 5 échecs actuels :

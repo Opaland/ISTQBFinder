@@ -1045,6 +1045,20 @@
    "controle": true
   },
   {
+   "requete": "approche d'équipe intégré",
+   "attendus": [
+    {
+     "code": "CTFL-AT",
+     "section": "1.1.2"
+    },
+    {
+     "code": "CTFL",
+     "section": "1.5.2"
+    }
+   ],
+   "controle": true
+  },
+  {
    "requete": "comment éviter que nos tests cassent à chaque changement d'écran",
    "attendus": [
     {

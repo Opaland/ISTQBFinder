@@ -176,6 +176,7 @@ def test_dialogue_mcp_reel_erreurs_d_arguments_en_francais(bibliotheque_test, ra
                 ("section", {"doc": "CTFL"}, "numero : argument obligatoire manquant"),
                 ("chercher", {"requete": "  "}, "arguments obligatoires manquants : requete"),
                 ("section", {"doc": "INCONNU", "numero": "1"}, "Document inconnu"),
+                ("lire", {"passage": 999999}, "Passage 999999 introuvable : numéro périmé"),  # #211
             ]
             for outil, args, debut in attendus:
                 r = await c.call_tool(outil, args)

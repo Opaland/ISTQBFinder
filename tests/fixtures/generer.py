@@ -8,7 +8,11 @@ objectifs d'apprentissage qui répètent les titres, index final.
 
 `ctal-ta-v4.0-en-p24-25.pdf` n'est pas généré : c'est un extrait réel (pages 24-25, avec
 leurs signets) de « ISTQB® Certified Tester Advanced Level Test Analyst (CTAL-TA) v4.0 »,
-© ISTQB®, copié sans modification depuis `bibliotheque/sources/` pour le test de #177."""
+© ISTQB®, copié sans modification depuis `bibliotheque/sources/` pour le test de #177.
+De même, `ctal-at-v2.0-en-p19-20.pdf` est un extrait réel (pages 19-20 et leurs quatre
+signets, hiérarchie conservée) de « ISTQB® Certified Tester Advanced Level Agile Tester
+(CTAL-AT) v2.0 », © ISTQB®, copié sans modification (pypdf `PdfWriter.add_page`) pour le
+test de #210."""
 from pathlib import Path
 
 from reportlab.lib.pagesizes import A4

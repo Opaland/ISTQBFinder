@@ -1,3 +1,5 @@
+import pytest
+
 from qak import textes
 
 
@@ -105,3 +107,27 @@ def test_pluriel_francais_en_ies_meme_racine_que_le_singulier():
     assert textes.racine("activities") == "activity"
     assert [c for c, _ in textes.reperer_concepts("stratégies de test")[0]] == ["strategie"]
     assert textes.signature("stratégies de test") == textes.signature("stratégie de test")
+
+
+@pytest.mark.parametrize("formes", [
+    ("défini", "définie", "définis", "définies"),
+    ("garanti", "garantie", "garantis", "garanties"),
+    ("vérifié", "vérifiée", "vérifiés", "vérifiées", "verify"),
+    ("intégré", "intégrée", "intégrés", "intégrées"),
+    ("suivi", "suivie", "suivis", "suivies"),
+    ("stratégie", "stratégies", "strategy", "strategies"),
+    ("activity", "activities"),
+])
+def test_masculin_feminin_singulier_pluriel_meme_racine(formes):
+    """#209 — « -ie » → « -y » (#196) séparait « définie » (« definy ») de « défini »
+    (« defini ») ; « vérifiée » restait séparé de « vérifié ». Stratégie et l'anglais intacts."""
+    racines = {textes.racine(textes.normaliser(f)) for f in formes}
+    assert len(racines) == 1, racines
+
+
+def test_participes_masculin_feminin_meme_signature():
+    assert textes.signature("stratégie définie et couverture garantie") == \
+        textes.signature("stratégies définies et couvertures garanties") == \
+        textes.signature("stratégie défini et couverture garanti")
+    assert textes.racine("activities") == "activity" and textes.racine("process") == "process"
+    assert textes.racine("notes") == textes.racine("note") and textes.racine("techniques") == "techniqu"

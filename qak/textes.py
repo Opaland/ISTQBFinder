@@ -55,13 +55,25 @@ def racine(mot: str) -> str:
     « -ies » et « -ie » donnent tous deux « -y » (#196) : la règle anglaise « strategies »
     → « strategy » s'appliquait aussi au pluriel français « stratégies », séparé de
     « stratégie » (« strategi ») ; singulier et pluriel, français et anglais, se rejoignent
-    (« strategy »)."""
+    (« strategy »).
+
+    Masculin et féminin des participes se rejoignent aussi (#209) : la règle « -ie » →
+    « -y », appliquée seule, séparait « définie » (« definy ») de « défini » (« defini ») ;
+    un « -i » final devient donc « -y » lui aussi (défini, définie, définis, définies →
+    « definy »). Le « -ée » féminin perd un « e » avant la règle du « e » final :
+    « intégrée » et « intégré » → « integr », « vérifiée » et « vérifié » → « verify »,
+    comme l'anglais « verify ». Le pluriel est retiré d'abord, pour que « -ies »/« -ie »
+    et « -ées »/« -ée » suivent le même chemin que le singulier."""
     if len(mot) > 4 and mot.endswith("ies"):
         return mot[:-3] + "y"
-    if len(mot) > 4 and mot.endswith("ie"):
-        return mot[:-2] + "y"
     if len(mot) > 4 and mot[-1] in "sx" and not mot.endswith("ss"):
         mot = mot[:-1]
+    if len(mot) > 5 and mot.endswith("ee"):
+        mot = mot[:-1]
+    if len(mot) > 4 and mot.endswith("ie"):
+        return mot[:-2] + "y"
+    if len(mot) > 4 and mot.endswith("i"):
+        return mot[:-1] + "y"
     if len(mot) > 4 and mot.endswith("e"):
         mot = mot[:-1]
     return mot

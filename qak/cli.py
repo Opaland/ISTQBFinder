@@ -404,17 +404,23 @@ def _afficher_borne(r: dict, maximum: int, json_: bool, par_pages: bool = False)
 
 
 def cmd_page(a):
-    r = recherche.lire_pages(a.doc, *_plage_pages(a.pages))
-    if not r["passages"] and not a.json:
-        return _ecrire(f"Aucun texte indexé pour ces pages de {r['document']['doc_id']} "
-                       f"({r['document']['nb_pages']} pages ; pages vides : {r['document']['pages_vides'] or 'aucune'}).")
+    debut, fin = _plage_pages(a.pages)
+    r = recherche.lire_pages(a.doc, debut, fin)
+    d = r["document"]
+    # Refus (rc=2, erreur d'outil MCP) comme `lire 999999` ou `page DOC 0` (#207).
+    if d["nb_pages"] and (fin or debut) > d["nb_pages"]:
+        raise ErreurValidation(f"Page {fin or debut} inexistante dans {d['doc_id']} ({d['nb_pages']} pages) : "
+                               f"demander une page entre 1 et {d['nb_pages']}.")
+    if not r["passages"]:
+        raise ErreurValidation(f"Aucun texte indexé pour ces pages de {d['doc_id']} ({d['nb_pages']} pages ; "
+                               f"pages vides : {d['pages_vides'] or 'aucune'}) : voir `plan {a.doc}`.")
     _afficher_borne(r, a.max_caracteres, a.json, par_pages=True)
 
 
 def cmd_section(a):
     r = recherche.lire_section(a.doc, a.numero)
-    if not r["passages"] and not a.json:
-        return _ecrire(f"Section {a.numero} introuvable dans {r['document']['doc_id']} : voir `plan {a.doc}`.")
+    if not r["passages"]:  # refus (rc=2), comme `plan INCONNU` (#207)
+        raise ErreurValidation(f"Section {a.numero} introuvable dans {r['document']['doc_id']} : voir `plan {a.doc}`.")
     _afficher_borne(r, a.max_caracteres, a.json)
 
 

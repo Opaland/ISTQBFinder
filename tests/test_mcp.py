@@ -41,6 +41,22 @@ def test_outils_reutilisent_la_cli_et_tracent_les_passages_lus(bibliotheque_test
     assert "référence(s) lue(s)" in serveur_mcp.passages_lus()
 
 
+def test_passages_lus_developpe_les_plages_de_pages(bibliotheque_test):
+    """#206 : `pp. N-M` est LU seulement si chaque page de l'intervalle a été affichée."""
+    assert "NON LU" in serveur_mcp.passages_lus("[CTFL v9.9 EN, §1, pp. 3-5]")
+    serveur_mcp.section("CTFL", "1", max_caracteres=0)  # pages 3, 4 et 5 (§1, §1.1, §1.2)
+    lu = serveur_mcp.passages_lus("[CTFL v9.9 EN, §1, pp. 3-5]")
+    assert lu.startswith("LU dans cette session") and "§1.1, p. 4" in lu
+    assert serveur_mcp.passages_lus("[CTFL v9.9 EN, §1.2, pp. 5-5]").startswith("LU")
+    assert "NON LU" in serveur_mcp.passages_lus("[CTFL v9.9 EN, §1, pp. 3-6]")  # p. 6 jamais lue
+    assert "NON LU" in serveur_mcp.passages_lus("[CTFL v9.9 EN, §1.1, pp. 3-4]")  # p. 3 : §1, pas §1.1
+    assert "NON LU" in serveur_mcp.passages_lus("[CTFL v9.9 FR, §1, pp. 3-5]")  # autre document
+    assert "NON LU" in serveur_mcp.passages_lus("[CTFL v9.9 EN, §1, pp. 5-3]")
+    serveur_mcp.page("CTFL", "6")
+    assert "NON LU" in serveur_mcp.passages_lus("[CTFL v9.9 EN, §1, pp. 3-6]")  # §2.1 n'est pas dans §1
+    assert serveur_mcp.passages_lus("[CTFL v9.9 EN, §2.1, p. 6]").startswith("LU")
+
+
 def test_confiance_compare_les_lectures_annoncees_au_releve(bibliotheque_test):
     r = serveur_mcp.confiance(base=70, lus=2, concordants=1)
     assert "Confiance : " in r and "ATTENTION : lus=2 annoncé, 0 relevé(s)" in r
@@ -92,8 +108,20 @@ def test_dialogue_mcp_reel_en_stdio(bibliotheque_test, racine_isolee):
             citer = re.search(r"Citer : (\[[^\]]+\])", lu)[1]
             verif = (await c.call_tool("passages_lus", {"citation": citer})).content[0].text
             assert verif.startswith("LU dans cette session")
+            # #206 : une plage de pages toutes affichées est LUE ; une page manquante la rend NON LUE
+            plage = {"citation": "[CTFL v9.9 EN, §1, pp. 3-5]"}
+            assert "NON LU" in (await c.call_tool("passages_lus", plage)).content[0].text
+            await c.call_tool("section", {"doc": "CTFL", "numero": "1", "max_caracteres": 0})
+            assert (await c.call_tool("passages_lus", plage)).content[0].text.startswith("LU dans cette session")
+            manque = (await c.call_tool("passages_lus", {"citation": "[CTFL v9.9 EN, §1, pp. 3-6]"})).content[0].text
+            assert manque.startswith("NON LU")
             erreur = await c.call_tool("section", {"doc": "INCONNU", "numero": "1"})
             assert erreur.is_error and "Document inconnu" in erreur.content[0].text
+            # #207 : hors du document → erreur d'outil, même message que la CLI
+            hors = await c.call_tool("section", {"doc": "CTFL", "numero": "99.9"})
+            assert hors.is_error and "Section 99.9 introuvable" in hors.content[0].text
+            hors = await c.call_tool("page", {"doc": "CTFL", "pages": "999"})
+            assert hors.is_error and "Page 999 inexistante" in hors.content[0].text
 
     asyncio.run(asyncio.wait_for(dialogue(), 60))
     assert not (racine_isolee / "connaissances" / "journal.jsonl").exists()  # rien n'a été écrit

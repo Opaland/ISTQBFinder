@@ -220,7 +220,7 @@ Claude Desktop : voir #200.
 - `installer.ps1` : exécuté par la CI sous Windows PowerShell 5.1 (job `installation-windows`) ;
   non essayé sur un poste Windows réel.
 - Serveur MCP : dialogue stdio réel avec le client du SDK officiel `mcp` 2.3.0
-  (`tests/test_mcp.py`, job `tests` de la CI) et avec Claude Code (voir la PR #153).
+  (`tests/test_mcp.py`, job `tests` de la CI) et avec Claude Code (voir la PR #201, issue #153).
 - Assistants : chargement des fichiers vérifié avec Copilot CLI 1.0.102 et Gemini CLI 0.65.0 ;
   **aucune réponse obtenue de Copilot ni de Gemini**, faute de compte dans l'environnement
   de développement (voir README).

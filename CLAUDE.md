@@ -13,7 +13,7 @@ Français partout (messages, commits, commentaires). Pas de serveur réseau ni d
 ## Commandes
 
 ```bash
-python -m pytest tests/ -q -rs        # obligatoire avant tout commit/push (~15 s)
+python -m pytest tests/ -q -rs        # obligatoire avant tout commit/push (~30 s)
 python qa.py evaluer --jeu controle   # qualité de la recherche (avant/après toute modif du moteur)
 python qa.py inventaire               # état de la bibliothèque
 ```

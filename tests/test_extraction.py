@@ -183,3 +183,17 @@ def test_numero_repete_par_deux_signets_garde_le_dernier():
                (1, "5.1 Processus de test", 2)]
     plan = extraction._plan_depuis_signets(signets, pages)
     assert [(t.numero, t.page, t.intertitre) for t in plan] == [("5", 1, False), ("", 1, True), ("5.1", 2, False)]
+
+
+def test_titre_de_signet_coupe_par_une_espace_parasite():
+    """#220 — même extrait du CTAL-AT : la ligne « 2.1 Whole T eam Approach » porte une espace
+    parasite ; le signet se posait sur « …The whole team approach emphasizes… » de
+    l'introduction, qui passait alors sous §2.1."""
+    x = extraction.extraire(FIXTURES / "ctal-at-v2.0-en-p19-20.pdf")
+    titre = [t for t in x.plan if t.numero == "2.1"][0]
+    assert x.pages[titre.page - 1].texte.split("\n")[titre.ligne] == "2.1 Whole T eam Approach"
+    ps = extraction.passages(x)
+    intro = [p for p in ps if "The whole team approach emphasizes" in p.texte]
+    assert len(intro) == 1 and intro[0].section_num == "2"
+    approche = [p for p in ps if p.section_num == "2.1"]
+    assert approche and approche[0].texte.startswith("2.1 Whole Team Approach")

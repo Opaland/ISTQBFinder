@@ -14,7 +14,7 @@ from .textes import normaliser
 # Toute modification de l'extraction, du découpage ou de la détection des métadonnées doit
 # incrémenter ce numéro :
 # l'actualisation réindexe alors les documents extraits par une version antérieure.
-VERSION_EXTRACTEUR = 14
+VERSION_EXTRACTEUR = 15
 
 TAILLE_PASSAGE = 1400   # caractères visés par passage
 PAGE_VIDE = 40          # moins de caractères utiles = page vide (scan, image)
@@ -326,15 +326,20 @@ def _ligne_du_titre(lignes: list[str], num: str, libelle: str) -> int:
 
     Les deux premiers essais passent avant la simple inclusion (#177) : « Risk Analysis »
     figure aussi dans une phrase de l'introduction du chapitre (« …involves risk analysis
-    and risk control… ») ; s'arrêter sur cette phrase rangeait l'introduction sous §2.1."""
+    and risk control… ») ; s'arrêter sur cette phrase rangeait l'introduction sous §2.1.
+
+    Ces deux essais comparent sans espaces (#220) : l'extraction coupe des mots (« 2.1 Whole
+    T eam Approach ») et la ligne du titre échappait aux deux, laissant l'inclusion s'arrêter
+    sur « …the whole team approach emphasizes… » de l'introduction."""
     cle = normaliser(libelle)[:30]
     norm = [normaliser(l) for l in lignes]
     if cle:
-        for i, l in enumerate(norm):
-            if num and l.startswith(f"{normaliser(num)} {cle}"):
+        compacts, cle_compacte = [l.replace(" ", "") for l in norm], cle.replace(" ", "")
+        for i, l in enumerate(compacts):
+            if num and l.startswith(normaliser(num).replace(" ", "") + cle_compacte):
                 return i
-        for i, l in enumerate(norm):
-            if l.startswith(cle):
+        for i, l in enumerate(compacts):
+            if l.startswith(cle_compacte):
                 return i
     for i, l in enumerate(norm):
         if cle and cle in l:

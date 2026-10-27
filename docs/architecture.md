@@ -82,7 +82,8 @@ par `lire` / `section` / `page` sont relevés (`cli.LECTURES`) et consultables p
 | #196 « -ie » et « -ies » → « -y » : « stratégie(s) » et « strategy/strategies » ont la même racine (aucune question du contrôle n'échouait sur ce point ; mêmes classements sur les trois jeux, éloigné 20 % → 20 %) | 100 % (0,94) → 100 % (0,94) | 89 % (41/46, 0,77) → 89 % (41/46, 0,77) |
 | #210 extraction : intertitres de signets sans numéro propre (passages rattachés à la section numérotée), signet numéroté en double écarté (27 numéros en double → 0 ; mêmes classements sur les trois jeux, éloigné 20 % → 20 %) | 100 % (0,94) → 100 % (0,94) | 89 % (41/46, 0,77) → 89 % (41/46, 0,77) |
 | #209 participes : masculin, féminin, singulier et pluriel ont la même racine (« défini/définie » → « definy », « intégré/intégrée » → « integr », « vérifié/vérifiée » → « verify ») ; question « approche d'équipe intégré » ajoutée au contrôle avant correctif (éloigné 20 % → 20 %) | 100 % (0,94) → 100 % (0,94) | 87 % (41/47, 0,75) → 89 % (42/47, 0,77) |
-| **État actuel** (moteur lexical ; #59 : mêmes classements, ≈ 8 × plus rapide) | **100 % (MRR 0,94)** | **89 % (42/47, MRR 0,77)** |
+| #220 extraction : ligne du titre d'un signet cherchée sans espaces (« 2.1 Whole T eam Approach ») ; 22 titres du CTAL-AT v2.0 EN replacés sur leur vraie ligne, l'introduction ne passe plus sous la 1re sous-section (« coût de maintenance des tests automatisés » rang 3 → 4, toujours trouvée ; éloigné 20 % → 20 %) | 100 % (0,94) → 100 % (0,95) | 89 % (42/47, 0,77) → 89 % (42/47, 0,77) |
+| **État actuel** (moteur lexical ; #59 : mêmes classements, ≈ 8 × plus rapide) | **100 % (MRR 0,95)** | **89 % (42/47, MRR 0,77)** |
 
 Le 100 % du jeu de réglage est optimiste par construction ; le chiffre honnête est celui
 du jeu de contrôle. Les questions ajoutées au contrôle l'ont été AVANT la correction qu'elles

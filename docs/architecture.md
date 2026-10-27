@@ -20,7 +20,7 @@ python qa.py <commande>          ← une seule CLI, sortie texte FR (ou --json)
         │     connaissances/base.db              SQLite + FTS5, reconstruit depuis le JSONL [reconstructible]
         │
         └── Référentiels ────────────────────────────────────────────────────
-              referentiel/taxonomie.json   39 thèmes hiérarchiques + mots-clés FR/EN       [versionné]
+              referentiel/taxonomie.json   41 thèmes hiérarchiques + mots-clés FR/EN       [versionné]
               referentiel/thesaurus.json   ~130 concepts, ~1000 termes FR↔EN              [versionné]
 ```
 

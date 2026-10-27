@@ -11,3 +11,12 @@ def test_section_ou_l_utiliser():
     assert "onglet Code" in section
     assert "claude.ai" in section and "**non**" in section
     assert "Pourquoi pas claude.ai" in section
+
+
+def test_chiffres_de_la_documentation_a_jour():
+    """#211 : le nombre de thèmes annoncé suit `referentiel/taxonomie.json`."""
+    import json
+    import re
+    themes = json.loads((RACINE_CODE / "referentiel" / "taxonomie.json").read_text(encoding="utf-8"))["themes"]
+    archi = (RACINE_CODE / "docs" / "architecture.md").read_text(encoding="utf-8")
+    assert re.search(r"taxonomie\.json\s+(\d+) thèmes", archi)[1] == str(len(themes))

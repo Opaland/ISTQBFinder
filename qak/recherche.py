@@ -417,7 +417,8 @@ def lire_passage(pid: int, contexte: int = 0, cx: sqlite3.Connection | None = No
     try:
         r = cx.execute("SELECT doc_id, ordre FROM passages WHERE id=?", (pid,)).fetchone()
         if not r:
-            raise KeyError(f"Passage {pid} introuvable (index reconstruit depuis ? relancer la recherche).")
+            raise KeyError(f"Passage {pid} introuvable : numéro périmé si l'index a été reconstruit depuis la "
+                           "recherche ; relancer `chercher` pour obtenir des numéros à jour.")
         return [dict(x) for x in cx.execute(
             "SELECT p.*, d.titre, d.code, d.version, d.langue, d.statut_version, d.date_publication "
             "FROM passages p JOIN documents d ON d.doc_id=p.doc_id "

@@ -652,6 +652,8 @@ def _termes_idee(i: dict, champs=("titre", "resume", "probleme", "principe")) ->
 
 
 BONUS_EXTRAIT, BONUS_PAGES = 0.35, 0.2
+# Score maximal d'une paire dont seule la référence commune rapproche les textes (#205).
+PLAFOND_REFERENCE_SEULE = round(SEUIL_DOUBLON - 0.01, 2)
 
 
 def _pages_ref(ref: dict) -> set[int]:
@@ -686,7 +688,10 @@ def similarite(a: dict, b: dict) -> float:
     """Signatures du thésaurus (titre, contenu), plus deux indices qui manquaient pour une
     même idée reformulée ou traduite (#27) : le thème principal commun et les noms
     propres / sigles partagés absents du thésaurus (Herzberg), surtout s'ils figurent dans les
-    deux titres ; enfin une référence ISTQB commune (#160), qui survit à la traduction."""
+    deux titres ; enfin une référence ISTQB commune (#160), qui survit à la traduction.
+    Cette référence reste un indice (#205) : deux idées distinctes citent souvent le même
+    passage. Elle ne fait franchir le seuil bloquant qu'à un texte déjà « proche » ;
+    sinon l'idée est signalée (« proche »), jamais bloquée."""
     st, sb = _sig_titre(a), _sig_titre(b)
     titre = max(jaccard(st, sb), 0.8 * recouvrement(st, sb))
     contenu = jaccard(_sig_contenu(a), _sig_contenu(b))
@@ -698,8 +703,10 @@ def similarite(a: dict, b: dict) -> float:
     communs = {t for t in _termes_idee(a) & _termes_idee(b) if t not in termes_thesaurus()}
     titres = set(normaliser(a.get("titre", "")).split()) & set(normaliser(b.get("titre", "")).split())
     score += 0.3 if communs & titres else 0.15 if communs else 0.0
-    score += _bonus_references(a, b)
-    return round(min(1.0, score), 2)
+    bonus = _bonus_references(a, b)
+    if bonus and round(score, 2) < SEUIL_PROCHE:
+        return round(min(score + bonus, PLAFOND_REFERENCE_SEULE), 2)
+    return round(min(1.0, score + bonus), 2)
 
 
 def doublons(candidat: dict, exclure: str | None = None, cx: sqlite3.Connection | None = None) -> list[dict]:

@@ -66,6 +66,14 @@ def test_codes_retour_et_validations(capsys, racine_isolee, tmp_path):
     for pages in ("abc", "0", "5-3"):
         assert main(["page", "CTFL", pages]) == 2
         assert "Pages attendues" in capsys.readouterr().err
+    # #207 : section ou page hors du document → refus rc=2, message sur stderr
+    assert main(["section", "CTFL", "99.9"]) == 2
+    assert "Section 99.9 introuvable" in capsys.readouterr().err
+    for pages in ("999", "6-999"):
+        assert main(["page", "CTFL", pages]) == 2
+        err = capsys.readouterr().err
+        assert "Page 999 inexistante dans CTFL-9.9-en" in err and "pages)" in err
+    assert main(["section", "CTFL", "99.9", "--json"]) == 2
     for options in (["--date", "hier soir"], ["--niveau", "n'importe"], ["--langue", "klingon"], ["--type", "x"]):
         with pytest.raises(SystemExit) as exc:  # argparse : rc=2, message d'usage
             main(["corriger", "CTFL-9.9-en", *options])
@@ -189,6 +197,26 @@ def test_doublons_en_une_ligne_sans_json(capsys, monkeypatch, racine_isolee):
     sortie = capsys.readouterr().out
     assert q1 in sortie and "DOUBLON PROBABLE" in sortie
     assert main(["idee", "doublons", "--titre", "x", "--theme", "inconnu"]) == 2
+
+
+def test_doublons_en_une_ligne_avec_reference_rend_le_verdict_de_l_ajout(capsys, monkeypatch, bibliotheque_test):
+    """#205 : la forme en une ligne ignorait la référence ; `idee ajouter` refusait ensuite ce
+    qu'elle avait annoncé sans doublon. Avec --doc/--pages/--extrait, les deux verdicts concordent."""
+    from test_connaissances import IDEE, REF_P6, TRADUITE
+    monkeypatch.setattr("sys.stdin", __import__("io").StringIO(json.dumps({**IDEE, "references": [REF_P6]})))
+    assert main(["idee", "ajouter"]) == 0
+    q1 = capsys.readouterr().out.split("Idée créée : ")[1].split()[0]
+    une_ligne = ["idee", "doublons", "--titre", TRADUITE["titre"], "--resume", TRADUITE["resume"],
+                 "--probleme", TRADUITE["probleme"], "--principe", TRADUITE["principe"], "--theme", "rbt"]
+    assert main(une_ligne) == 0
+    assert "DOUBLON PROBABLE" not in capsys.readouterr().out  # sans la référence : seulement proche
+    assert main(une_ligne + ["--doc", "CTFL", "--pages", "6", "--extrait", REF_P6["extrait"]]) == 0
+    sortie = capsys.readouterr().out
+    assert q1 in sortie and "DOUBLON PROBABLE" in sortie
+    monkeypatch.setattr("sys.stdin", __import__("io").StringIO(json.dumps({**TRADUITE, "references": [REF_P6]})))
+    assert main(["idee", "ajouter"]) == 2 and "DOUBLON PROBABLE" in capsys.readouterr().out
+    assert main(une_ligne + ["--pages", "6"]) == 2  # référence sans document
+    assert "--doc" in capsys.readouterr().err
 
 
 @pytest.mark.parametrize("argv, attendus", [

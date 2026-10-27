@@ -404,17 +404,23 @@ def _afficher_borne(r: dict, maximum: int, json_: bool, par_pages: bool = False)
 
 
 def cmd_page(a):
-    r = recherche.lire_pages(a.doc, *_plage_pages(a.pages))
-    if not r["passages"] and not a.json:
-        return _ecrire(f"Aucun texte indexé pour ces pages de {r['document']['doc_id']} "
-                       f"({r['document']['nb_pages']} pages ; pages vides : {r['document']['pages_vides'] or 'aucune'}).")
+    debut, fin = _plage_pages(a.pages)
+    r = recherche.lire_pages(a.doc, debut, fin)
+    d = r["document"]
+    # Refus (rc=2, erreur d'outil MCP) comme `lire 999999` ou `page DOC 0` (#207).
+    if d["nb_pages"] and (fin or debut) > d["nb_pages"]:
+        raise ErreurValidation(f"Page {fin or debut} inexistante dans {d['doc_id']} ({d['nb_pages']} pages) : "
+                               f"demander une page entre 1 et {d['nb_pages']}.")
+    if not r["passages"]:
+        raise ErreurValidation(f"Aucun texte indexé pour ces pages de {d['doc_id']} ({d['nb_pages']} pages ; "
+                               f"pages vides : {d['pages_vides'] or 'aucune'}) : voir `plan {a.doc}`.")
     _afficher_borne(r, a.max_caracteres, a.json, par_pages=True)
 
 
 def cmd_section(a):
     r = recherche.lire_section(a.doc, a.numero)
-    if not r["passages"] and not a.json:
-        return _ecrire(f"Section {a.numero} introuvable dans {r['document']['doc_id']} : voir `plan {a.doc}`.")
+    if not r["passages"]:  # refus (rc=2), comme `plan INCONNU` (#207)
+        raise ErreurValidation(f"Section {a.numero} introuvable dans {r['document']['doc_id']} : voir `plan {a.doc}`.")
     _afficher_borne(r, a.max_caracteres, a.json)
 
 
@@ -480,6 +486,9 @@ def _afficher_doublons(sim: list[dict]):
 
 
 CHAMPS_DOUBLONS = ("titre", "resume", "probleme", "principe")
+# Référence ISTQB en une ligne (#205) : `idee ajouter` en tient compte, la vérification doit
+# pouvoir le faire aussi, sinon les deux commandes rendent des verdicts différents.
+CHAMPS_REFERENCE = {"doc": "doc_id", "pages": "pages", "section": "section", "extrait": "extrait"}
 
 
 def cmd_idee(a):
@@ -503,6 +512,12 @@ def cmd_idee(a):
         champs = {k: getattr(a, k) for k in CHAMPS_DOUBLONS if getattr(a, k)}
         if champs and a.theme:
             champs["theme_principal"] = a.theme
+        ref = {cle: getattr(a, opt) for opt, cle in CHAMPS_REFERENCE.items() if getattr(a, opt)}
+        if champs and ref:
+            if "doc_id" not in ref:
+                raise ErreurValidation("`idee doublons` : une référence en une ligne demande --doc "
+                                       "(ex. --doc CTFL-4.0.1-en --pages 51 --extrait \"…\").")
+            champs["references"] = [{"type": "istqb", **ref}]
         d, _ = connaissances.valider(champs or _lire_donnees(a.fichier, si_vide=(
             "`idee doublons` attend au moins --titre ou --resume (et --theme), ou le JSON de l'idée "
             "sur l'entrée standard / avec --fichier <chemin>.")), partiel=True)
@@ -712,6 +727,11 @@ def traduire_erreur(message: str) -> str:
     return message
 
 
+# Le serveur MCP (#208) le met à False : son client reçoit l'erreur en une ligne, sans l'aide
+# de la CLI, dont les options (`--json`, `--semantique`…) ne sont pas celles de l'outil.
+AIDE_APRES_ERREUR = True
+
+
 class Analyseur(argparse.ArgumentParser):
     """ArgumentParser francisé : erreurs en français suivies de l'aide de la sous-commande
     concernée (c'est aussi ce que lisent les agents), aide aux intitulés traduits."""
@@ -744,7 +764,8 @@ class Analyseur(argparse.ArgumentParser):
 
     def error(self, message: str):
         cible = self._sous_commande() if "unrecognized arguments" in message else self
-        self.exit(2, f"Erreur ({cible.prog}) : {traduire_erreur(message)}\n\n{cible.format_help()}")
+        aide = f"\n\n{cible.format_help()}" if AIDE_APRES_ERREUR else "\n"
+        self.exit(2, f"Erreur ({cible.prog}) : {traduire_erreur(message)}{aide}")
 
 
 def analyseur() -> argparse.ArgumentParser:
@@ -879,6 +900,8 @@ def analyseur() -> argparse.ArgumentParser:
     x.add_argument("--fichier", default="-", help="JSON de l'idée (défaut : entrée standard)")
     for champ in CHAMPS_DOUBLONS:
         x.add_argument(f"--{champ}", help="doublons : champ de l'idée en une ligne, sans JSON (avec --theme)")
+    for opt in CHAMPS_REFERENCE:
+        x.add_argument(f"--{opt}", help=f"doublons : référence ISTQB de l'idée en une ligne ({CHAMPS_REFERENCE[opt]})")
     x.add_argument("--forcer", action="store_true")
     x.add_argument("--motif")
     x.add_argument("--remplacer-listes", action="store_true")

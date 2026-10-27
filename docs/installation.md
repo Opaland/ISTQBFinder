@@ -143,10 +143,12 @@ y compris quand l'assistant n'est pas ouvert dans le clone :
 | `plan` | `plan <doc>` |
 | `idee_chercher`, `idee_voir` | `idee chercher`, `idee voir` |
 | `confiance` | `confiance --base … --lus … --concordants …` ; rappelle en plus combien de passages le serveur a vu lire |
-| `passages_lus` | propre au serveur : références lues dans la session, ou « LU / NON LU » pour une citation donnée |
+| `passages_lus` | propre au serveur : références lues dans la session, ou « LU / NON LU » pour une citation donnée (`pp. N-M` : LU si chaque page de l'intervalle a été affichée) |
 
 Chaque outil appelle la CLI (`qak/cli.py`) : mêmes vérifications, mêmes messages d'erreur
-en français. Le serveur **n'écrit rien** : capitaliser une idée, importer ou télécharger un
+en français. Les bornes des arguments (`n` ≥ 1, `max_caracteres` ≥ 0, `base` de 0 à 100,
+`langue` fr ou en…) sont déclarées dans le schéma des outils ; un argument refusé renvoie une
+erreur d'outil d'une ligne, en français, sans l'aide de la CLI. Le serveur **n'écrit rien** : capitaliser une idée, importer ou télécharger un
 document reste dans la CLI, avec l'accord de l'utilisateur. Il relève chaque passage
 affiché par `lire`, `section` ou `page` (en mémoire, pour la durée de la session, et une
 ligne sur stderr, c'est-à-dire dans le journal du client MCP) : « lire avant de citer » se

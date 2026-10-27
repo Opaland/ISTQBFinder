@@ -191,6 +191,26 @@ def test_doublons_en_une_ligne_sans_json(capsys, monkeypatch, racine_isolee):
     assert main(["idee", "doublons", "--titre", "x", "--theme", "inconnu"]) == 2
 
 
+def test_doublons_en_une_ligne_avec_reference_rend_le_verdict_de_l_ajout(capsys, monkeypatch, bibliotheque_test):
+    """#205 : la forme en une ligne ignorait la référence ; `idee ajouter` refusait ensuite ce
+    qu'elle avait annoncé sans doublon. Avec --doc/--pages/--extrait, les deux verdicts concordent."""
+    from test_connaissances import IDEE, REF_P6, TRADUITE
+    monkeypatch.setattr("sys.stdin", __import__("io").StringIO(json.dumps({**IDEE, "references": [REF_P6]})))
+    assert main(["idee", "ajouter"]) == 0
+    q1 = capsys.readouterr().out.split("Idée créée : ")[1].split()[0]
+    une_ligne = ["idee", "doublons", "--titre", TRADUITE["titre"], "--resume", TRADUITE["resume"],
+                 "--probleme", TRADUITE["probleme"], "--principe", TRADUITE["principe"], "--theme", "rbt"]
+    assert main(une_ligne) == 0
+    assert "DOUBLON PROBABLE" not in capsys.readouterr().out  # sans la référence : seulement proche
+    assert main(une_ligne + ["--doc", "CTFL", "--pages", "6", "--extrait", REF_P6["extrait"]]) == 0
+    sortie = capsys.readouterr().out
+    assert q1 in sortie and "DOUBLON PROBABLE" in sortie
+    monkeypatch.setattr("sys.stdin", __import__("io").StringIO(json.dumps({**TRADUITE, "references": [REF_P6]})))
+    assert main(["idee", "ajouter"]) == 2 and "DOUBLON PROBABLE" in capsys.readouterr().out
+    assert main(une_ligne + ["--pages", "6"]) == 2  # référence sans document
+    assert "--doc" in capsys.readouterr().err
+
+
 @pytest.mark.parametrize("argv, attendus", [
     (["idee", "ajoute"], ["choix invalide : 'ajoute'", "valeurs possibles", "« ajouter »", "usage : qa.py idee"]),
     (["chercher"], ["arguments obligatoires manquants : requete", "usage : qa.py chercher"]),

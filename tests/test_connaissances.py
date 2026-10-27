@@ -569,6 +569,30 @@ def test_doublon_traduit_citant_le_meme_extrait_istqb(bibliotheque_test):
         >= connaissances.SEUIL_DOUBLON
 
 
+REGRESSION = {"titre": "Prioriser les tests de régression par le risque",
+              "resume": "Ordonner les tests de régression selon le niveau de risque des zones modifiées.",
+              "probleme": "Campagne de régression trop longue pour être jouée en entier.",
+              "principe": "Les tests couvrant les risques les plus élevés passent en premier.",
+              "theme_principal": "rbt"}
+SORTIE = {"titre": "Arrêter les tests quand le risque résiduel est accepté",
+          "resume": "Le critère de sortie est l'acceptation du risque résiduel par les parties prenantes.",
+          "probleme": "On ne sait pas quand arrêter de tester.",
+          "principe": "Le risque résiduel mesuré est comparé au seuil accepté.",
+          "theme_principal": "rbt"}
+
+
+def test_meme_extrait_ne_bloque_pas_deux_idees_differentes_du_meme_theme(bibliotheque_test):
+    """#205 : même thème (+0,1) et même extrait (+0,35) bloquaient deux idées sans rapport (0,65)."""
+    assert connaissances.similarite(REGRESSION, SORTIE) < connaissances.SEUIL_PROCHE  # texte seul
+    a, b = {**REGRESSION, "references": [dict(REF_P6)]}, {**SORTIE, "references": [dict(REF_P6)]}
+    s = connaissances.similarite(a, b)
+    assert connaissances.SEUIL_PROCHE <= s == connaissances.PLAFOND_REFERENCE_SEULE < connaissances.SEUIL_DOUBLON
+    q1 = connaissances.ajouter(a)["id"]
+    r = connaissances.ajouter(b)
+    assert r["etat"] != "refuse" and r["doublons"][0]["id"] == q1
+    assert r["doublons"][0]["verdict"] == "proche"
+
+
 @pytest.mark.parametrize("ref_b, bonus", [
     ({"type": "istqb", "doc_id": "CTFL", "pages": "5-7"}, connaissances.BONUS_PAGES),   # pages recouvertes
     ({"type": "istqb", "doc_id": "CTFL", "pages": "9"}, 0.0),                           # autres pages

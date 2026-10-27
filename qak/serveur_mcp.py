@@ -13,6 +13,7 @@ import contextlib
 import functools
 import importlib.util
 import io
+import re
 import sys
 import threading
 from datetime import datetime
@@ -82,8 +83,44 @@ def _normaliser(citation: str) -> str:
     return " ".join(citation.strip().strip("[]").split())
 
 
+_PAGES = re.compile(r"pp?\.\s*(\d+)(?:\s*[-–]\s*(\d+))?(?:\s*\(imprimée[^)]*\))?")
+
+
+def _decouper(citation: str) -> tuple[str, str, int, int] | None:
+    """(document, section, première page, dernière page) d'une référence `[DOC, §x.y, p. N]`
+    ou `[DOC, §x.y, pp. N-M]` (#206) ; None si la page n'est pas lisible."""
+    parties = [x.strip() for x in _normaliser(citation).split(",")]
+    m = _PAGES.fullmatch(parties[-1]) if len(parties) >= 2 else None
+    if not m:
+        return None
+    debut, fin = int(m[1]), int(m[2] or m[1])
+    return parties[0], ", ".join(parties[1:-1]), debut, fin
+
+
+def _lue(citation: str, refs: dict[str, list[dict]]) -> list[str]:
+    """Références relevées qui couvrent `citation` ; vide si une seule de ses pages manque.
+    `pp. N-M` n'est LU que si chaque page de l'intervalle a été affichée, dans le même
+    document et dans la section citée ou l'une de ses sous-sections (`section` les inclut)."""
+    cle = _normaliser(citation)
+    exacte = [r for r in refs if _normaliser(r) == cle]
+    if exacte:
+        return exacte
+    voulue = _decouper(citation)
+    if not voulue or voulue[3] < voulue[2]:
+        return []
+    doc, sec, debut, fin = voulue
+    par_page: dict[int, str] = {}
+    for r in refs:
+        lue = _decouper(r)
+        if lue and lue[0] == doc and (lue[1] == sec or lue[1].startswith(sec.rstrip(".") + ".")):
+            par_page.setdefault(lue[2], r)
+    pages = range(debut, fin + 1)
+    return [par_page[k] for k in pages] if all(k in par_page for k in pages) else []
+
+
 def passages_lus(citation: str = "") -> str:
-    """Relevé de la session : toutes les références lues, ou si `citation` a été lue."""
+    """Relevé de la session : toutes les références lues, ou si `citation` a été lue
+    (`pp. N-M` : LU seulement si toutes les pages de l'intervalle l'ont été)."""
     with _VERROU:
         lus = list(_LUS)
     refs: dict[str, list[dict]] = {}
@@ -91,10 +128,10 @@ def passages_lus(citation: str = "") -> str:
         refs.setdefault(x["citer"], []).append(x)
     if citation:
         cle = _normaliser(citation)
-        trouve = next((r for r in refs if _normaliser(r) == cle), None)
-        if trouve:
-            ids = ", ".join("#" + str(x["passage"]) for x in refs[trouve])
-            return f"LU dans cette session : {trouve} (passages {ids})."
+        trouvees = _lue(citation, refs)
+        if trouvees:
+            ids = ", ".join("#" + str(x["passage"]) for r in trouvees for x in refs[r])
+            return f"LU dans cette session : {' · '.join(trouvees)} (passages {ids})."
         doc = cle.split(",")[0].strip()
         voisins = [r for r in refs if _normaliser(r).split(",")[0].strip() == doc]
         return ("NON LU dans cette session : " + citation.strip() + " — ne pas le citer avant de l'avoir lu "

@@ -117,6 +117,11 @@ def test_dialogue_mcp_reel_en_stdio(bibliotheque_test, racine_isolee):
             assert manque.startswith("NON LU")
             erreur = await c.call_tool("section", {"doc": "INCONNU", "numero": "1"})
             assert erreur.is_error and "Document inconnu" in erreur.content[0].text
+            # #207 : hors du document → erreur d'outil, même message que la CLI
+            hors = await c.call_tool("section", {"doc": "CTFL", "numero": "99.9"})
+            assert hors.is_error and "Section 99.9 introuvable" in hors.content[0].text
+            hors = await c.call_tool("page", {"doc": "CTFL", "pages": "999"})
+            assert hors.is_error and "Page 999 inexistante" in hors.content[0].text
 
     asyncio.run(asyncio.wait_for(dialogue(), 60))
     assert not (racine_isolee / "connaissances" / "journal.jsonl").exists()  # rien n'a été écrit

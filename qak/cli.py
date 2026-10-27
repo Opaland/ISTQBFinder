@@ -486,6 +486,9 @@ def _afficher_doublons(sim: list[dict]):
 
 
 CHAMPS_DOUBLONS = ("titre", "resume", "probleme", "principe")
+# Référence ISTQB en une ligne (#205) : `idee ajouter` en tient compte, la vérification doit
+# pouvoir le faire aussi, sinon les deux commandes rendent des verdicts différents.
+CHAMPS_REFERENCE = {"doc": "doc_id", "pages": "pages", "section": "section", "extrait": "extrait"}
 
 
 def cmd_idee(a):
@@ -509,6 +512,12 @@ def cmd_idee(a):
         champs = {k: getattr(a, k) for k in CHAMPS_DOUBLONS if getattr(a, k)}
         if champs and a.theme:
             champs["theme_principal"] = a.theme
+        ref = {cle: getattr(a, opt) for opt, cle in CHAMPS_REFERENCE.items() if getattr(a, opt)}
+        if champs and ref:
+            if "doc_id" not in ref:
+                raise ErreurValidation("`idee doublons` : une référence en une ligne demande --doc "
+                                       "(ex. --doc CTFL-4.0.1-en --pages 51 --extrait \"…\").")
+            champs["references"] = [{"type": "istqb", **ref}]
         d, _ = connaissances.valider(champs or _lire_donnees(a.fichier, si_vide=(
             "`idee doublons` attend au moins --titre ou --resume (et --theme), ou le JSON de l'idée "
             "sur l'entrée standard / avec --fichier <chemin>.")), partiel=True)
@@ -885,6 +894,8 @@ def analyseur() -> argparse.ArgumentParser:
     x.add_argument("--fichier", default="-", help="JSON de l'idée (défaut : entrée standard)")
     for champ in CHAMPS_DOUBLONS:
         x.add_argument(f"--{champ}", help="doublons : champ de l'idée en une ligne, sans JSON (avec --theme)")
+    for opt in CHAMPS_REFERENCE:
+        x.add_argument(f"--{opt}", help=f"doublons : référence ISTQB de l'idée en une ligne ({CHAMPS_REFERENCE[opt]})")
     x.add_argument("--forcer", action="store_true")
     x.add_argument("--motif")
     x.add_argument("--remplacer-listes", action="store_true")

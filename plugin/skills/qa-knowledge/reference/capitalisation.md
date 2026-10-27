@@ -20,7 +20,12 @@ intérêt durable, résultat de recherche brut.
    `theme_principal`). Champs utiles : `themes_secondaires`, `domaine_application`,
    `prerequis`, `benefices`, `limites`, `maturite`, `provenance`, `references`.
 3. Thèmes : `theme proposer "<titre + résumé>"`, puis vérifier dans `themes`.
-4. Doublons : `idee doublons` en **une ligne**, champs en options (voir plus bas).
+4. Doublons : `idee doublons` en **une ligne**, champs en options (voir plus bas), avec
+   la référence ISTQB prévue (`--doc`, `--pages`, `--section`, `--extrait`) : `idee ajouter`
+   en tient compte, la vérification doit le faire aussi pour rendre le même verdict.
+   Une référence commune n'est qu'un indice : seule, elle ne rend jamais « doublon
+   probable » deux idées dont le texte n'est pas déjà proche (deux idées distinctes
+   citent souvent le même passage).
    - « doublon probable » (≥ 0,6) → NE PAS créer ; proposer `idee modifier QA-xxxx`
      (les références et thèmes s'ajoutent, rien n'est perdu) ou `idee lier`.
    - « proche » (0,35-0,6) → créer seulement si la différence est réelle, puis lier
@@ -39,7 +44,7 @@ ajouter` garde le JSON sur l'entrée standard : il demande de toute façon l'acc
 l'utilisateur.
 
 ```bash
-qa idee doublons --titre "..." --resume "..." --probleme "..." --principe "..." --theme rbt
+qa idee doublons --titre "..." --resume "..." --probleme "..." --principe "..." --theme rbt --doc CTAL-TM-3.0-fr --pages 29-30 --section 1.3.2 --extrait "phrase recopiée mot pour mot du passage lu"
 qa idee ajouter <<'JSON'
 { "titre": "...", "resume": "...", "probleme": "...", "principe": "...",
   "theme_principal": "rbt", "maturite": "documentee",

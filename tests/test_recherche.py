@@ -182,3 +182,12 @@ def test_faute_de_frappe_sur_un_mot_de_quatre_lettres(bibliotheque_test):
     assert recherche._a_une_edition("tets", {"test", "tests"}) == ["tests"]
     assert recherche._a_une_edition("abcd", {"abce", "abcf"}) == []  # ex æquo : pas de choix arbitraire
     assert not any("Faute" in a for a in recherche.chercher("zzqx equivalence")["avertissements"])
+
+
+def test_passage_introuvable_message_actionnable(bibliotheque_test):
+    """#211 : le message dit pourquoi (numéro périmé) et quoi faire (relancer `chercher`)."""
+    import pytest
+    with pytest.raises(KeyError) as exc:
+        recherche.lire_passage(999999)
+    assert exc.value.args[0] == ("Passage 999999 introuvable : numéro périmé si l'index a été reconstruit "
+                                 "depuis la recherche ; relancer `chercher` pour obtenir des numéros à jour.")

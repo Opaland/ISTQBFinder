@@ -261,7 +261,7 @@ qu'avec l'accord de l'utilisateur.
 - Architecture, choix, mesures, critères d'acceptation : [docs/architecture.md](docs/architecture.md).
 - Essais réels des agents (questions, réponses, citations vérifiées, coût) :
   [docs/essais-reponses.md](docs/essais-reponses.md), `python scripts/essais_agents.py`.
-- Tests : `python -m pytest tests -q -rs` (≈ 15 s ; `test_sources_reelles.py`
+- Tests : `python -m pytest tests -q -rs` (≈ 30 s, dont une dizaine de réseau ; `test_sources_reelles.py`
   appelle vraiment istqb.org et s'ignore, avec la raison, si le site est injoignable).
 - Enrichir le thésaurus (`referentiel/thesaurus.json`) quand une notion n'est pas trouvée ;
   ajouter la question au jeu de contrôle `eval/requetes.json` avant de toucher au moteur.

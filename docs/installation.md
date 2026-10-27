@@ -143,7 +143,7 @@ y compris quand l'assistant n'est pas ouvert dans le clone :
 | `plan` | `plan <doc>` |
 | `idee_chercher`, `idee_voir` | `idee chercher`, `idee voir` |
 | `confiance` | `confiance --base … --lus … --concordants …` ; rappelle en plus combien de passages le serveur a vu lire |
-| `passages_lus` | propre au serveur : références lues dans la session, ou « LU / NON LU » pour une citation donnée |
+| `passages_lus` | propre au serveur : références lues dans la session, ou « LU / NON LU » pour une citation donnée (`pp. N-M` : LU si chaque page de l'intervalle a été affichée) |
 
 Chaque outil appelle la CLI (`qak/cli.py`) : mêmes vérifications, mêmes messages d'erreur
 en français. Les bornes des arguments (`n` ≥ 1, `max_caracteres` ≥ 0, `base` de 0 à 100,

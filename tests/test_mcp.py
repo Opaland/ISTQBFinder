@@ -74,6 +74,32 @@ def test_erreurs_en_francais_et_arguments_jamais_pris_pour_des_options(bibliothe
     assert "Aucune idée" in serveur_mcp.idee_chercher("--json matrice")
 
 
+def test_erreur_d_arguments_cli_en_une_ligne_sans_aide(bibliotheque_test, capsys):
+    """#208 : via le serveur, une erreur argparse tient en une ligne, sans l'aide ni le préfixe
+    « Erreur (qa.py …) : » ; la CLI garde son aide."""
+    with pytest.raises(ErreurValidation) as exc:
+        serveur_mcp.chercher("   ")
+    assert exc.value.args[0] == "arguments obligatoires manquants : requete"
+    assert cli.AIDE_APRES_ERREUR  # rétabli après l'appel
+    with pytest.raises(SystemExit):
+        cli.main(["chercher", "-n", "0", "x"])
+    err = capsys.readouterr().err
+    assert err.startswith("Erreur (qa.py chercher) : argument -n : entier ≥ 1") and "usage" in err
+
+
+def test_erreurs_de_validation_traduites():
+    """#208 : erreurs pydantic → une ligne française (types d'erreur du SDK 2.3 / pydantic 2)."""
+    erreurs = [{"type": "literal_error", "loc": ("langue",), "input": "de", "ctx": {"expected": "'fr' or 'en'"}},
+               {"type": "greater_than_equal", "loc": ("n",), "input": 0, "ctx": {"ge": 1}},
+               {"type": "missing", "loc": ("requete",), "input": {}}]
+    assert serveur_mcp.traduire_validation("chercher", erreurs) == (
+        "Arguments invalides pour l'outil chercher : langue : valeurs possibles : fr, en (reçu : de) ; "
+        "n : entier ≥ 1 attendu (reçu : 0) ; requete : argument obligatoire manquant.")
+    assert serveur_mcp.message_erreur("lire", RuntimeError("Error executing tool lire: Passage 9 introuvable")) \
+        == "Passage 9 introuvable"
+    assert serveur_mcp.message_erreur("lire", RuntimeError("Error executing tool lire")).startswith("Erreur interne")
+
+
 def test_sans_sdk_message_d_installation(monkeypatch, capsys):
     monkeypatch.setattr(serveur_mcp, "sdk_present", lambda: False)
     assert cli.main(["mcp"]) == 2
@@ -125,6 +151,40 @@ def test_dialogue_mcp_reel_en_stdio(bibliotheque_test, racine_isolee):
 
     asyncio.run(asyncio.wait_for(dialogue(), 60))
     assert not (racine_isolee / "connaissances" / "journal.jsonl").exists()  # rien n'a été écrit
+
+
+def test_dialogue_mcp_reel_erreurs_d_arguments_en_francais(bibliotheque_test, racine_isolee):
+    """#208 : bornes déclarées dans le schéma ; refus en une ligne française, sans aide de la CLI."""
+    pytest.importorskip("mcp.server.mcpserver", reason="SDK `mcp` absent : pip install -r requirements-mcp.txt")
+    from mcp import Client, StdioServerParameters
+
+    async def dialogue():
+        params = StdioServerParameters(command=sys.executable, args=[str(RACINE_CODE / "qa.py"), "mcp"],
+                                       env={"QAK_RACINE": str(racine_isolee)}, cwd=str(racine_isolee))
+        async with Client(params) as c:
+            schemas = {t.name: t.input_schema["properties"] for t in (await c.list_tools()).tools}
+            assert schemas["chercher"]["n"]["minimum"] == 1 and schemas["chercher"]["par_doc"]["minimum"] == 1
+            assert schemas["lire"]["passage"]["minimum"] == 1 and schemas["lire"]["contexte"]["minimum"] == 0
+            assert all(schemas[o]["max_caracteres"]["minimum"] == 0 for o in ("lire", "section", "page"))
+            assert (schemas["confiance"]["base"]["minimum"], schemas["confiance"]["base"]["maximum"]) == (0, 100)
+            attendus = [
+                ("chercher", {"requete": "x", "n": 0}, "Arguments invalides pour l'outil chercher : n : entier ≥ 1"),
+                ("chercher", {"requete": "x", "langue": "de"}, "langue : valeurs possibles : fr, en (reçu : de)"),
+                ("lire", {"passage": "abc"}, "passage : entier attendu (reçu : abc)"),
+                ("lire", {"passage": 1, "contexte": -1}, "contexte : entier ≥ 0 attendu"),
+                ("confiance", {"base": 120, "lus": 0, "concordants": 0}, "base : entier ≤ 100 attendu"),
+                ("section", {"doc": "CTFL"}, "numero : argument obligatoire manquant"),
+                ("chercher", {"requete": "  "}, "arguments obligatoires manquants : requete"),
+                ("section", {"doc": "INCONNU", "numero": "1"}, "Document inconnu"),
+            ]
+            for outil, args, debut in attendus:
+                r = await c.call_tool(outil, args)
+                texte = r.content[0].text
+                assert r.is_error and debut in texte, (outil, args, texte)
+                assert "\n" not in texte and "usage" not in texte and "Error" not in texte, texte
+                assert "validation error" not in texte and "Erreur (qa.py" not in texte, texte
+
+    asyncio.run(asyncio.wait_for(dialogue(), 60))
 
 
 def test_qa_py_mcp_documente():

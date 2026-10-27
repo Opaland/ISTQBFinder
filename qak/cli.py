@@ -429,10 +429,15 @@ def cmd_plan(a):
     if a.json:
         return _json(r)
     _ecrire(_ref_doc(r["document"]))
+    # Un titre non numéroté (intertitre, #210) n'apparaît qu'avec --tout, indenté sous la
+    # dernière section numérotée : il n'a pas de numéro à lui.
+    prof_parent = -1
     for s in r["sections"]:
-        if s["numero"] or a.tout:
-            prof = s["numero"].count(".") if s["numero"] else 3
-            _ecrire(f"{'  ' * prof}{s['numero']} {s['titre']}  (p. {s['page']})")
+        if s["numero"]:
+            prof_parent = s["numero"].count(".")
+            _ecrire(f"{'  ' * prof_parent}{s['numero']} {s['titre']}  (p. {s['page']})")
+        elif a.tout:
+            _ecrire(f"{'  ' * (prof_parent + 1)}· {s['titre']}  (p. {s['page']})")
 
 
 # ---------------------------------------------------------------- taxonomie

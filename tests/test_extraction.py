@@ -157,3 +157,29 @@ def test_introduction_de_chapitre_rattachee_au_chapitre():
     assert "2.1 Risk Analysis" not in intro[0].texte
     analyse = [p for p in ps if "Risk analysis involves risk identification" in p.texte][0]
     assert analyse.section_num == "2.1" and analyse.texte.startswith("2.1 Risk Analysis")
+
+
+def test_intertitre_de_signet_sans_numero_propre():
+    """#210 — pages 19-20 réelles du CTAL-AT v2.0 EN (avec leurs signets) : le signet non
+    numéroté « Introduction » sous le chapitre 2 recevait le numéro « 2 » ; le plan avait deux
+    titres pour §2 et `chercher` présentait l'introduction sous le faux titre « 2 Introduction »."""
+    x = extraction.extraire(FIXTURES / "ctal-at-v2.0-en-p19-20.pdf")
+    assert x.plan_source == "signets"
+    numeros = [t.numero for t in x.plan if t.numero]
+    assert numeros == ["2", "2.1", "2.1.1"]
+    inter = [t for t in x.plan if t.titre == "Introduction"]
+    assert len(inter) == 1 and inter[0].numero == "" and inter[0].intertitre
+    intro = [p for p in extraction.passages(x) if p.texte.startswith("Introduction\nIn Agile software")]
+    assert len(intro) == 1 and intro[0].page == 2
+    assert (intro[0].section_num, intro[0].section_titre) == ("2", "People and Teams - 60 minutes")
+
+
+def test_numero_repete_par_deux_signets_garde_le_dernier():
+    """#210 — le CT-ATLaS v2.0 FR porte deux signets « 5.1 Processus de test » : l'un sur la
+    page des objectifs d'apprentissage, l'autre sur le vrai titre. Un seul titre par numéro."""
+    pages = [extraction.Page(1, None, "5 Processus\nObjectifs\n5.1 Processus de test"),
+             extraction.Page(2, None, "5.1 Processus de test\nCertains processus…")]
+    signets = [(0, "5 Processus", 1), (1, "Mots-clés", 1), (1, "5.1  Processus de test", 1),
+               (1, "5.1 Processus de test", 2)]
+    plan = extraction._plan_depuis_signets(signets, pages)
+    assert [(t.numero, t.page, t.intertitre) for t in plan] == [("5", 1, False), ("", 1, True), ("5.1", 2, False)]

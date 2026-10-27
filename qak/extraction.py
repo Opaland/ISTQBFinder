@@ -14,7 +14,7 @@ from .textes import normaliser
 # Toute modification de l'extraction, du découpage ou de la détection des métadonnées doit
 # incrémenter ce numéro :
 # l'actualisation réindexe alors les documents extraits par une version antérieure.
-VERSION_EXTRACTEUR = 13
+VERSION_EXTRACTEUR = 14
 
 TAILLE_PASSAGE = 1400   # caractères visés par passage
 PAGE_VIDE = 40          # moins de caractères utiles = page vide (scan, image)
@@ -42,6 +42,7 @@ class Titre:
     ligne: int                   # index de ligne dans la page nettoyée (0 si inconnu)
     numero: str                  # « 4.2.1 » ou « » (titre non numéroté)
     titre: str
+    intertitre: bool = False     # signet non numéroté sous une section numérotée (« Mots-clés »)
 
 
 @dataclass
@@ -349,15 +350,26 @@ def _ligne_du_titre(lignes: list[str], num: str, libelle: str) -> int:
 
 
 def _plan_depuis_signets(signets, pages: list[Page]) -> list[Titre]:
-    plan, dernier = [], ""
-    for _niveau, titre, page in signets:
-        if not (1 <= page <= len(pages)):
-            continue
+    """Plan des signets. Un signet non numéroté qui suit un signet numéroté (« Mots-clés »,
+    « Introduction to Agile ») est un intertitre : il garde un numéro vide et ses passages
+    restent dans la section numérotée qui le précède (#210). Lui prêter le numéro de cette
+    section créait deux titres pour un même numéro : `plan` l'affichait comme une section et
+    `chercher` présentait ses passages sous ce faux titre. Le niveau du signet n'est pas
+    consulté : tous les cas réels sont imbriqués, et un extrait figé peut l'avoir perdu.
+
+    Un numéro répété par deux signets (« 5.1 Processus de test », p. 30 puis p. 31, dans le
+    CT-ATLaS v2.0 FR) ne garde que le dernier : le premier pointe sur les objectifs
+    d'apprentissage qui répètent le titre, comme dans `_plan_depuis_texte`."""
+    signets = [s for s in signets if 1 <= s[2] <= len(pages)]
+    dernier_de = {_numero(t)[0]: i for i, (_n, t, _p) in enumerate(signets)}
+    plan, numerote = [], False
+    for i, (_niveau, titre, page) in enumerate(signets):
         num, libelle = _numero(titre)
-        # Un signet non numéroté (« Mots-clés », intertitre) reste dans sa section parente.
-        dernier = num = num or dernier
+        if num and dernier_de[num] != i:
+            continue
+        numerote = numerote or bool(num)
         ligne = _ligne_du_titre(pages[page - 1].texte.split("\n"), num, libelle)
-        plan.append(Titre(page, ligne, num, libelle))
+        plan.append(Titre(page, ligne, num, libelle, intertitre=numerote and not num))
     plan.sort(key=lambda t: (t.page, t.ligne))
     return plan
 
@@ -394,10 +406,11 @@ def extraire(chemin: Path) -> Extraction:
     if chemin.suffix.lower() in (".md", ".markdown"):
         ext.plan, ext.plan_source = _plan_markdown(ext.pages), "markdown"
     else:
-        # Les signets ne sont retenus que s'ils portent une vraie numérotation de sections.
+        # Les signets ne sont retenus que s'ils portent une vraie numérotation de sections ;
+        # un intertitre compte (il appartient à une section numérotée), comme avant #210.
         vocab = _vocabulaire(ext.pages)
         plan_signets = _plan_depuis_signets(signets, ext.pages) if signets else []
-        if sum(bool(t.numero) for t in plan_signets) >= 3:
+        if sum(bool(t.numero) or t.intertitre for t in plan_signets) >= 3:
             ext.plan, ext.plan_source = plan_signets, "signets"
         else:
             ext.plan = _plan_depuis_texte(ext.pages, vocab)
@@ -441,7 +454,10 @@ def passages(ext: Extraction) -> list[Passage]:
         lignes = p.texte.split("\n")
         coupures = sorted(par_page.get(p.numero, []), key=lambda t: t.ligne)
         bornes = [0] + [t.ligne for t in coupures] + [len(lignes)]
-        sections = [section] + coupures
+        # Un intertitre ne coupe que le texte : ses passages restent dans la section parente.
+        sections = [section]
+        for t in coupures:
+            sections.append(sections[-1] if t.intertitre else t)
         for (debut, fin), sec in zip(zip(bornes, bornes[1:]), sections):
             bloc = "\n".join(lignes[debut:fin]).strip()
             for morceau in _couper(bloc) if bloc else []:
@@ -449,6 +465,5 @@ def passages(ext: Extraction) -> list[Passage]:
                     morceau = "\n".join(_recoller(l, vocab) for l in morceau.split("\n"))
                 if len(morceau) >= 20:
                     out.append(Passage(p.numero, p.imprimee, sec.numero, sec.titre, morceau, p.sommaire))
-        if coupures:
-            section = coupures[-1]
+        section = sections[-1]
     return out

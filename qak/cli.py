@@ -718,6 +718,11 @@ def traduire_erreur(message: str) -> str:
     return message
 
 
+# Le serveur MCP (#208) le met à False : son client reçoit l'erreur en une ligne, sans l'aide
+# de la CLI, dont les options (`--json`, `--semantique`…) ne sont pas celles de l'outil.
+AIDE_APRES_ERREUR = True
+
+
 class Analyseur(argparse.ArgumentParser):
     """ArgumentParser francisé : erreurs en français suivies de l'aide de la sous-commande
     concernée (c'est aussi ce que lisent les agents), aide aux intitulés traduits."""
@@ -750,7 +755,8 @@ class Analyseur(argparse.ArgumentParser):
 
     def error(self, message: str):
         cible = self._sous_commande() if "unrecognized arguments" in message else self
-        self.exit(2, f"Erreur ({cible.prog}) : {traduire_erreur(message)}\n\n{cible.format_help()}")
+        aide = f"\n\n{cible.format_help()}" if AIDE_APRES_ERREUR else "\n"
+        self.exit(2, f"Erreur ({cible.prog}) : {traduire_erreur(message)}{aide}")
 
 
 def analyseur() -> argparse.ArgumentParser:

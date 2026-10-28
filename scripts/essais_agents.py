@@ -266,29 +266,47 @@ def zones_non_lues(reponse: str) -> list[tuple[int, int]]:
     return zones
 
 
+# Référence qui ne nomme pas son document sur sa ligne (#247) : « (§3.2.2, p. 36) ».
+SANS_DOCUMENT = "sans document"
+
+
 def references(reponse: str):
     """(code, première page, dernière page, correspondance) de chaque citation unique.
     Une référence que l'agent déclare lui-même non lue ou non citée, dans une section
-    de bilan, n'est pas une citation (#139) ; son code garde le contexte des suivantes."""
-    exclues = zones_non_lues(reponse)
-    vues, code = set(), None
-    for m in RE_JETON.finditer(reponse):
+    de bilan, n'est pas une citation (#139) ; son code garde le contexte des suivantes.
+    Rattachement explicite seulement (#247) : une référence prend le dernier sigle nommé
+    sur SA ligne, à défaut le premier qui la suit sur cette ligne ; sinon elle est
+    orpheline (code None) — jamais rattachée au sigle d'une autre ligne. Une orpheline
+    d'une section de bilan (« Sections lues : §1.3 (p. 29) ») n'est pas une citation."""
+    exclues, bilans = zones_non_lues(reponse), sections_bilan(reponse)
+    jetons = list(RE_JETON.finditer(reponse))
+    vues, code, pos_code = set(), None, -1
+    for i, m in enumerate(jetons):
         if m.group("code"):
-            code = m.group("code").upper()
+            code, pos_code = m.group("code").upper(), m.start()
             continue
-        if not code or any(a <= m.start() < b for a, b in exclues):
+        if any(a <= m.start() < b for a, b in exclues):
+            continue
+        debut_ligne = reponse.rfind("\n", 0, m.start()) + 1
+        fin_ligne = reponse.find("\n", m.end())
+        fin_ligne = len(reponse) if fin_ligne < 0 else fin_ligne
+        sigle = code if pos_code >= debut_ligne else next(
+            (j.group("code").upper() for j in jetons[i + 1:] if j.start() < fin_ligne and j.group("code")), None)
+        if sigle is None and any(a <= m.start() < b for a, b in bilans):
             continue
         debut, fin = int(m.group("p1")), int(m.group("p2") or m.group("p1"))
-        if (code, debut, fin) in vues:
+        if (sigle, debut, fin) in vues:
             continue
-        vues.add((code, debut, fin))
-        yield code, debut, fin, m
+        vues.add((sigle, debut, fin))
+        yield sigle, debut, fin, m
 
 
 def verifier_citations(reponse: str, lues: set) -> list[dict]:
-    """Chaque citation (code, pages) unique : une des pages a-t-elle été lue ?"""
-    return [{"citation": f"{code} {m.group('ref')[:60]}",
-             "lue": any((code, p) in lues for p in range(debut, fin + 1))}
+    """Chaque citation (code, pages) unique : une des pages a-t-elle été lue ? Une
+    référence sans document (#247) n'est rattachée à aucun syllabus : elle est signalée
+    comme telle (« sans document §… »), non lue par construction."""
+    return [{"citation": f"{code or SANS_DOCUMENT} {m.group('ref')[:60]}",
+             "lue": code is not None and any((code, p) in lues for p in range(debut, fin + 1))}
             for code, debut, fin, m in references(reponse)]
 
 
@@ -335,10 +353,12 @@ def alertes_fidelite(jugements: list[dict]) -> list[str]:
 
 def motifs_echec(bilan: dict) -> list[str]:
     """Raisons d'échec d'un essai (#127) : une citation dont la page n'a pas été lue fait
-    échouer l'essai (règle « lire avant de citer »), comme un critère non satisfait."""
+    échouer l'essai (règle « lire avant de citer »), comme un critère non satisfait ; une
+    référence qui ne nomme pas son document (#247) aussi, sous son vrai motif."""
     if "erreur" in bilan:
         return ["erreur d'exécution"]
-    motifs = [f"citation non lue : {c}" for c in bilan.get("citations_non_lues", [])]
+    motifs = [f"référence sans document : {c.removeprefix(SANS_DOCUMENT).strip()}" if c.startswith(SANS_DOCUMENT)
+              else f"citation non lue : {c}" for c in bilan.get("citations_non_lues", [])]
     motifs += [f"critère : {c}" for c in bilan.get("criteres_ko", [])]
     return motifs
 

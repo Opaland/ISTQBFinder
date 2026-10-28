@@ -198,3 +198,54 @@ La garde reste la règle du skill (lire avant de citer) et la vérification mot 
 l'extrait. À réévaluer avec un modèle plus grand ou en découpant le passage en phrases
 (prémisse = phrase la plus proche de l'affirmation) : le jeu et le script sont versionnés.
 
+## Juge LLM de fidélité (méthode RAGAS) : étalonnage (#152, 2026-10-28)
+
+Question : un juge LLM, disponible sans dépendance via `claude -p`, fait-il mieux que le NLI
+(#108) ? Méthode RAGAS *faithfulness* : la réponse est découpée en affirmations atomiques,
+chacune est vérifiée contre le passage lu (soutenue / non soutenue / contradictoire) ; la
+paire prend le pire verdict, le score de fidélité est la part d'affirmations soutenues.
+Un appel par paire (découpage et vérification ensemble, sortie JSON imposée par
+`--json-schema`), sans outil ni réglage du dépôt : `python scripts/etude_juge.py`
+(juge `claude-opus-5-5`, détail dans `eval/nli/juge-2026-10-28*.json`). Même jeu de 48
+paires, deux passes pour la variance.
+
+| Mesure | NLI mDeBERTa (#108) | Juge, même passage que le NLI | Juge, section entière (`--section-entiere`) |
+|---|---|---|---|
+| Exactitude 3 classes | 69 % | **92 %** · 92 % | **98 %** · 100 % |
+| Fausses alertes sur une citation juste | 4/12 | 2/12 · 2/12 | 1/12 · 0/12 |
+| Citations fausses jugées soutenues (faux négatifs) | 5/36 | 0/36 · 0/36 | 0/36 · 0/36 |
+| dont contradictions jugées soutenues | 4/12 | 0/12 · 0/12 | 0/12 · 0/12 |
+| Verdicts qui changent d'une passe à l'autre | — | 0/48 | 1/48 |
+| Durée par paire | 4,7 s CPU (+ 22 s de chargement) | 4,3-4,8 s | 7,2 s |
+| Coût | 2 Go de dépendances | 0,005 $ par paire (0,017 $ à froid, écriture du cache) | 0,005 $ par paire |
+
+Les quatre erreurs du juge sur le passage du NLI ne sont pas les siennes : pour deux des
+douze passages (CTFL §4.1 p. 39, CT-AI §3.4.3 p. 37), le morceau retenu par
+`etude_nli.passage()` (le plus de mots communs avec l'affirmation française) ne contient
+pas la phrase utile, qui est dans le morceau suivant de la même section ; le juge répond
+alors « non soutenue » et le justifie. Le NLI était évalué sur ces mêmes passages. Avec la
+section entière, la seule erreur restante (une passe sur deux) est défendable : « les tests
+boîte blanche ne détectent pas les omissions » contre « *may not detect* ».
+
+**Décision : retenu comme contrôle de fond optionnel des essais** (`python
+scripts/essais_agents.py --fidelite …`), jamais à l'exécution courante de `qa.py`. Chaque
+ligne de la réponse qui porte des citations lues est jugée contre le texte affiché de
+toutes les pages qu'elle cite (une ligne de tableau s'appuie souvent sur plusieurs
+références : jugées une par une, 17 citations justes sur 18 de S3-reglemente étaient
+« non soutenues ») ; les sections de bilan (sources, limites) ne sont pas jugées. Le bilan
+reçoit le score de fidélité moyen et, en **alerte**, les lignes jugées contradictoires
+(0 fausse alerte et 12 contradictions sur 12 à l'étalonnage). « Non soutenue » n'alerte
+pas : sur une vraie réponse (S3-reglemente, 7 lignes, 0,22 $), presque toutes les
+affirmations non soutenues portent sur le contexte de l'utilisateur (« ta matrice ne
+prévoit que… ») ou sur une appréciation (« partiellement aligné »), légitimes mais absentes
+du passage par nature ; le score sert à repérer une ligne à relire (une ligne y obtient
+0,17 : cinq usages du niveau de risque, dont un seul figure, selon le juge, dans la page lue). Ce n'est
+jamais un échec d'essai.
+
+Limites : **biais d'auto-évaluation** — le juge est de la même famille de modèle que les
+agents jugés (Claude) ; il peut partager leurs lectures erronées d'un passage et se montrer
+indulgent envers des formulations qu'il produirait lui-même. Le jeu est petit (48 paires,
+contradictions par négation ou inversion simples, construit par la même famille de modèle)
+et ne mesure pas les contresens subtils ; tout verdict reste à confirmer par une relecture
+humaine du passage. Coût d'un essai `--fidelite` : ≈ 0,03 $ par ligne citée en plus.
+

@@ -76,7 +76,7 @@ def test_essais_par_domaine_presents():
     assert essais["C1-ambigu"]["criteres"]["questions_choix"] and "agent" not in essais["C1-ambigu"]
     # Tous les critères déclarés sont connus de controler().
     connus = {"methode", "etapes_sourcees", "exemple", "cadrage", "questions_choix", "hypotheses",
-              "non_couvert", "confiance", "calcul_confiance", "niveau_coherent", "domaines", "mentions"}
+              "non_couvert", "confiance", "calcul_confiance", "niveau_coherent", "debut_direct", "en_tete", "domaines", "mentions"}
     for e in essais.values():
         assert set(e.get("criteres", {})) <= connus, e["id"]
 
@@ -406,3 +406,41 @@ def test_consigne_niveau_atteint_retenu():
     assert "porte **toujours le niveau retenu**" in grille
     essais = {e["id"]: e for e in json.loads((RACINE / "eval" / "essais.json").read_text(encoding="utf-8"))["essais"]}
     assert essais["S4-recette"]["criteres"]["niveau_coherent"]
+
+
+@pytest.mark.parametrize("debut, direct", [
+    # Premières lignes réelles (étude par personas P4c, O2, P7b ; essais M3, M5, T1).
+    ("Je finalise le rapport : les passages sont lus et la confiance est calculée.", False),
+    ("J'ai fini de lire les passages et je rédige le rapport.", False),
+    ("Je n'ai plus de recherche à lancer : j'ai lu les passages utiles. Voici l'avis.", False),
+    ("Je termine les vérifications et je rends le rapport.", False),
+    ("Je rédige le rapport final : les passages sont lus et le doublon est vérifié.", False),
+    ("", False),
+    # Débuts directs.
+    ("**Sources retenues**", True),
+    ("**Avis indicatif d'alignement sur les syllabus ISTQB locaux ; ni attestation de conformité, ni évaluation ISTQB/TMMi/ISO.**", True),
+    ("Je n'ai pas de mise en place à te livrer d'après un seul syllabus.", True),
+    ("**Hypothèse :** « processus de qualification » = ton processus de test.", True),
+])
+def test_debut_direct_sans_phrase_de_deroule(debut, direct):
+    """#232 : 3 réponses sur 27 de l'étude (et 6 des campagnes versionnées) commençaient
+    par une phrase sur le travail de l'agent."""
+    reponse = f"\n{debut}\n\nSuite de la réponse." if debut else ""
+    assert essais_agents.controler(reponse, {"debut_direct": True}) == {"debut_direct": direct}
+
+
+def test_en_tete_de_sylvie_en_premiere_ligne():
+    """#232 (P7b) : l'en-tête « Avis indicatif… » relégué en 2e ligne."""
+    en_tete = "**Avis indicatif d'alignement sur les syllabus ISTQB locaux ; ni attestation de conformité.**"
+    ok = essais_agents.controler(f"{en_tete}\n\nTa démarche…", {"en_tete": True})
+    ko = essais_agents.controler(f"Je n'ai plus de recherche à lancer. Voici l'avis.\n\n{en_tete}", {"en_tete": True})
+    assert ok == {"en_tete": True} and ko == {"en_tete": False}
+    from test_agents import AGENTS, SKILL, corps
+    assert "**Commence directement par la réponse**" in corps(SKILL)
+    assert "**première ligne** de la réponse" in corps(AGENTS / "sylvie.md")
+    assert "dès sa première ligne" in corps(AGENTS / "thomas.md")
+    essais = {e["id"]: e for e in json.loads((RACINE / "eval" / "essais.json").read_text(encoding="utf-8"))["essais"]}
+    for ident, e in essais.items():
+        if e.get("agent") and e.get("criteres"):
+            assert e["criteres"].get("debut_direct"), ident
+            assert e["criteres"].get("en_tete") == (e["agent"] == "sylvie" or None), ident

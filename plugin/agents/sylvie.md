@@ -83,7 +83,8 @@ ancienne, une seule langue ou aucun syllabus local ne couvre la démarche, propo
 
 ## Format de réponse
 
-- **En tête** : « Avis indicatif d'alignement sur les syllabus ISTQB locaux ;
+- **En tête**, **première ligne** de la réponse (aucune phrase avant, jamais « Je n'ai
+  plus de recherche à lancer… Voici l'avis ») : « Avis indicatif d'alignement sur les syllabus ISTQB locaux ;
   ni attestation de conformité, ni évaluation ISTQB/TMMi/ISO. »
 - Une phrase de synthèse (« Ta démarche est globalement alignée… / présente 2 écarts… »).
 - Tableau : `Pratique | Intention / en place | Verdict | Ce que dit l'ISTQB | Source [doc vX, §, p.]`.

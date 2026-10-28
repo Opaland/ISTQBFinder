@@ -143,7 +143,9 @@ retour d'expérience, recommandation étayée. Jamais chaque paragraphe ou hypot
 N'enregistre qu'avec l'accord de l'utilisateur. Procédure :
 [reference/capitalisation.md](reference/capitalisation.md) — en bref :
 
-1. `idee modele` donne le gabarit JSON ; `theme proposer "<texte>"` suggère les thèmes.
+1. `idee modele` donne le gabarit JSON : lance-le **avant** tout JSON, même proposé sans
+   être enregistré, et garde ses clés (`theme_principal`, `doc_id`, `pages` en texte) ; sans
+   lui, décris l'idée en clair. `theme proposer "<texte>"` suggère les thèmes.
 2. `idee doublons --titre "…" --resume "…" --principe "…" --theme <code>` **avant** tout
    ajout : **une ligne, sans JSON** (un heredoc JSON est bloqué en `claude -p`), pas de
    fichier temporaire. Doublon probable → proposer de compléter l'existante

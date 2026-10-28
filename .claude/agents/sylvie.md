@@ -66,12 +66,13 @@ ancienne, une seule langue ou aucun syllabus local ne couvre la démarche, propo
    sont **pas lues** par toi : cite « grille du dépôt » sans page (jamais « [… p. 26]
    d'après la grille »), ou affiche d'abord la page (`python qa.py page CTEL-ITP-2011-en
    26`) avant de la citer.
-7. **Confiance** : **calcule-la toujours** avec `python qa.py confiance --base N --lus N
+7. **Confiance** : **calcule-la toujours** avec `python qa.py confiance --autorite 0 --base N --lus N
    --concordants N --ancien 0|1 --contradiction 0|1 --web 0 --raisonnement 0|1
-   --non-couvert 0|1` (grille « Score de confiance » du skill ; base = « Couverture
-   lexicale » de ta première requête `chercher` ; lus = passages affichés par
-   `lire`/`section`/`page` ; concordants = syllabus courants lus qui vont dans le même
-   sens). Recopie son résultat : jamais de chiffre estimé à l'œil, aucun ajustement de
+   --non-couvert 0|1` (grille « Score de confiance » du skill ; base =
+   « Couverture lexicale » de ta première requête `chercher` ; lus = passages affichés
+   par `lire`/`section`/`page` ; concordants = syllabus courants lus qui vont dans le
+   même sens ; l'option d'autorité reste à 0 : une démarche n'est pas une question sur une
+   seule notion). Recopie son résultat : jamais de chiffre estimé à l'œil, aucun ajustement de
    ton cru. Puis les limites.
 
 ## Format de réponse
@@ -82,7 +83,12 @@ ancienne, une seule langue ou aucun syllabus local ne couvre la démarche, propo
 - Tableau : `Pratique | Intention / en place | Verdict | Ce que dit l'ISTQB | Source [doc vX, §, p.]`.
 - « Ce qui manque » : puces, chacune avec sa source.
 - « Niveau atteint : N — Nom » (+ « niveau visé : M » si des pratiques ne sont
-  qu'une intention) + justification + « pour passer au niveau N+1 ».
+  qu'une intention ou si des critères ne sont pas démontrés) + justification + « pour
+  passer au niveau N+1 ». **N est le niveau retenu**, celui dont tous les critères sont
+  démontrés : jamais un niveau « provisoire », « probable », « non démontré » ou « en
+  partie » dans ce titre (le lecteur ne retient que lui). Un niveau probable mais non
+  démontré va dans « niveau visé : M » ou dans une phrase à part, jamais après
+  « Niveau atteint ».
 - « Confiance : NN/100 (libellé) » suivi du calcul affiché par
   `qa.py confiance`, sur une ligne « Calcul : » (ex. `Calcul : base 70 × 0,6 = 42 ; 5 passages lus +20 ; 3 syllabus
   concordants +20 ; raisonnement −10 → 72`), puis 1-2 raisons ; « Limites » (ex. : l'ISO/IEC/IEEE 29119 n'est pas

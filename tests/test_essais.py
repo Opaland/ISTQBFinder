@@ -76,7 +76,7 @@ def test_essais_par_domaine_presents():
     assert essais["C1-ambigu"]["criteres"]["questions_choix"] and "agent" not in essais["C1-ambigu"]
     # Tous les critères déclarés sont connus de controler().
     connus = {"methode", "etapes_sourcees", "exemple", "cadrage", "questions_choix", "hypotheses",
-              "non_couvert", "confiance", "calcul_confiance", "domaines", "mentions"}
+              "non_couvert", "confiance", "calcul_confiance", "niveau_coherent", "domaines", "mentions"}
     for e in essais.values():
         assert set(e.get("criteres", {})) <= connus, e["id"]
 
@@ -364,7 +364,7 @@ def test_sylvie_calcule_sa_confiance():
     `qa.py confiance`. La consigne l'impose, et le critère `calcul_confiance` le contrôle."""
     from test_agents import AGENTS, corps
     texte = corps(AGENTS / "sylvie.md")
-    assert "calcule-la toujours" in texte and "python qa.py confiance --base" in texte
+    assert "calcule-la toujours" in texte and "python qa.py confiance --autorite 0 --base" in texte
     assert "Calcul :" in texte
     sans_calcul = ("## Confiance : 68/100\n\n- J'ai lu directement les passages sur les revues.\n"
                    "- Ta description est brève.")
@@ -375,3 +375,34 @@ def test_sylvie_calcule_sa_confiance():
     assert essais_agents.controler(avec_calcul, critere) == {"confiance": True, "calcul_confiance": True}
     essais = {e["id"]: e for e in json.loads((RACINE / "eval" / "essais.json").read_text(encoding="utf-8"))["essais"]}
     assert essais["S4-recette"]["agent"] == "sylvie" and essais["S4-recette"]["criteres"]["calcul_confiance"]
+
+
+@pytest.mark.parametrize("reponse, attendu", [
+    # Réponses réelles de l'étude par personas (P4b, R2-P4b, relance du 2026-10-28).
+    ("## Niveau atteint : 2 — Discipliné (provisoire, non démontré)\n\nLe niveau 2 n'est donc pas acquis, "
+     "et je retiens **le niveau 1 — Initial**.", False),
+    ("**Niveau atteint : 2 — Discipliné (Managed), non démontré ; je retiens le niveau 1 — Initial. "
+     "Niveau visé : 2.**", False),
+    ("## Niveau atteint : 2 — Discipliné (Managed), non démontré, donc je retiens 1 — Initial\n\n"
+     "- **Niveau atteint : 1 — Initial.** Les pratiques sont déclarées, mais « non démontré ».", False),
+    ("## Niveau atteint : 2 — Discipliné (provisoire), et seulement en partie", False),
+    ("Rien sur le niveau.", False),
+    # Corrects : la réserve éventuelle va dans « niveau visé » ou après la première phrase.
+    ("## Niveau atteint : 1 — Initial (niveau visé : 2)", True),
+    ("## Niveau atteint : 1 — Initial · niveau visé : 2 (partiellement)", True),
+    ("- **Niveau atteint : 1 — Initial.** Rien ne prouve une stratégie écrite : « non démontré ».", True),
+    ("## Niveau atteint : 2 — Discipliné\n\nTous les critères du niveau 2 sont démontrés.", True),
+])
+def test_titre_niveau_atteint_porte_le_niveau_retenu(reponse, attendu):
+    """#228 : « Niveau atteint : 2 » en titre alors que le niveau retenu est 1 (2 passages sur 3)."""
+    assert essais_agents.controler(reponse, {"niveau_coherent": True}) == {"niveau_coherent": attendu}
+
+
+def test_consigne_niveau_atteint_retenu():
+    """#228 : la consigne de Sylvie et la grille réservent le titre au niveau retenu."""
+    from test_agents import AGENTS, corps
+    assert "**N est le niveau retenu**" in corps(AGENTS / "sylvie.md")
+    grille = (RACINE / "referentiel" / "grille-maturite.md").read_text(encoding="utf-8")
+    assert "porte **toujours le niveau retenu**" in grille
+    essais = {e["id"]: e for e in json.loads((RACINE / "eval" / "essais.json").read_text(encoding="utf-8"))["essais"]}
+    assert essais["S4-recette"]["criteres"]["niveau_coherent"]

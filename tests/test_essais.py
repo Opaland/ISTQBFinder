@@ -76,7 +76,7 @@ def test_essais_par_domaine_presents():
     assert essais["C1-ambigu"]["criteres"]["questions_choix"] and "agent" not in essais["C1-ambigu"]
     # Tous les critères déclarés sont connus de controler().
     connus = {"methode", "etapes_sourcees", "exemple", "cadrage", "questions_choix", "hypotheses",
-              "non_couvert", "confiance", "domaines", "mentions"}
+              "non_couvert", "confiance", "calcul_confiance", "domaines", "mentions"}
     for e in essais.values():
         assert set(e.get("criteres", {})) <= connus, e["id"]
 
@@ -357,3 +357,21 @@ def test_essais_reponses_d_accord_avec_les_fichiers(titre, dossier, rangees):
         assert {k: r[k] for k in attendu} == attendu, f"{titre} · {r['Essai']}"
         verdict = r["Verdict"].replace("*", "")
         assert verdict.startswith("ÉCHEC" if e["verdict"] == "ÉCHEC" else "réussi"), f"{titre} · {r['Essai']}"
+
+
+def test_sylvie_calcule_sa_confiance():
+    """#227 (étude par personas, P4b) : Sylvie annonçait 68, 72 puis 62 sans jamais lancer
+    `qa.py confiance`. La consigne l'impose, et le critère `calcul_confiance` le contrôle."""
+    from test_agents import AGENTS, corps
+    texte = corps(AGENTS / "sylvie.md")
+    assert "calcule-la toujours" in texte and "python qa.py confiance --base" in texte
+    assert "Calcul :" in texte
+    sans_calcul = ("## Confiance : 68/100\n\n- J'ai lu directement les passages sur les revues.\n"
+                   "- Ta description est brève.")
+    avec_calcul = ("**Confiance : 72/100 (moyenne)**\nCalcul : base 70 × 0,6 = 42 ; 5 passages lus +20 ; "
+                   "3 syllabus concordants +20 ; raisonnement −10 → 72")
+    critere = {"confiance": True, "calcul_confiance": True}
+    assert essais_agents.controler(sans_calcul, critere) == {"confiance": True, "calcul_confiance": False}
+    assert essais_agents.controler(avec_calcul, critere) == {"confiance": True, "calcul_confiance": True}
+    essais = {e["id"]: e for e in json.loads((RACINE / "eval" / "essais.json").read_text(encoding="utf-8"))["essais"]}
+    assert essais["S4-recette"]["agent"] == "sylvie" and essais["S4-recette"]["criteres"]["calcul_confiance"]

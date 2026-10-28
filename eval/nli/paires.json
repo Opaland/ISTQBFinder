@@ -1,5 +1,5 @@
 {
- "description": "Jeu étiqueté de l'étude NLI (issue #108) : paires (affirmation en français, passage cité). Les affirmations « soutenues » sont tirées des essais réels (eval/essais-resultats/2026-10-22/), relues contre le passage ; « contradictoire » = négation ou inversion ; « non_soutenue » = affirmation plausible sur le même sujet mais absente du passage, ou affirmation d'un autre passage. Le passage est celui de la page et de la section citées qui partage le plus de mots avec l'affirmation soutenue.",
+ "description": "Jeu étiqueté de l'étude NLI (issue #108) : paires (affirmation en français, passage cité). Les affirmations « soutenues » sont tirées des essais réels (eval/essais-resultats/2026-10-22/), relues contre le passage ; « contradictoire » = négation ou inversion ; « non_soutenue » = affirmation plausible sur le même sujet mais absente du passage, ou affirmation d'un autre passage. Le passage est la section entière de la page citée si elle tient dans la fenêtre du NLI (2 000 caractères), sinon la suite contiguë de morceaux qui partage le plus de termes (thésaurus FR/EN compris) avec l'affirmation soutenue : voir etude_nli.fenetre() (#243).",
  "paires": [
   {
    "doc_id": "CTFL-4.0.1-en",

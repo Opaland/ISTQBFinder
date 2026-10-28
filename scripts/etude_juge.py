@@ -3,7 +3,7 @@
 `claude -p` détecte-t-il mieux que le NLI (#108) qu'un passage cité ne soutient pas
 l'affirmation qu'on lui attribue ?
 
-    python scripts/etude_juge.py [--passes 2] [--budget 5] [--modele NOM] [--limite N] [--section-entiere]
+    python scripts/etude_juge.py [--passes 2] [--budget 5] [--modele NOM] [--limite N] [--section-entiere] [--sortie NOM]
 
 Méthode RAGAS : la réponse est découpée en affirmations atomiques, puis chacune est
 vérifiée contre le passage lu ; une paire est « contradictoire » si une affirmation l'est,
@@ -14,7 +14,8 @@ dépendance nouvelle.
 
 Lit eval/nli/paires.json (même passage que `etude_nli.py`, prérequis : index construit ;
 `--section-entiere` donne au juge tous les morceaux de la page et de la section citées,
-car le morceau retenu par `etude_nli.passage()` ne contient pas toujours la phrase utile),
+même au-delà de la fenêtre du NLI ; avant #243, le morceau retenu par `etude_nli.passage()`
+ne contenait pas toujours la phrase utile),
 répète le jugement `--passes` fois (variance), s'arrête dès que le coût cumulé atteint
 `--budget` (dollars), affiche exactitude, matrice de confusion, fausses alertes, faux
 négatifs, durée et coût, et écrit le détail dans eval/nli/juge-<date>.json.
@@ -138,7 +139,8 @@ def main() -> int:
     a.add_argument("--modele", help="modèle du juge (défaut : celui de la CLI)")
     a.add_argument("--limite", type=int, help="seulement les N premières paires")
     a.add_argument("--section-entiere", action="store_true",
-                   help="passage = toute la section de la page citée (défaut : le morceau de l'étude NLI)")
+                   help="passage = toute la section de la page citée (défaut : le passage de l'étude NLI)")
+    a.add_argument("--sortie", help="nom du fichier de détail dans eval/nli/ (défaut : juge-<date>[-section].json)")
     args = a.parse_args()
     from etude_nli import passage  # noqa: E402  (même passage que l'étude NLI)
     from qak import bibliotheque  # noqa: E402
@@ -181,7 +183,7 @@ def main() -> int:
     for d in valides:
         if d["attendu"] != d["predit"]:
             print(f"  erreur (passe {d['passe']}) : attendu {d['attendu']}, prédit {d['predit']} — {d['affirmation']}")
-    sortie = RACINE / "eval" / "nli" / f"juge-{bilan['date']}{'-section' if args.section_entiere else ''}.json"
+    sortie = RACINE / "eval" / "nli" / (args.sortie or f"juge-{bilan['date']}{'-section' if args.section_entiere else ''}.json")
     sortie.write_text(json.dumps({"bilan": bilan, "details": details}, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"Détail : {sortie.relative_to(RACINE)}")
     return 0

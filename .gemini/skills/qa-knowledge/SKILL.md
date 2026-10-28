@@ -114,7 +114,9 @@ ailleurs ; jamais bloquant (`claude -p` : hypothèses explicites, questions en f
 - **Contrôle avant d'envoyer** : pour chaque `[référence]` de la réponse, retrouve le
   `lire`/`section`/`page` qui a affiché **cette page de ce document** (même sigle). Un extrait de
   `chercher` ne compte pas. Introuvable → lis le passage maintenant, ou retire la
-  référence (au besoin « à lire : §x » sans page, dans « Où creuser »).
+  référence (au besoin « à lire : §x » sans page, dans « Où creuser »). Règle simple :
+  n'écris entre crochets que ce qu'une ligne `Citer :` t'a affiché (`chercher` n'en
+  affiche jamais).
 - **Vu en extrait = jamais entre crochets** : une référence vue seulement dans un extrait
   de `chercher` n'apparaît pas entre crochets dans la réponse, même assortie de « vu en
   extrait seulement » ou « je ne m'appuie pas dessus ». Lis-la (`section`/`page`), ou

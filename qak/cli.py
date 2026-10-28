@@ -299,7 +299,8 @@ def cmd_chercher(a):
 def cmd_confiance(a):
     from . import confiance
     r = confiance.calculer(a.base, a.lus, a.concordants, ancien=bool(a.ancien), contradiction=bool(a.contradiction),
-                           web=bool(a.web), raisonnement=bool(a.raisonnement), non_couvert=bool(a.non_couvert))
+                           web=bool(a.web), raisonnement=bool(a.raisonnement), non_couvert=bool(a.non_couvert),
+                           autorite=bool(a.autorite))
     if a.json:
         return _json(r)
     for ligne in r["calcul"]:
@@ -849,7 +850,9 @@ def analyseur() -> argparse.ArgumentParser:
                       ("contradiction", "syllabus contradictoires non arbitrés"),
                       ("web", "une partie de la réponse repose sur le Web"),
                       ("raisonnement", "une partie repose sur un raisonnement sans source"),
-                      ("non-couvert", "une notion de la question n'est couverte ni par un passage lu ni par le Web")):
+                      ("non-couvert", "une notion de la question n'est couverte ni par un passage lu ni par le Web"),
+                      ("autorite", "question sur UNE notion : sa section de référence (syllabus dédié, titre qui "
+                                   "la nomme) lue en entier → lecture et concordance au maximum")):
         x.add_argument(f"--{opt}", type=int, choices=[0, 1], default=0, help=aide)
     x.add_argument("--json", action="store_true")
     x.set_defaults(f=cmd_confiance)

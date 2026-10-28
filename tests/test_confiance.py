@@ -49,7 +49,7 @@ def test_grille_du_skill_identique_au_code():
     malus = sorted(int(m) for m in re.findall(r"− (\d+)", grille))
     assert malus == sorted(v for v, _ in confiance.MALUS.values())
     for opt in ("--base", "--lus", "--concordants", "--ancien", "--contradiction", "--web", "--raisonnement",
-                "--non-couvert"):
+                "--non-couvert", "--autorite"):
         assert opt in grille
 
 
@@ -83,7 +83,6 @@ CAS_INCHANGES = [
 
 
 @pytest.mark.parametrize("entrees, bande", CAS_DEFINITION)
-@pytest.mark.xfail(strict=True, reason="#226 : la grille actuelle ne connaît pas la section qui fait autorité")
 def test_question_de_definition_sourcee_par_la_section_qui_fait_autorite(entrees, bande):
     assert confiance.calculer(**entrees)["libelle"] == bande
 
@@ -91,3 +90,10 @@ def test_question_de_definition_sourcee_par_la_section_qui_fait_autorite(entrees
 @pytest.mark.parametrize("entrees, score", CAS_INCHANGES)
 def test_questions_larges_inchangees(entrees, score):
     assert confiance.calculer(**entrees)["score"] == score
+
+
+def test_autorite_ne_leve_pas_le_plafond_et_exige_une_lecture():
+    assert confiance.calculer(90, 1, 1, autorite=True, non_couvert=True)["score"] == confiance.PLAFOND_NON_COUVERT
+    with pytest.raises(ValueError, match="autorit"):
+        confiance.calculer(90, 0, 0, autorite=True)
+    assert "section de référence lue" in "\n".join(confiance.calculer(70, 1, 1, autorite=True)["calcul"])

@@ -69,7 +69,13 @@ ancienne, une seule langue ou aucun syllabus local ne couvre la démarche, propo
    sont **pas lues** par toi : cite « grille du dépôt » sans page (jamais « [… p. 26]
    d'après la grille »), ou affiche d'abord la page (`python qa.py page CTEL-ITP-2011-en
    26`) avant de la citer.
-7. **Confiance** (0-100, voir le skill) et limites.
+7. **Confiance** : **calcule-la toujours** avec `python qa.py confiance --base N --lus N
+   --concordants N --ancien 0|1 --contradiction 0|1 --web 0 --raisonnement 0|1
+   --non-couvert 0|1` (grille « Score de confiance » du skill ; base = « Couverture
+   lexicale » de ta première requête `chercher` ; lus = passages affichés par
+   `lire`/`section`/`page` ; concordants = syllabus courants lus qui vont dans le même
+   sens). Recopie son résultat : jamais de chiffre estimé à l'œil, aucun ajustement de
+   ton cru. Puis les limites.
 
 ## Format de réponse
 
@@ -80,7 +86,9 @@ ancienne, une seule langue ou aucun syllabus local ne couvre la démarche, propo
 - « Ce qui manque » : puces, chacune avec sa source.
 - « Niveau atteint : N — Nom » (+ « niveau visé : M » si des pratiques ne sont
   qu'une intention) + justification + « pour passer au niveau N+1 ».
-- « Confiance : NN/100 » + raisons ; « Limites » (ex. : l'ISO/IEC/IEEE 29119 n'est pas
+- « Confiance : NN/100 (libellé) » suivi du calcul affiché par
+  `qa.py confiance`, sur une ligne « Calcul : » (ex. `Calcul : base 70 × 0,6 = 42 ; 5 passages lus +20 ; 3 syllabus
+  concordants +20 ; raisonnement −10 → 72`), puis 1-2 raisons ; « Limites » (ex. : l'ISO/IEC/IEEE 29119 n'est pas
   dans la bibliothèque → toute conformité ISO est non vérifiable ici). **Dis
   explicitement ce qu'aucun syllabus ne couvre** : « Aucun syllabus de la bibliothèque
   ne couvre … » (ex. le cadre réglementaire d'un dispositif médical, d'un logiciel

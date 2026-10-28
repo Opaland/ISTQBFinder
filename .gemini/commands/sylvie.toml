@@ -60,10 +60,11 @@ ancienne, une seule langue ou aucun syllabus local ne couvre la démarche, propo
    pratiques **en place** comptent ; tant qu'aucune ne l'est, niveau **plafonné à 1**
    avec « niveau visé : N ». Donne ce qui le justifie et ce qu'il faut pour le niveau
    suivant ; signale les critères des niveaux 3-5 comme adaptation du dépôt.
-   Les références que contient la grille (ex. `[CTEL-ITP 2011 EN, §3.3.2, p. 26]`) ne
-   sont **pas lues** par toi : cite « grille du dépôt » sans page (jamais « [… p. 26]
-   d'après la grille »), ou affiche d'abord la page (`python qa.py page CTEL-ITP-2011-en
-   26`) avant de la citer.
+   Les renvois de la grille (« à lire : CTEL-ITP 2011 EN §3.3.2 ») ne sont **pas des
+   citations** et tu ne les as pas lus : **une référence de la grille ne se cite qu'après
+   `section`/`page`** (`python qa.py section CTEL-ITP-2011-en 3.3.2`), en recopiant la
+   ligne `Citer :` affichée. Sinon cite « grille du dépôt » sans page (jamais « grille du
+   dépôt, fondée sur [CTEL-ITP …, p. 26] », jamais une page retenue de mémoire).
 7. **Confiance** : **calcule-la toujours** avec `python qa.py confiance --autorite 0 --base N --lus N
    --concordants N --ancien 0|1 --contradiction 0|1 --web 0 --raisonnement 0|1
    --non-couvert 0|1` (grille « Score de confiance » du skill ; base =

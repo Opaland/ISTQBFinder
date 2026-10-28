@@ -153,6 +153,42 @@ def test_citation_pp_est_controlee_et_ne_fusionne_pas():
     assert len(essais_agents.verifier_citations("[CTAL-TM v3.0 FR, §1.3 ; §1.3.1, p. 29]", set())) == 1
 
 
+# Extrait réel : relance Y228-S4-1 (Sylvie, S4-recette, 2026-10-28), lignes 36 et 38.
+Y228_S4 = """- **Réutilisation des données de défauts.** Tu n'utilises pas Jira pour la cause racine. [CTAL-TM v3.0 FR, §2.3.6, pp. 64-65]
+- **Défauts issus des revues.** Les revues doivent produire des rapports de défaut (§3.2.2, p. 36), et il est conseillé de traiter les défauts de test statique de façon similaire (§5.5). Tu ne dis pas si les défauts de revue arrivent dans Jira. [CTFL v4.0.1 EN, §3.2.2, p. 36] ; [CTFL v4.0.1 EN, §5.5, p. 56]
+"""
+
+
+def test_reference_sans_document_jamais_rattachee_a_une_autre_ligne():
+    """#247 : « (§3.2.2, p. 36) » sans document était rattachée au dernier sigle nommé plus
+    haut (CTAL-TM) → faux échec « citation non lue : CTAL-TM §3.2.2, p. 36 ». Elle prend
+    désormais le sigle de SA ligne (ici le [CTFL …] qui la suit)."""
+    lues = {("CTAL-TM", 64), ("CTFL", 36), ("CTFL", 56)}
+    citations = essais_agents.verifier_citations(Y228_S4, lues)
+    assert all(c["lue"] for c in citations), citations
+    assert not any(c["citation"].startswith("CTAL-TM §3.2.2") for c in citations)
+    # Le scénario de l'issue : plus de CTAL-TM accusé à tort.
+    reponse = "CTAL-TM v3.0 FR …\n- Les revues (§3.2.2, p. 36). [CTFL v4.0.1 EN, §3.2.2, p. 36]"
+    assert [(c["citation"].split()[0], c["lue"]) for c in essais_agents.verifier_citations(reponse, {("CTFL", 36)})] \
+        == [("CTFL", True)]
+    # Sans la page CTFL lue, l'échec désigne le bon document.
+    citations = essais_agents.verifier_citations(reponse, set())
+    assert [c["citation"].split()[0] for c in citations] == ["CTFL"] and not citations[0]["lue"]
+
+
+def test_reference_orpheline_signalee_comme_telle():
+    """#247 : sans aucun sigle sur sa ligne, la référence est une faute de format (le skill
+    exige que chaque référence nomme son document) : l'essai échoue sous ce motif, sans
+    accuser un document cité ailleurs. Dans une section de bilan, ce n'est pas une citation."""
+    reponse = "Selon CTAL-TM v3.0 FR [CTAL-TM v3.0 FR, §2.3.6, p. 64].\n- Les revues produisent des rapports (§3.2.2, p. 36)."
+    citations = essais_agents.verifier_citations(reponse, {("CTAL-TM", 64), ("CTAL-TM", 36)})
+    assert [c["lue"] for c in citations] == [True, False], citations
+    bilan = {"citations_non_lues": [c["citation"] for c in citations if not c["lue"]], "criteres_ko": []}
+    assert essais_agents.motifs_echec(bilan) == ["référence sans document : §3.2.2, p. 36"]
+    tracabilite = "## Traçabilité\n\n- Document lu : CTAL-TM v3.0 FR\n- Sections lues : §1.3 (pp. 29-33).\n"
+    assert essais_agents.verifier_citations(tracabilite, set()) == []
+
+
 def test_questions_choix_format_une_option_par_ligne():
     """#144 : le format prescrit (options numérotées sous la question, une par ligne) est
     reconnu ; les options écrites en ligne (« 1. … · 2. … ») ne le sont pas."""

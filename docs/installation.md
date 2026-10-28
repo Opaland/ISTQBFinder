@@ -209,10 +209,54 @@ reçoit les règles (ordre de recherche, lire avant de citer, confiance) par les
 `instructions` du serveur MCP ; il ne connaît ni Thomas ni Sylvie. **Non essayé en réel** :
 pas d'appli de bureau dans l'environnement de développement.
 
-**Paquet `.mcpb`** (extension Claude Desktop installable en un clic) : non produit pour
-l'instant. Il ne peut pas embarquer les PDF (autorisation propre à ce dépôt, voir
-`NOTICE.md`), devrait donc pointer vers un clone installé, et n'a pas pu être essayé dans
-Claude Desktop : voir #200.
+**Paquet `.mcpb`** (extension Claude Desktop, sans éditer de JSON ; #200). Le paquet ne
+contient que `mcpb/manifest.json` : **ni code, ni PDF** (les syllabus ne peuvent pas être
+redistribués hors du dépôt, voir `NOTICE.md`). Il lance le serveur d'un **clone déjà
+installé**, dont on choisit le dossier à l'installation (`user_config.clone`) :
+`<clone>/.venv/bin/python <clone>/qa.py mcp` (Windows : `<clone>\.venv\Scripts\python.exe
+<clone>\qa.py mcp`), le venv créé par `installer.sh` / `installer.ps1`.
+
+1. Installer le clone (§ 1) **et le SDK MCP** dans son venv :
+   `.venv/bin/python -m pip install -r requirements-mcp.txt`
+   (Windows : `.venv\Scripts\python -m pip install -r requirements-mcp.txt`).
+2. Produire le paquet depuis le clone (aucun réseau, Python seul) :
+
+   ```bash
+   python scripts/produire_mcpb.py istqbfinder.mcpb       # --version X.Y.Z pour une autre version
+   python scripts/produire_mcpb.py --essayer .            # commande du manifeste lancée, tools/list
+   ```
+
+   Le script refuse un manifeste qui référence un PDF ou la bibliothèque, dont la commande
+   n'est pas celle du venv du clone, ou dont les outils diffèrent de ceux du serveur ; il
+   vérifie ensuite que le paquet ne contient que `manifest.json`. `--essayer` remplace
+   `${user_config.clone}` comme le ferait l'hôte et liste les outils par JSON-RPC : ce n'est
+   pas un essai dans Claude Desktop.
+3. Dans Claude Desktop : double-cliquer sur `istqbfinder.mcpb`, ou Settings → Extensions →
+   Advanced settings → **Install Extension…**, puis choisir le dossier du clone dans le
+   champ « Dossier du clone ISTQBFinder ». Si la déclaration manuelle de
+   `claude_desktop_config.json` (ci-dessus) existe aussi, en retirer une des deux.
+
+Ce qui est vérifié : la CI (job `mcpb`, Linux et Windows) valide le manifeste et le paquet
+produit avec l'outil officiel (`npx @anthropic-ai/mcpb validate`, `info`, `unpack`), le
+reconstruit avec `mcpb pack` (toujours `manifest.json` seul), puis lance la commande du
+manifeste sur un venv de clone (`--essayer`). Hors ligne, `tests/test_mcpb.py` contrôle le
+manifeste et le paquet (aucun PDF). Format suivi : `manifest_version` 0.3 (relevé du
+2026-10-28 de [MANIFEST.md](https://github.com/modelcontextprotocol/mcpb/blob/main/MANIFEST.md),
+CLI `@anthropic-ai/mcpb` 2.1.2).
+
+Limites :
+
+- **Non essayé dans Claude Desktop** (pas d'appli de bureau dans l'environnement de
+  développement) : sélecteur de dossier, substitution de `${user_config.clone}` et
+  démarrage réel restent à constater sur un poste.
+- `server.type` vaut `python` avec `entry_point: qa.py`, fichier du clone et non du paquet :
+  la spécification fait primer `mcp_config`, mais une version de Claude Desktop qui exigerait
+  le point d'entrée dans le paquet refuserait l'extension.
+- Le paquet n'est **pas signé** (`mcpb info` : « Not signed ») et n'est **pas publié**.
+
+À trancher par l'utilisateur : publier le `.mcpb` (release GitHub ou autre canal) ou laisser
+chacun le produire depuis son clone ; sa version (0.1.0 dans le manifeste, comme le plugin ;
+`--version` pour une autre) ; le signer (`mcpb sign`) ou non.
 
 ## Ce qui a été essayé
 

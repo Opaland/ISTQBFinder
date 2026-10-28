@@ -231,13 +231,16 @@ def idee_voir(id: str) -> str:
 
 
 def confiance(base: Annotated[int, Field(ge=0, le=100)], lus: Positif, concordants: Positif, ancien: bool = False, contradiction: bool = False,
-              web: bool = False, raisonnement: bool = False, non_couvert: bool = False) -> str:
+              web: bool = False, raisonnement: bool = False, non_couvert: bool = False,
+              autorite: bool = False) -> str:
     """Score de confiance d'une réponse, calculé avec la grille du skill : base = couverture
     lexicale de la recherche principale, lus = passages réellement lus, concordants = syllabus
-    courants concordants. Le serveur rappelle combien de passages il a vu lire."""
+    courants concordants ; autorite = question sur une seule notion dont la section de référence
+    (syllabus dédié, titre qui la nomme) a été lue en entier. Le serveur rappelle combien de
+    passages il a vu lire."""
     argv = ["confiance", "--base", str(base), "--lus", str(lus), "--concordants", str(concordants)]
     for nom, v in (("--ancien", ancien), ("--contradiction", contradiction), ("--web", web),
-                   ("--raisonnement", raisonnement), ("--non-couvert", non_couvert)):
+                   ("--raisonnement", raisonnement), ("--non-couvert", non_couvert), ("--autorite", autorite)):
         argv += [nom, "1" if v else "0"]
     texte = texte_outil(argv)
     vus = _nombre_lus()

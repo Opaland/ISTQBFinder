@@ -156,6 +156,9 @@ La grille est dans SKILL.md (seul texte préchargé chez Thomas et Sylvie) et da
 `qak/confiance.py` ; `qa confiance …` l'applique et affiche le calcul. Écrire
 « Confiance : NN/100 (libellé) » suivi du calcul, par exemple :
 `base 79 × 0,6 = 47 ; 3 passages lus +20 ; 2 syllabus concordants +10 ; Web −10 → 67`.
+Question de cours sourcée par sa section de référence (`--autorite 1`, conditions dans
+SKILL.md) : `base 70 × 0,6 = 42 ; CTFL §4.2.2 lue en entier, section de référence +20 et
++20 → 82`.
 Aucun autre ajustement (« −5 syllabus non lu », point de départ choisi à l'œil…).
 Plafond : si une notion de la question (ex. l'outil nommé) n'est couverte ni par un
 passage lu ni par une source Web consultée (`--non-couvert 1`), le score

@@ -79,7 +79,8 @@ faible ; effort faible / moyen / fort) ; d'abord fort impact pour faible effort.
 **Confiance : NN/100** (libellé) — 1-2 raisons.
 **Questions à choix** (questions de cadrage si le contexte manque, puis suites) : 1-2
 questions, 3 options numérotées au plus chacune (voir conversation.md).
-**À capitaliser ?** 0-3 propositions (rien n'est enregistré sans accord).
+**À capitaliser ?** 0-3 propositions (rien n'est enregistré sans accord ; un JSON seulement
+après `idee modele`, sinon l'idée en clair : capitalisation.md).
 ```
 
 - Grouper par syllabus puis chapitre ; quand plusieurs syllabus disent la même chose,
@@ -126,7 +127,7 @@ je ferais : … » — chaque pratique utilisée renvoie à l'étape (et donc à
 **Questions à choix** (titre exact) : 2-3 questions de cadrage si le contexte manque (domaine,
 réglementation, taille et rythme de l'équipe, outillage), puis les suites ; une option numérotée
 par ligne (format de `conversation.md`) ; elles ne bloquent pas la réponse.
-**À capitaliser ?** 0-3 propositions.
+**À capitaliser ?** 0-3 propositions (JSON après `idee modele`, comme ci-dessus).
 ```
 
 - Une étape sans passage lu est marquée « (interprétation) » ; jamais de source plaquée.

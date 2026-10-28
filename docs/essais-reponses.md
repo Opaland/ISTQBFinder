@@ -217,4 +217,5 @@ python qa.py actualiser                       # index à jour
 python scripts/essais_agents.py               # tous les essais (16, ≈ 2,60 $, ≈ 30 min)
 python scripts/essais_agents.py S1-rbt        # un seul
 python scripts/essais_agents.py M             # par préfixe : tous les essais M…
+python scripts/essais_agents.py --fidelite S3-reglemente   # + juge LLM de fidélité, indicatif (#152)
 ```

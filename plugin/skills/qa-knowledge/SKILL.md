@@ -30,6 +30,13 @@ Linux/macOS si `python` est absent). `--help` sur chaque commande.
    traduis-le dans ta réponse. Les versions remplacées sont exclues (sauf `--toutes-versions`).
    Un avertissement « existe seulement en… » / « exclu par… » n'est PAS une absence :
    relance sans le filtre avant de dire qu'un syllabus manque.
+   **Reformuler avant de chercher** : une question en mots de métier ou en mise en
+   situation (« la mise en production a planté un vendredi », « personne ne relit nos specs ») ne
+   contient souvent aucun terme des syllabus. Écris d'abord 2 ou 3 requêtes courtes dans le
+   vocabulaire ISTQB, celui des titres de sections — au moins une en anglais (CTFL v4.0
+   n'existe qu'en anglais) et une en français — et lance-les en plus de la question
+   (« les utilisateurs se perdent dans les menus » → `chercher "usability testing"`,
+   `chercher "test d'utilisabilité"`).
 3. **Lire avant de citer** : `lire <passage> --contexte 1`, `section <doc> <num>`,
    `page <doc> <p>`. Un extrait de recherche ne suffit jamais pour affirmer.
    **Jamais de `| head`** (ni `tail`, `cut`, `grep`) sur `lire`, `section` ou `page` : la
@@ -149,7 +156,9 @@ retour d'expérience, recommandation étayée. Jamais chaque paragraphe ou hypot
 N'enregistre qu'avec l'accord de l'utilisateur. Procédure :
 [reference/capitalisation.md](reference/capitalisation.md) — en bref :
 
-1. `idee modele` donne le gabarit JSON ; `theme proposer "<texte>"` suggère les thèmes.
+1. `idee modele` donne le gabarit JSON : lance-le **avant** tout JSON, même proposé sans
+   être enregistré, et garde ses clés (`theme_principal`, `doc_id`, `pages` en texte) ; sans
+   lui, décris l'idée en clair. `theme proposer "<texte>"` suggère les thèmes.
 2. `idee doublons --titre "…" --resume "…" --principe "…" --theme <code>` **avant** tout
    ajout : **une ligne, sans JSON** (un heredoc JSON est bloqué en `claude -p`), pas de
    fichier temporaire. Doublon probable → proposer de compléter l'existante

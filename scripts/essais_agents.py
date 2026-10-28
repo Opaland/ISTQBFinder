@@ -85,6 +85,8 @@ RE_JETON = re.compile(r"(?P<code>\b(?:CTFL(?:-AT)?|CTAL-[A-Za-z]+|CTEL-[A-Za-z]+
                       r"|(?P<ref>§\s?[\d.]+[^\n\]\)§;]{0,40}?\bpp?\.\s?(?P<p1>\d+)(?:\s?[-–]\s?(?P<p2>\d+))?)")
 RE_CONFIANCE = re.compile(r"[Cc]onfiance\s*:?\s*\**\s*(\d{1,3})\s*/\s*100")
 RE_ETAPE = re.compile(r"^\s*(?:[-*]\s*)?(?:\*\*)?(?:[ÉE]tape\s*)?\d+\s*[.)—:-]", re.M)
+# Calcul de la confiance recopié de `qa.py confiance` (#227) : « base 70 × 0,6 = 42 ».
+RE_CALCUL_CONFIANCE = re.compile(r"\d{1,3}\s*[×x*]\s*0[,.]6\b", re.I)
 RE_NON_COUVERT = re.compile(r"pas de syllabus|aucun syllabus|ne couvre pas|non couvert|absente? de la biblioth|"
                             r"n'est pas dans la biblioth|pas dans la biblioth|hors biblioth", re.I)
 
@@ -101,7 +103,8 @@ def controler(reponse: str, criteres: dict) -> dict[str, bool]:
     (chaque étape, sous-puces comprises, porte « § » ou « interprétation »), exemple (exemple marqué fictif / interprétation),
     domaines et mentions (listes de motifs, tous présents), cadrage, questions_choix
     (« Questions à choix » suivi d'au moins 2 options numérotées), hypotheses,
-    non_couvert (absence de syllabus dédié dite franchement), confiance."""
+    non_couvert (absence de syllabus dédié dite franchement), confiance, calcul_confiance
+    (le calcul « base N × 0,6 » de `qa.py confiance` est recopié, #227)."""
     out = {}
     methode = _apres(reponse, r"m[ée]thode")
     # La méthode s'arrête au titre de l'exemple (« ## Exemple… », « **Exemple… »), pas à un
@@ -139,6 +142,8 @@ def controler(reponse: str, criteres: dict) -> dict[str, bool]:
         out["non_couvert"] = bool(RE_NON_COUVERT.search(reponse))
     if criteres.get("confiance"):
         out["confiance"] = bool(RE_CONFIANCE.search(reponse))
+    if criteres.get("calcul_confiance"):
+        out["calcul_confiance"] = bool(RE_CALCUL_CONFIANCE.search(reponse))
     return out
 
 

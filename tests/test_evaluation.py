@@ -42,7 +42,7 @@ def test_evaluer_min_rappel_fait_echouer(capsys, racine_isolee):
 
 def test_evaluer_min_rappel_sous_le_seuil(capsys, bibliotheque_test, jeu, monkeypatch):
     vrai = evaluation.evaluer
-    monkeypatch.setattr(evaluation, "evaluer", lambda k, controle=None, semantique=False, eloigne=False: vrai(k, controle, jeu=jeu))
+    monkeypatch.setattr(evaluation, "evaluer", lambda k, controle=None, **_: vrai(k, controle, jeu=jeu))
     assert main(["evaluer", "--min-rappel", "0.6"]) == 0  # 2/3
     capsys.readouterr()
     assert main(["evaluer", "--min-rappel", "0.7"]) == 2
@@ -67,3 +67,26 @@ def test_jeu_eloigne_separe(bibliotheque_test, tmp_path):
     assert evaluation.evaluer(5, jeu=chemin)["total"] == 3
     assert evaluation.evaluer(5, controle=True, jeu=chemin)["total"] == 2
     assert [d["requete"] for d in evaluation.evaluer(5, jeu=chemin, eloigne=True)["details"]] == ["risk level"]
+
+
+def test_jeu_examens_bien_forme():
+    # Issue #150 : vérité terrain = objectif d'apprentissage du corrigé officiel (FL-4.2.1 → CTFL §4.2.1),
+    # ramené à une section existante qui en est un préfixe ; jeu à part (ni contrôle, ni éloigné).
+    from qak import chemins
+    fichier = evaluation.fichier_jeu("examens")
+    assert fichier == chemins.CODE / "eval" / "examens.json" and evaluation.fichier_jeu("controle") is None
+    cas = json.loads(fichier.read_text(encoding="utf-8"))["cas"]
+    assert len(cas) >= 100
+    prefixes = {"CTFL": "FL", "CTAL-TM": "TM", "CTAL-TA": "TA"}
+    for c in cas:
+        (a,) = c["attendus"]
+        prefixe, numero = c["objectif"].split("-")
+        assert prefixes[a["code"]] == prefixe and evaluation._dans_section(numero, a["section"]), c
+        assert c["source"] and not c.get("controle") and not c.get("eloigne")
+        assert len(c["requete"]) <= 140, c["requete"]  # requête reformulée, pas l'énoncé recopié
+
+
+def test_evaluer_jeu_examens_lit_son_fichier(capsys, racine_isolee):
+    assert main(["evaluer", "--jeu", "examens"]) == 0
+    nombre = len(json.loads(evaluation.fichier_jeu("examens").read_text(encoding="utf-8"))["cas"])
+    assert f"ignorées (document absent) : {nombre}" in capsys.readouterr().out

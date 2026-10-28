@@ -15,6 +15,12 @@ def _dans_section(trouvee: str | None, attendue: str) -> bool:
     return not attendue or trouvee == attendue or (trouvee or "").startswith(attendue + ".")
 
 
+def fichier_jeu(nom: str) -> Path | None:
+    """Fichier de questions d'un jeu nommé : « examens » (#150, questions des examens blancs
+    officiels) a son propre fichier ; les autres jeux sont des filtres de eval/requetes.json."""
+    return chemins.CODE / "eval" / "examens.json" if nom == "examens" else None
+
+
 def evaluer(k: int = 5, controle: bool | None = None, jeu: Path | None = None, semantique: bool = False,
             eloigne: bool = False) -> dict:
     """controle=None : tout le jeu ; True : seulement les questions de contrôle (jamais

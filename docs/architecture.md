@@ -56,7 +56,7 @@ par `lire` / `section` / `page` sont relevés (`cli.LECTURES`) et consultables p
 
 ## Mesures de la recherche (bibliothèque réelle : 42 fichiers, 26 codes EN + 14 FR)
 
-`python qa.py evaluer --jeu reglage|controle` — rappel@5 = la réponse attendue
+`python qa.py evaluer --jeu reglage|controle|eloigne|examens` — rappel@5 = la réponse attendue
 (code + section) figure dans les 5 premiers résultats. La CI exige `evaluer --jeu controle --min-rappel 0.80`
 (code retour 2 sous le seuil, ou si aucune question n'a pu être évaluée).
 
@@ -109,6 +109,38 @@ passer « motivation » du rang 1 au rang 5 (titres courts favorisés contre BM2
 
 Temps : une recherche ≈ 50 ms de calcul (0,2-0,45 s pour la commande complète) ; import initial ≈ 3 s par syllabus (≈ 2-3 min pour 42) ;
 actualisation sans changement < 1 s.
+
+### Jeu « examens » : questions des examens blancs officiels (#150, 2026-10-28)
+
+`python qa.py evaluer --jeu examens` lit `eval/examens.json` (fichier à part, hors seuil de la
+CI, jamais utilisé pour régler le moteur) : 135 questions, une par question des examens blancs
+ISTQB CTFL v4.0 A v1.7 (40), CTAL-TM v3.0 A v1.3.3 (50) et CTAL-TA v4.0 v4.1 (45). Chaque
+question est reformulée en requête courte en français (l'énoncé n'est pas recopié) ; la vérité
+terrain est l'objectif d'apprentissage donné par le corrigé officiel, ramené à la section la
+plus profonde du plan (FL-4.2.1 → CTFL §4.2.1, FL-1.3.1 → CTFL §1.3 ; numérotation des
+objectifs vérifiée sur les syllabus : elle suit celle des sections). Les corrigés se
+téléchargent sur istqb.org (pages des certifications) et ne sont pas versionnés. Une seule
+réponse attendue par question : un autre syllabus qui traite le même sujet ne compte pas,
+ce jeu est donc plus sévère que le contrôle.
+
+Ligne de base (moteur lexical inchangé) :
+
+| Jeu | Rappel@5 | MRR |
+|---|---|---|
+| Réglage (36 q.) | 100 % (36/36) | 0,95 |
+| Contrôle (47 q.) | 89 % (42/47) | 0,77 |
+| Éloigné (5 q.) | 20 % (1/5) | 0,20 |
+| **Examens (135 q.)** | **47 % (64/135)** (rappel@10 : 59 %) | **0,37** |
+| — dont CTFL v4.0 (40 q.) | 20 % (8/40) | 0,12 |
+| — dont CTAL-TM v3.0 (50 q.) | 58 % (29/50) | 0,47 |
+| — dont CTAL-TA v4.0 (45 q.) | 60 % (27/45) | 0,47 |
+
+Lecture : le CTFL v4.0 n'existe qu'en anglais dans la bibliothèque, et une question posée en
+français fait remonter les syllabus français qui traitent le même sujet (CTFL-AT, CTAL-TA,
+CTAL-TM FR) ; les questions d'examen sont aussi des mises en situation (« le site est tombé
+deux jours », « vanne ouverte à 9 bars ») loin du vocabulaire des titres. Ce jeu sert de
+réservoir : une question qui en est tirée passe au contrôle (ou au jeu éloigné) AVANT tout
+correctif qu'elle motive.
 
 ## Critères d'acceptation (vérifiables)
 

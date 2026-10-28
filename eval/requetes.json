@@ -1059,6 +1059,50 @@
    "controle": true
   },
   {
+   "requete": "activités du processus de revue",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "3.2.2"
+    }
+   ],
+   "controle": true,
+   "source": "issue #241 : question française, section du CTFL v4.0 disponible seulement en anglais"
+  },
+  {
+   "requete": "différence entre tester et déboguer",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "1.1.2"
+    }
+   ],
+   "controle": true,
+   "source": "issue #241 : question française, section du CTFL v4.0 disponible seulement en anglais"
+  },
+  {
+   "requete": "différences entre test statique et test dynamique",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "3.1.3"
+    }
+   ],
+   "controle": true,
+   "source": "issue #241 : question française, section du CTFL v4.0 disponible seulement en anglais"
+  },
+  {
+   "requete": "impact du cycle de vie de développement sur le test",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "2.1.1"
+    }
+   ],
+   "controle": true,
+   "source": "issue #241 : question française, section du CTFL v4.0 disponible seulement en anglais"
+  },
+  {
    "requete": "comment éviter que nos tests cassent à chaque changement d'écran",
    "attendus": [
     {

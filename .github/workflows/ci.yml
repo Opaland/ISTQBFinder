@@ -19,9 +19,10 @@ jobs:
             requirements.txt
             requirements-mcp.txt
       # Le SDK MCP (optionnel, #153) n'est installé qu'ici : les tests du dialogue MCP
-      # réel tournent dans ce job et s'ignorent ailleurs.
+      # réel tournent dans ce job et s'ignorent ailleurs. Idem pour skills-ref (#154,
+      # validateur de référence du standard Agent Skills, Python 3.11+).
       - name: Installer les dépendances
-        run: pip install -r requirements.txt -r requirements-mcp.txt
+        run: pip install -r requirements.txt -r requirements-mcp.txt skills-ref==0.1.1
       # CLI Claude Code, sans compte : `claude plugin validate --strict plugin` est lancé par
       # tests/test_plugin.py (#184), ignoré ailleurs.
       - uses: actions/setup-node@v4
@@ -31,7 +32,14 @@ jobs:
         run: npm install -g @anthropic-ai/claude-code && claude --version
       - name: Syntaxe
         run: python -m compileall -q qak qa.py
+      # #154 : copies Gemini validées telles quelles par la CLI de référence ; les skills
+      # Claude Code (.claude/skills, plugin/skills) le sont par tests/test_agent_skills.py,
+      # qui ne tolère que argument-hint / disable-model-invocation (propres à Claude Code).
+      - name: Conformité Agent Skills (agentskills validate, copies Gemini)
+        run: for d in .gemini/skills/*/; do agentskills validate "$d" || exit 1; done
       - name: Tests
+        env:
+          QAK_EXIGER_SKILLS_REF: '1'   # skills-ref absent = échec, pas test ignoré
         run: python -m pytest tests/ -q -rs
       # L'index n'est pas versionné : on vérifie que les PDF du dépôt s'indexent
       # sans échec et que la recherche tient son niveau sur le jeu de contrôle

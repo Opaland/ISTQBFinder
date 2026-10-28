@@ -143,6 +143,23 @@ actualisation sans changement < 1 s.
 - La recherche est lexicale : une notion absente du thésaurus et formulée autrement que
   dans le syllabus peut être manquée → ajouter le terme au thésaurus (une ligne JSON).
 
+## Standard Agent Skills (#154, 2026-10-28)
+
+Les skills suivent la [spécification Agent Skills](https://agentskills.io/specification),
+vérifiée par son validateur de référence `skills-ref` 0.1.1 (CLI `agentskills validate`, Python
+3.11+) : job CI `tests` et `tests/test_agent_skills.py` (ignoré avec la raison si `skills-ref`
+est absent). Écarts assumés, tous propres à Claude Code
+([doc des skills](https://code.claude.com/docs/en/skills), consultée le 2026-10-28) :
+
+| Champ | Standard | Ce dépôt | Pourquoi |
+|---|---|---|---|
+| `argument-hint` (`bibliotheque`, `ajouter-syllabus`, `installer` de l'export) ; `disable-model-invocation` (`installer`) | hors liste : « Unexpected fields in frontmatter » | gardés **à la racine** de l'en-tête, tolérés par le test et seulement ceux-là | Claude Code ne les lit qu'à la racine ; sous `metadata:` ils seraient ignorés (« Claude Code doesn't act on its contents »), l'indice d'autocomplétion de `/bibliotheque` disparaîtrait. L'envoi sur claude.ai / API Skills les refuse : ces skills ne sont pas faits pour y être téléversés. |
+| `allowed-tools` | chaîne séparée par des **espaces**, expérimental | **virgules** et motifs Claude Code avec espaces internes (`Bash(python qa.py idee chercher:*)`) | Claude Code accepte espaces, virgules ou liste YAML ; découper sur les espaces casserait les motifs à plusieurs mots. `skills-ref` 0.1.1 ne contrôle pas ce champ ; un autre agent qui le lirait au sens strict obtiendrait des règles fausses — il n'accorde de toute façon aucune permission hors Claude Code (Copilot l'ignore, la copie Gemini ne l'a pas). Non modifié : ce sont les permissions. |
+| `compatibility` | facultatif, ≤ 500 caractères | déclaré dans les trois skills (Claude Code, Python 3.10+, CLI `qa.py`, réseau éventuel) | Accepté par Claude Code, sans effet ; recopié dans `plugin/skills/`. |
+
+Les copies `.gemini/skills/` (générées) n'ont que `name` et `description` : elles sont
+validées **sans aucune tolérance**, par `agentskills validate` dans la CI.
+
 ## Recherche sémantique : évaluation chiffrée (#107, 2026-10-22)
 
 Jeux : contrôle (40 q.), réglage (36 q.) et un jeu **« éloigné »** (`evaluer --jeu

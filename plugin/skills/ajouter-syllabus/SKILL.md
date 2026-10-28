@@ -1,6 +1,7 @@
 ---
 name: ajouter-syllabus
 description: Ajoute un syllabus ou document QA à la bibliothèque — PDF officiel ISTQB (téléchargé depuis istqb.org) ou fichier fourni par l'utilisateur (traduction CFTL, PDF, .txt, .md) — avec détection et contrôle des métadonnées, doublons et versions. À utiliser pour installer un fichier ou un code précis (ex. « importe ce PDF », « télécharge CT-AI », « installe la nouvelle version du CTFL »). Pour savoir ce qui manque ou s'il existe de nouvelles versions → /bibliotheque.
+compatibility: "Claude Code (argument-hint et allowed-tools au format Claude Code) ; Python 3.10+ et la CLI qa.py d'ISTQBFinder ; accès à istqb.org pour un téléchargement."
 argument-hint: "<chemin du fichier | code ISTQB>"
 allowed-tools: Bash(qa chercher:*), Bash(qa lire:*), Bash(qa section:*), Bash(qa page:*), Bash(qa plan:*), Bash(qa inventaire:*), Bash(qa manquants:*), Bash(qa catalogue:*), Bash(qa themes:*), Bash(qa couverture:*), Bash(qa journal:*), Bash(qa evaluer:*), Bash(qa idee chercher:*), Bash(qa idee lister:*), Bash(qa idee voir:*), Bash(qa idee doublons:*), Bash(qa idee modele:*), Bash(qa idee verifier-refs:*), Bash(qa theme proposer:*), Bash(qa confiance:*), Bash(qa diagnostic:*), Bash(qa --help:*), Bash(git status:*), Bash(git diff:*), Read, mcp__plugin_istqbfinder_istqbfinder__*
 ---

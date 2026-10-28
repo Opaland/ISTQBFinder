@@ -131,6 +131,50 @@ jobs:
           QAK_ESSAI_PREMIER_USAGE: '1'
         run: python -m pytest tests/test_export_plugin.py -q -rs
 
+  # Issue #200 : paquet .mcpb (extension Claude Desktop), sans code ni PDF. Format validé par
+  # l'outil officiel (validate, pack, info, unpack) ; commande du manifeste lancée sur le venv
+  # du clone (tools/list). Pas d'essai dans Claude Desktop (absent des runners).
+  mcpb:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    env:
+      MCPB: npx -y @anthropic-ai/mcpb@2.1.2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: mcpb validate sur le manifeste source
+        run: $MCPB validate mcpb/manifest.json
+      - name: Production du paquet (scripts/produire_mcpb.py)
+        run: python scripts/produire_mcpb.py "$RUNNER_TEMP/istqbfinder.mcpb"
+      - name: mcpb info, unpack et validate sur le paquet produit
+        run: |
+          $MCPB info "$RUNNER_TEMP/istqbfinder.mcpb"
+          $MCPB unpack "$RUNNER_TEMP/istqbfinder.mcpb" "$RUNNER_TEMP/deballe"
+          $MCPB validate "$RUNNER_TEMP/deballe/manifest.json"
+          test "$(ls -A "$RUNNER_TEMP/deballe")" = "manifest.json"
+      - name: mcpb pack sur le dossier mcpb/ (aucun PDF)
+        run: |
+          $MCPB pack mcpb "$RUNNER_TEMP/pack.mcpb"
+          python -c "import sys, zipfile; n = zipfile.ZipFile(sys.argv[1]).namelist(); print(n); sys.exit(n != ['manifest.json'])" "$RUNNER_TEMP/pack.mcpb"
+      - name: Venv du clone (comme installer.sh, sans indexation) et SDK MCP
+        run: |
+          python -m venv .venv
+          if [ -x .venv/Scripts/python.exe ]; then VPY=.venv/Scripts/python.exe; else VPY=.venv/bin/python; fi
+          "$VPY" -m pip install -q -r requirements.txt -r requirements-mcp.txt
+      - name: Commande du manifeste lancée (tools/list)
+        run: python scripts/produire_mcpb.py --essayer .
+
   installation-linux:
     runs-on: ubuntu-latest
     steps:

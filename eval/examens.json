@@ -1,0 +1,1490 @@
+{
+ "description": "Jeu « examens » (#150) : une question par question des examens blancs officiels ISTQB (CTFL v4.0 A, CTAL-TM v3.0 A, CTAL-TA v4.0), reformulée en requête courte (aucune recopie de l'énoncé). Vérité terrain = objectif d'apprentissage (Learning Objective) donné par le corrigé officiel, ramené à la section la plus profonde qui existe dans le plan du syllabus (FL-1.3.1 → CTFL §1.3). Corrigés téléchargés sur istqb.org, non versionnés. Hors seuil de la CI ; ne sert pas à régler le moteur (une question qui en est tirée passe d'abord au contrôle).",
+ "cas": [
+  {
+   "requete": "à quoi sert le test : prouver l'absence de défauts ou réduire le risque ?",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "1.1.1"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 1",
+   "objectif": "FL-1.1.1"
+  },
+  {
+   "requete": "en quoi impliquer les testeurs tout au long du cycle de développement contribue au succès",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "1.2.1"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 2",
+   "objectif": "FL-1.2.1"
+  },
+  {
+   "requete": "nos tests de régression ne trouvent plus aucun défaut depuis plusieurs itérations, faut-il s'inquiéter ?",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "1.3"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 3",
+   "objectif": "FL-1.3.1"
+  },
+  {
+   "requete": "estimer, décider quoi tester, dériver les données : laquelle de ces tâches relève de l'analyse de test",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "1.4.1"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 4",
+   "objectif": "FL-1.4.1"
+  },
+  {
+   "requete": "facteurs qui influencent l'approche de test : cycle de vie, risques produit, réglementation",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "1.4.2"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 5",
+   "objectif": "FL-1.4.2"
+  },
+  {
+   "requete": "tâches qui relèvent du rôle de testeur plutôt que de la gestion des tests",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "1.4.5"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 6",
+   "objectif": "FL-1.4.5"
+  },
+  {
+   "requete": "compétences les plus importantes d'un testeur",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "1.5.1"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 7",
+   "objectif": "FL-1.5.1"
+  },
+  {
+   "requete": "comment testeurs et représentants métier collaborent dans l'approche équipe intégrée",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "1.5.2"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 8",
+   "objectif": "FL-1.5.2"
+  },
+  {
+   "requete": "à chaque activité de développement correspond une activité de test, quel que soit le cycle de vie",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "2.1.2"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 9",
+   "objectif": "FL-2.1.2"
+  },
+  {
+   "requete": "qu'est-ce que le développement piloté par les tests d'acceptation ATDD",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "2.1.3"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 10",
+   "objectif": "FL-2.1.3"
+  },
+  {
+   "requete": "exemples d'approche shift-left pour tester plus tôt",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "2.1.5"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 11",
+   "objectif": "FL-2.1.5"
+  },
+  {
+   "requete": "convaincre mon manager d'organiser des rétrospectives en fin de release",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "2.1.6"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 12",
+   "objectif": "FL-2.1.6"
+  },
+  {
+   "requete": "quel niveau de test détecte quelle défaillance : composant, intégration, système, acceptation",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "2.2.1"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 13",
+   "objectif": "FL-2.2.1"
+  },
+  {
+   "requete": "après correction d'un défaut, différence entre test de confirmation et test de régression",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "2.2.3"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 14",
+   "objectif": "FL-2.2.3"
+  },
+  {
+   "requete": "bénéfices du test statique",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "3.1.2"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 15",
+   "objectif": "FL-3.1.2"
+  },
+  {
+   "requete": "intérêt d'un retour précoce et fréquent des parties prenantes",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "3.2.1"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 16",
+   "objectif": "FL-3.2.1"
+  },
+  {
+   "requete": "type de revue menée par l'auteur avec un scribe et une préparation individuelle",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "3.2.4"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 17",
+   "objectif": "FL-3.2.4"
+  },
+  {
+   "requete": "facteurs de succès d'une revue",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "3.2.5"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 18",
+   "objectif": "FL-3.2.5"
+  },
+  {
+   "requete": "caractéristiques des techniques basées sur l'expérience par rapport aux techniques boîte noire et boîte blanche",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "4.1"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 19",
+   "objectif": "FL-4.1.1"
+  },
+  {
+   "requete": "nombre minimal de cas de test pour couvrir les partitions valides de deux critères de recherche",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "4.2.1"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 20",
+   "objectif": "FL-4.2.1"
+  },
+  {
+   "requete": "couverture des valeurs limites à 2 valeurs d'une note de 0 à 100 points",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "4.2.2"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 21",
+   "objectif": "FL-4.2.2"
+  },
+  {
+   "requete": "repérer une règle impossible dans une table de décision",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "4.2.3"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 22",
+   "objectif": "FL-4.2.3"
+  },
+  {
+   "requete": "nombre minimal de cas de test pour couvrir les transitions valides d'un diagramme d'états",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "4.2.4"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 23",
+   "objectif": "FL-4.2.4"
+  },
+  {
+   "requete": "que garantit 100 % de couverture des instructions ?",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "4.3.1"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 24",
+   "objectif": "FL-4.3.1"
+  },
+  {
+   "requete": "points forts et limites du test boîte blanche",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "4.3.3"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 25",
+   "objectif": "FL-4.3.3"
+  },
+  {
+   "requete": "principe de l'estimation d'erreurs (error guessing)",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "4.4.1"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 26",
+   "objectif": "FL-4.4.1"
+  },
+  {
+   "requete": "exigences incomplètes, peu de temps et bonne connaissance du domaine : quelle technique de test choisir",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "4.4.2"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 27",
+   "objectif": "FL-4.4.2"
+  },
+  {
+   "requete": "rédiger des critères d'acceptation au format given/when/then",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "4.5.2"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 28",
+   "objectif": "FL-4.5.2"
+  },
+  {
+   "requete": "écrire un test ATDD à partir d'une user story et de ses critères d'acceptation",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "4.5.3"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 29",
+   "objectif": "FL-4.5.3"
+  },
+  {
+   "requete": "apport du testeur à la planification des itérations et des releases",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.1.2"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 30",
+   "objectif": "FL-5.1.2"
+  },
+  {
+   "requete": "exemples de critères de sortie pour le test d'un système",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.1.3"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 31",
+   "objectif": "FL-5.1.3"
+  },
+  {
+   "requete": "estimation à trois points de l'effort de test",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.1.4"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 32",
+   "objectif": "FL-5.1.4"
+  },
+  {
+   "requete": "ordonner l'exécution des cas de test selon leurs priorités et leurs dépendances",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.1.5"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 33",
+   "objectif": "FL-5.1.5"
+  },
+  {
+   "requete": "classer utilisabilité, test de composant et fiabilité dans les quadrants de test agile",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.1.7"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 34",
+   "objectif": "FL-5.1.7"
+  },
+  {
+   "requete": "temps de réponse trop long identifié comme risque : atténuation, acceptation ou transfert ?",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.2.4"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 35",
+   "objectif": "FL-5.2.4"
+  },
+  {
+   "requete": "graphique burndown pour montrer le travail restant d'une itération",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.3.3"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 36",
+   "objectif": "FL-5.3.3"
+  },
+  {
+   "requete": "créer une nouvelle version d'un script de test automatisé dans le référentiel",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.4"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 37",
+   "objectif": "FL-5.4.1"
+  },
+  {
+   "requete": "informations manquantes dans un rapport d'anomalie jugé non reproductible",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.5"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 38",
+   "objectif": "FL-5.5.1"
+  },
+  {
+   "requete": "à quelle activité de test sert un outil de préparation des données de test",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "6.1"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 39",
+   "objectif": "FL-6.1.1"
+  },
+  {
+   "requete": "risques de l'automatisation des tests",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "6.2"
+    }
+   ],
+   "source": "ISTQB CTFL v4.0, examen blanc A v1.7, question 40",
+   "objectif": "FL-6.2.1"
+  },
+  {
+   "requete": "activité la plus essentielle pour établir le plan de test d'un grand projet CRM",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.1.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 1",
+   "objectif": "TM-1.1.1"
+  },
+  {
+   "requete": "objectif du suivi des tests (test monitoring)",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.1.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 2",
+   "objectif": "TM-1.1.2"
+  },
+  {
+   "requete": "avec quelles parties prenantes un chef de projet mène des discussions détaillées entre pairs",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.2.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 3",
+   "objectif": "TM-1.2.1"
+  },
+  {
+   "requete": "pourquoi une matrice des parties prenantes est utile au test manager",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.2.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 4",
+   "objectif": "TM-1.2.2"
+  },
+  {
+   "requete": "passage du séquentiel à un modèle hybride : l'équipe de test peine avec les itérations courtes",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.2.3"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 5",
+   "objectif": "TM-1.2.3"
+  },
+  {
+   "requete": "itérations de trois semaines mais tests qui attendent la fin des exigences : quel cycle de vie ?",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.2.4"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 6",
+   "objectif": "TM-1.2.4"
+  },
+  {
+   "requete": "reprendre la gestion des tests d'une boutique en ligne livrée chaque jour",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.2.7"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 7",
+   "objectif": "TM-1.2.7"
+  },
+  {
+   "requete": "logiciel médical critique en agile avec régressions fréquentes : activité de gestion des tests prioritaire",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.2.7"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 8",
+   "objectif": "TM-1.2.7"
+  },
+  {
+   "requete": "le fournisseur cloud jugeait une panne improbable, pas de test de fiabilité, et le site est tombé deux jours",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.3.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 9",
+   "objectif": "TM-1.3.1"
+  },
+  {
+   "requete": "tableau composants et modes de défaillance rempli avec architectes et métier : quelle technique d'identification des risques",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.3.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 10",
+   "objectif": "TM-1.3.2"
+  },
+  {
+   "requete": "risques chiffrés en probabilité et impact en euros : quelles activités de test pour les atténuer",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.3.4"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 11",
+   "objectif": "TM-1.3.4"
+  },
+  {
+   "requete": "banque en ligne agile, risques sécurité, utilisabilité et performance différents par fonctionnalité : choisir les activités de test",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.3.4"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 12",
+   "objectif": "TM-1.3.4"
+  },
+  {
+   "requete": "analyse de risques rapide avec l'équipe agile sur des exigences informelles : quelle technique légère",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.3.5"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 13",
+   "objectif": "TM-1.3.5"
+  },
+  {
+   "requete": "facteurs les plus importants pour établir une stratégie de test efficace : niveaux, types, techniques",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.4.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 14",
+   "objectif": "TM-1.4.1"
+  },
+  {
+   "requete": "budget serré, délai fixe, exigences détaillées : choisir l'approche de test à partir de la stratégie de l'organisation",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.4.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 15",
+   "objectif": "TM-1.4.2"
+  },
+  {
+   "requete": "banque en ligne agile, sécurité stricte, données client à anonymiser : approche de test la plus adaptée",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.4.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 16",
+   "objectif": "TM-1.4.2"
+  },
+  {
+   "requete": "« le système doit être sans défaut » : reformuler en objectif de test SMART",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.4.3"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 17",
+   "objectif": "TM-1.4.3"
+  },
+  {
+   "requete": "objectif de test S.M.A.R.T. pour une application mobile de commerce",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.4.3"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 18",
+   "objectif": "TM-1.4.3"
+  },
+  {
+   "requete": "après l'évaluation du processus de test par un consultant, étape suivante du modèle IDEAL",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.5.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 19",
+   "objectif": "TM-1.5.1"
+  },
+  {
+   "requete": "utiliser TMMi pour améliorer les tests d'un projet agile dans une banque",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.5.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 20",
+   "objectif": "TM-1.5.2"
+  },
+  {
+   "requete": "rétrospective après un lancement raté : quels sujets examiner",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.5.4"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 21",
+   "objectif": "TM-1.5.4"
+  },
+  {
+   "requete": "activités d'une rétrospective d'itération agile pour le testeur",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.5.4"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 22",
+   "objectif": "TM-1.5.4"
+  },
+  {
+   "requete": "bonnes pratiques pour choisir un nouvel outil de gestion des tests",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.6.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 23",
+   "objectif": "TM-1.6.1"
+  },
+  {
+   "requete": "reprendre l'outil d'automatisation open source d'une autre ligne de produits : principale préoccupation",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.6.3"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 24",
+   "objectif": "TM-1.6.3"
+  },
+  {
+   "requete": "comparer le retour sur investissement de trois outils d'automatisation des tests",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.6.3"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 25",
+   "objectif": "TM-1.6.3"
+  },
+  {
+   "requete": "remplacer un outil maison par un outil open source : première étape du retrait",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.6.4"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 26",
+   "objectif": "TM-1.6.4"
+  },
+  {
+   "requete": "quelles métriques suivre à la planification, au pilotage et à la clôture des tests",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "2.1.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 27",
+   "objectif": "TM-2.1.1"
+  },
+  {
+   "requete": "expliquer à la direction l'intérêt des métriques de test",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "2.1.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 28",
+   "objectif": "TM-2.1.2"
+  },
+  {
+   "requete": "rapport de test fondé sur les user stories priorisées et les risques produit pour anticiper les retards",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "2.1.3"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 29",
+   "objectif": "TM-2.1.3"
+  },
+  {
+   "requete": "métriques pour des rapports de test qui aident les parties prenantes à décider dans un projet bancaire séquentiel",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "2.1.3"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 30",
+   "objectif": "TM-2.1.3"
+  },
+  {
+   "requete": "facteur qui n'entre pas dans l'estimation initiale de l'effort de test",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "2.2.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 31",
+   "objectif": "TM-2.2.2"
+  },
+  {
+   "requete": "estimer l'effort de test système d'une itération agile multi-sites",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "2.2.3"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 32",
+   "objectif": "TM-2.2.3"
+  },
+  {
+   "requete": "technique d'estimation avec données historiques et exigences stables dans un projet séquentiel",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "2.2.3"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 33",
+   "objectif": "TM-2.2.3"
+  },
+  {
+   "requete": "cas où l'on ne crée pas de rapport de défaut après une défaillance",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "2.3.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 34",
+   "objectif": "TM-2.3.1"
+  },
+  {
+   "requete": "compléter les états du workflow d'un défaut",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "2.3.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 35",
+   "objectif": "TM-2.3.1"
+  },
+  {
+   "requete": "séquence d'états d'un rapport de défaut jusqu'à un état final",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "2.3.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 36",
+   "objectif": "TM-2.3.2"
+  },
+  {
+   "requete": "défaillance trouvée pendant le sprint en équipe agile : pourquoi ne pas ouvrir de rapport de défaut",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "2.3.3"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 37",
+   "objectif": "TM-2.3.3"
+  },
+  {
+   "requete": "gestion des défauts dans un environnement de développement hybride",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "2.3.4"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 38",
+   "objectif": "TM-2.3.4"
+  },
+  {
+   "requete": "champs obligatoires d'un rapport de défaut",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "2.3.5"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 39",
+   "objectif": "TM-2.3.5"
+  },
+  {
+   "requete": "informations manquantes dans les rapports de défaut envoyés à un sous-traitant",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "2.3.5"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 40",
+   "objectif": "TM-2.3.5"
+  },
+  {
+   "requete": "réduire les défauts introduits en exploitant les rapports de défaut existants",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "2.3.6"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 41",
+   "objectif": "TM-2.3.6"
+  },
+  {
+   "requete": "exemple de compétence méthodologique pour une offre d'emploi de testeur",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "3.1.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 42",
+   "objectif": "TM-3.1.1"
+  },
+  {
+   "requete": "compétences minimales pour remplacer l'analyste de test système d'un système de freinage critique",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "3.1.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 43",
+   "objectif": "TM-3.1.2"
+  },
+  {
+   "requete": "compétences à rechercher pour l'équipe de test d'une plateforme de jeux en ligne",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "3.1.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 44",
+   "objectif": "TM-3.1.2"
+  },
+  {
+   "requete": "évaluer les compétences techniques et méthodologiques des membres de l'équipe de test",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "3.1.3"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 45",
+   "objectif": "TM-3.1.3"
+  },
+  {
+   "requete": "formation, coaching, mentorat : développer les compétences de l'équipe de test",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "3.1.4"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 46",
+   "objectif": "TM-3.1.4"
+  },
+  {
+   "requete": "compétences pour diriger une équipe de test selon les étapes de développement du groupe",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "3.1.5"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 47",
+   "objectif": "TM-3.1.5"
+  },
+  {
+   "requete": "classer prévention, évaluation, défaillances internes et externes dans le coût de la qualité",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "3.2.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 48",
+   "objectif": "TM-3.2.1"
+  },
+  {
+   "requete": "calculer le rapport coût-bénéfice du test d'une application de rencontre",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "3.2.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 49",
+   "objectif": "TM-3.2.2"
+  },
+  {
+   "requete": "conclusions sur les coûts de défaillance avec exigences floues et technologie nouvelle",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "3.2.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 50",
+   "objectif": "TM-3.2.2"
+  },
+  {
+   "requete": "pourquoi l'analyste de test refait les mêmes activités à chaque incrément",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "1.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 1",
+   "objectif": "TA-1.1.1"
+  },
+  {
+   "requete": "tâches de l'analyste de test pendant la conception des tests après le choix de l'analyse des valeurs limites",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "1.2.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 2",
+   "objectif": "TA-1.2.2"
+  },
+  {
+   "requete": "écrire un script de test par mots-clés : à quelle activité de test cela correspond",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "1.2.3"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 3",
+   "objectif": "TA-1.2.3"
+  },
+  {
+   "requete": "exigences pour un simulateur de lecteur de carte santé dans l'environnement de test système",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "1.3.3"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 4",
+   "objectif": "TA-1.3.3"
+  },
+  {
+   "requete": "pseudo-oracle pour produire les factures attendues lors du remplacement d'un système de facturation",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "1.3.4"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 5",
+   "objectif": "TA-1.3.4"
+  },
+  {
+   "requete": "limites des données de test anonymisées",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "1.3.5"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 6",
+   "objectif": "TA-1.3.5"
+  },
+  {
+   "requete": "tester une file d'attente avec des mots-clés composites (keyword-driven)",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "1.3.6"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 7",
+   "objectif": "TA-1.3.6"
+  },
+  {
+   "requete": "comment l'analyste de test aide à gérer le testware dans l'outil de gestion des tests",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "1.3.7"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 8",
+   "objectif": "TA-1.3.7"
+  },
+  {
+   "requete": "contribution de l'analyste de test à l'analyse des risques produit",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "2.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 9",
+   "objectif": "TA-2.1.1"
+  },
+  {
+   "requete": "choisir les tests de régression à partir des matrices de traçabilité fonctions, risques et cas de test",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "2.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 10",
+   "objectif": "TA-2.2.1"
+  },
+  {
+   "requete": "après des défaillances en production côté application mobile, quel périmètre pour la régression",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "2.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 11",
+   "objectif": "TA-2.2.1"
+  },
+  {
+   "requete": "tester un domaine à deux variables entières : complexité au moins 10 et au moins 8 variables",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.1.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 12",
+   "objectif": "TA-3.1.1"
+  },
+  {
+   "requete": "valeurs de test pour une vanne ouverte si la pression atteint 9 bars et la température est entre 90 et 96 °C",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.1.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 13",
+   "objectif": "TA-3.1.1"
+  },
+  {
+   "requete": "configurations système d'exploitation, mémoire et port USB-C à combiner pour tester les environnements",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.1.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 14",
+   "objectif": "TA-3.1.2"
+  },
+  {
+   "requete": "combien de cas de test pour couvrir toutes les paires de trois facteurs d'une police d'assurance",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.1.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 15",
+   "objectif": "TA-3.1.2"
+  },
+  {
+   "requete": "test aléatoire guidé : quelle difficulté du test aléatoire il corrige",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.1.3"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 16",
+   "objectif": "TA-3.1.3"
+  },
+  {
+   "requete": "exemple de test CRUD sur la création et la modification d'un mot de passe",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.2.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 17",
+   "objectif": "TA-3.2.1"
+  },
+  {
+   "requete": "couverture des allers-retours (round trip) d'un circuit breaker modélisé par états",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.2.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 18",
+   "objectif": "TA-3.2.2"
+  },
+  {
+   "requete": "nombre de 1-switch pour couvrir le cycle de vie d'un sinistre d'assurance",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.2.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 19",
+   "objectif": "TA-3.2.2"
+  },
+  {
+   "requete": "tester une commande de repas à partir d'un cas d'utilisation et de ses alternatives",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.2.3"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 20",
+   "objectif": "TA-3.2.3"
+  },
+  {
+   "requete": "nombre minimal de cas de test pour couvrir tous les scénarios d'un diagramme d'activité",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.2.3"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 21",
+   "objectif": "TA-3.2.3"
+  },
+  {
+   "requete": "table de décision d'un paiement au distributeur par carte ou en espèces",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.3.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 22",
+   "objectif": "TA-3.3.1"
+  },
+  {
+   "requete": "règles d'une table de décision minimisée et leur somme de contrôle",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.3.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 23",
+   "objectif": "TA-3.3.1"
+  },
+  {
+   "requete": "relation métamorphique entre deux recherches d'hôtels avec prix minimum et maximum",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.3.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 24",
+   "objectif": "TA-3.3.2"
+  },
+  {
+   "requete": "tester un calcul d'itinéraire le plus court sans oracle en comparant deux exécutions",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.3.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 25",
+   "objectif": "TA-3.3.2"
+  },
+  {
+   "requete": "rédiger une charte de test pour une session exploratoire d'une plateforme e-commerce en réalité augmentée",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.4.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 26",
+   "objectif": "TA-3.4.1"
+  },
+  {
+   "requete": "charte de session pour vérifier l'exactitude fonctionnelle et l'utilisabilité d'un système de paiement",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.4.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 27",
+   "objectif": "TA-3.4.1"
+  },
+  {
+   "requete": "liste de contrôle pour tester une application de quiz",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.4.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 28",
+   "objectif": "TA-3.4.2"
+  },
+  {
+   "requete": "mettre à jour une checklist d'interruption de jeu pour une nouvelle version",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.4.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 29",
+   "objectif": "TA-3.4.2"
+  },
+  {
+   "requete": "avantages du test participatif (crowd testing)",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.4.3"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 30",
+   "objectif": "TA-3.4.3"
+  },
+  {
+   "requete": "choisir les techniques de test selon les risques de chaque fonctionnalité d'une application de navigation",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.5.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 31",
+   "objectif": "TA-3.5.1"
+  },
+  {
+   "requete": "système d'IA mal spécifié avec beaucoup de paramètres d'entrée : quelles techniques de test choisir",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.5.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 32",
+   "objectif": "TA-3.5.1"
+  },
+  {
+   "requete": "avantages de l'automatisation de la conception des tests",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.5.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 33",
+   "objectif": "TA-3.5.2"
+  },
+  {
+   "requete": "exemple de test d'exactitude fonctionnelle d'un filtre par catégorie",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "4.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 34",
+   "objectif": "TA-4.1.1"
+  },
+  {
+   "requete": "rôle de l'analyste de test dans des sessions de test d'utilisabilité menées par des consultants UX",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "4.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 35",
+   "objectif": "TA-4.2.1"
+  },
+  {
+   "requete": "test d'adaptabilité d'une application web dans le cloud",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "4.3"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 36",
+   "objectif": "TA-4.3.1"
+  },
+  {
+   "requete": "test d'interopérabilité d'une boutique en ligne avec les passerelles de paiement",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "4.4"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 37",
+   "objectif": "TA-4.4.1"
+  },
+  {
+   "requete": "activité la moins efficace pour la prévention des défauts",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "5.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 38",
+   "objectif": "TA-5.1.1"
+  },
+  {
+   "requete": "détecter des défauts dans une spécification avec une table de décision de remises",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "5.2.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 39",
+   "objectif": "TA-5.2.1"
+  },
+  {
+   "requete": "modéliser le contrôleur de pièces d'un distributeur de boissons pour trouver des défauts dans les exigences",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "5.2.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 40",
+   "objectif": "TA-5.2.1"
+  },
+  {
+   "requete": "revue d'un cas d'utilisation de découverte du site par les nouveaux clients",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "5.2.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 41",
+   "objectif": "TA-5.2.2"
+  },
+  {
+   "requete": "techniques de revue : ad hoc, par checklist, par scénarios, par perspectives",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "5.2.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 42",
+   "objectif": "TA-5.2.2"
+  },
+  {
+   "requete": "analyser les défauts introduits et détectés par phase pour améliorer le confinement par phase",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "5.3.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 43",
+   "objectif": "TA-5.3.1"
+  },
+  {
+   "requete": "comparer les défauts prédits et réels par composant pour améliorer la détection",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "5.3.1"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 44",
+   "objectif": "TA-5.3.1"
+  },
+  {
+   "requete": "comment la classification des défauts aide l'analyse des causes racines",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "5.3.2"
+    }
+   ],
+   "source": "ISTQB CTAL-TA v4.0, examen blanc v4.1, question 45",
+   "objectif": "TA-5.3.2"
+  }
+ ]
+}

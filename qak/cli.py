@@ -635,8 +635,8 @@ def cmd_mcp(a):
 
 def cmd_evaluer(a):
     from . import evaluation
-    r = evaluation.evaluer(a.k, {"reglage": False, "controle": True}.get(a.jeu), semantique=a.semantique,
-                           eloigne=a.jeu == "eloigne")
+    r = evaluation.evaluer(a.k, {"reglage": False, "controle": True}.get(a.jeu), jeu=evaluation.fichier_jeu(a.jeu),
+                           semantique=a.semantique, eloigne=a.jeu == "eloigne")
     for x in r["details"]:
         _ecrire(f"{'OK ' if x['trouve'] else 'KO '} rang {x['rang'] or '-':>2}  {x['requete']}  → attendu {x['attendu']}")
     _ecrire(f"\nRappel@{a.k} : {r['rappel']:.0%} ({r['trouves']}/{r['total']}) · MRR : {r['mrr']:.2f}"
@@ -934,9 +934,10 @@ def analyseur() -> argparse.ArgumentParser:
     x.set_defaults(f=cmd_mcp)
     x = sp.add_parser("evaluer", help="mesure la qualité de la recherche sur eval/requetes.json")
     x.add_argument("-k", type=_entier_positif, default=5)
-    x.add_argument("--jeu", choices=["tout", "reglage", "controle", "eloigne"], default="tout",
+    x.add_argument("--jeu", choices=["tout", "reglage", "controle", "eloigne", "examens"], default="tout",
                    help="« controle » = questions jamais utilisées pour régler le moteur ; « eloigne » = questions "
-                        "formulées loin du vocabulaire ISTQB (évaluation de la recherche sémantique)")
+                        "formulées loin du vocabulaire ISTQB (évaluation de la recherche sémantique) ; « examens » = "
+                        "questions des examens blancs officiels (eval/examens.json, hors seuil de la CI)")
     x.add_argument("--semantique", action="store_true", help="mesurer la recherche hybride (optionnelle)")
     x.add_argument("--min-rappel", type=_proportion, metavar="R",
                    help="code retour 2 si le rappel est sous R (0 à 1) ou si aucune question n'est évaluée")

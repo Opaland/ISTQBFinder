@@ -51,3 +51,43 @@ def test_grille_du_skill_identique_au_code():
     for opt in ("--base", "--lus", "--concordants", "--ancien", "--contradiction", "--web", "--raisonnement",
                 "--non-couvert"):
         assert opt in grille
+
+
+# Jeu de cas tiré de l'étude par personas du 2026-10-28 (#226) : entrées de `confiance`
+# relevées dans les réponses (tableau de #226) → bande attendue.
+# « autorite » : la section qui fait autorité sur la notion (syllabus dédié, titre qui la
+# nomme) a été lue en entier ; l'exemple qui applique directement la définition lue n'est
+# pas un « raisonnement sans source ».
+CAS_DEFINITION = [
+    pytest.param(dict(base=70, lus=1, concordants=1, autorite=True), "élevée",
+                 id="P2b valeurs limites 18-65, CTFL §4.2.2 lue en entier"),
+    pytest.param(dict(base=70, lus=1, concordants=1, autorite=True, raisonnement=True), "moyenne",
+                 id="P2b, avec une partie réellement sans source"),
+    pytest.param(dict(base=84, lus=1, concordants=1, autorite=True), "élevée",
+                 id="P2a erreur / défaut / défaillance, CTFL §1.2.3"),
+    pytest.param(dict(base=70, lus=2, concordants=1, autorite=True, raisonnement=True), "moyenne",
+                 id="P2c table de décision / transitions, CTFL §4.2.3-4.2.4, critère de choix raisonné"),
+    pytest.param(dict(base=97, lus=5, concordants=1, autorite=True, raisonnement=True), "élevée",
+                 id="P5b TAA et couches, CTAL-TAE §3.1.1-3.1.5"),
+]
+# Questions larges ou sans section qui fait autorité : score inchangé, au point près.
+CAS_INCHANGES = [
+    pytest.param(dict(base=79, lus=6, concordants=3), 87, id="P3c rôle du testeur, 3 syllabus"),
+    pytest.param(dict(base=85, lus=5, concordants=2), 81, id="P1a plan de test"),
+    pytest.param(dict(base=82, lus=8, concordants=3, web=True, raisonnement=True), 69, id="P5a pyramide, flaky"),
+    pytest.param(dict(base=75, lus=4, concordants=4, raisonnement=True, non_couvert=True), 60,
+                 id="P6b bugs du vendredi, notion non couverte"),
+    pytest.param(dict(base=70, lus=1, concordants=1, raisonnement=True), 42,
+                 id="P2b tel que calculé, autorité non revendiquée"),
+]
+
+
+@pytest.mark.parametrize("entrees, bande", CAS_DEFINITION)
+@pytest.mark.xfail(strict=True, reason="#226 : la grille actuelle ne connaît pas la section qui fait autorité")
+def test_question_de_definition_sourcee_par_la_section_qui_fait_autorite(entrees, bande):
+    assert confiance.calculer(**entrees)["libelle"] == bande
+
+
+@pytest.mark.parametrize("entrees, score", CAS_INCHANGES)
+def test_questions_larges_inchangees(entrees, score):
+    assert confiance.calculer(**entrees)["score"] == score

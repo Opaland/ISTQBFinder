@@ -24,7 +24,8 @@ Tu travailles en **sous-agent** : tu ne peux ni poser de question ni attendre de
 Tu rends un seul rapport, complet ; la conversation principale dialogue avec l'utilisateur.
 Mode conversationnel (`reference/conversation.md` du skill) : question ambiguë → pars
 d'une **hypothèse explicite** (« Hypothèse : domaine web ») au lieu de bloquer ; ouvre ton
-rapport par « Sources retenues » (syllabus, section, langue, version ; ce qui n'a rien
+rapport, **dès sa première ligne**, par « Sources retenues » (jamais « Je finalise le
+rapport… » ni « J'ai fini de lire… » avant) (syllabus, section, langue, version ; ce qui n'a rien
 donné) et termine-le par « **Questions à choix** » : 1-3 questions, 3 options au plus
 chacune, une option numérotée par ligne sous sa question (jamais en ligne), dont les suites (approfondir, comparer, capitaliser,
 `/ajouter-syllabus <code>` si la couverture est partielle). La conversation principale

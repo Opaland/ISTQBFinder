@@ -101,6 +101,9 @@ RE_CALCUL_CONFIANCE = re.compile(r"\d{1,3}\s*[×x*]\s*0[,.]6\b", re.I)
 RE_NIVEAU_ATTEINT = re.compile(r"niveau\s+atteint\W{0,6}(\d)(?P<suite>[^\n]*)", re.I)
 RE_NIVEAU_RETENU = re.compile(r"(?:je\s+retiens|niveau\s+retenu)\W{0,6}(?:le\s+)?(?:niveau\s+)?(\d)", re.I)
 RE_NIVEAU_RESERVE = re.compile(r"non\s+d[ée]montr|provisoire|probable|en\s+partie|partiel", re.I)
+# Phrase de déroulé en tête de réponse (#232) : « Je finalise le rapport… », « J'ai fini de lire… ».
+RE_DEROULE = re.compile(r"^\W*(?:je\s+(?:finalise|r[ée]dige|termine|rends|n['’]ai\s+plus)"
+                        r"|j['’]ai\s+(?:fini|termin[ée]|maintenant)|voici\s+(?:l['’]avis|le\s+rapport|ma\s+r[ée]ponse))", re.I)
 RE_NON_COUVERT = re.compile(r"pas de syllabus|aucun syllabus|ne couvre pas|non couvert|absente? de la biblioth|"
                             r"n'est pas dans la biblioth|pas dans la biblioth|hors biblioth", re.I)
 
@@ -133,7 +136,9 @@ def controler(reponse: str, criteres: dict) -> dict[str, bool]:
     (« Questions à choix » suivi d'au moins 2 options numérotées), hypotheses,
     non_couvert (absence de syllabus dédié dite franchement), confiance, calcul_confiance
     (le calcul « base N × 0,6 » de `qa.py confiance` est recopié, #227), niveau_coherent
-    (« Niveau atteint : N » porte le niveau retenu, sans réserve ni second chiffre, #228)."""
+    (« Niveau atteint : N » porte le niveau retenu, sans réserve ni second chiffre, #228),
+    debut_direct (la première ligne n'est pas une phrase de déroulé, #232) et en_tete
+    (Sylvie : la première ligne est l'en-tête « Avis indicatif… », #232)."""
     out = {}
     methode = _apres(reponse, r"m[ée]thode")
     # La méthode s'arrête au titre de l'exemple (« ## Exemple… », « **Exemple… »), pas à un
@@ -173,6 +178,11 @@ def controler(reponse: str, criteres: dict) -> dict[str, bool]:
         out["confiance"] = bool(RE_CONFIANCE.search(reponse))
     if criteres.get("niveau_coherent"):
         out["niveau_coherent"] = niveau_coherent(reponse)
+    premiere = next((l for l in reponse.splitlines() if l.strip()), "")
+    if criteres.get("debut_direct"):
+        out["debut_direct"] = bool(premiere) and not RE_DEROULE.match(premiere)
+    if criteres.get("en_tete"):
+        out["en_tete"] = "avis indicatif" in premiere.lower()
     if criteres.get("calcul_confiance"):
         out["calcul_confiance"] = bool(RE_CALCUL_CONFIANCE.search(reponse))
     return out

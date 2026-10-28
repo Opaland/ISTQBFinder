@@ -8,27 +8,31 @@
 d'une organisation. Ce n'est **pas** une évaluation TMMi : une évaluation TMMi exige un
 évaluateur accrédité et des preuves de terrain.
 
-## Fondement (passages lus avec la CLI)
+## Fondement (passages lus par le mainteneur avec la CLI)
+
+Ces renvois ne sont **pas des citations** : ils disent quelle section lire, sans crochets
+ni page (#246). Qui veut s'appuyer sur l'un d'eux l'affiche d'abord (`python qa.py
+section CTEL-ITP-2011-en 3.3.2`) et recopie la ligne `Citer :` de l'en-tête affiché ;
+sinon il écrit « grille du dépôt », sans page.
 
 - Le TMMi a une architecture **étagée** : l'*organisation* passe par des niveaux de
-  maturité, chacun associé à un ensemble de domaines de processus
-  [CTEL-ITP 2011 EN, §3.1.2, p. 23 ; §3.3.2, p. 26]. Noter **une démarche isolée**
-  relève plutôt d'une représentation **continue**, qui attribue un niveau de capacité à
-  un domaine (ex. le domaine clé « Test Strategy » de TPI NEXT)
-  [CTEL-ITP 2011 EN, §3.1.2, p. 23]. D'où une échelle *inspirée* du TMMi, qui n'en
-  reprend ni la méthode ni la notation.
+  maturité, chacun associé à un ensemble de domaines de processus (à lire : CTEL-ITP
+  2011 EN §3.1.2 et §3.3.2). Noter **une démarche isolée** relève plutôt d'une
+  représentation **continue**, qui attribue un niveau de capacité à un domaine (ex. le
+  domaine clé « Test Strategy » de TPI NEXT) (à lire : CTEL-ITP 2011 EN §3.1.2). D'où
+  une échelle *inspirée* du TMMi, qui n'en reprend ni la méthode ni la notation.
 - L'amélioration fondée sur un modèle peut s'appliquer au niveau d'un projet, en se
   concentrant sur les domaines liés au projet (planification, conception) ou en adaptant
   au projet les pratiques de niveau organisation (politique de test, organisation)
-  [CTAL-TM v3.0 EN, §1.5.2, p. 39].
+  (à lire : CTAL-TM v3.0 EN §1.5.2).
 - Libellés des cinq niveaux TMMi : EN « Initial, Managed, Defined, Management and
-  measurement, Optimization » [CTEL-ITP 2011 EN, §3.3.2, p. 26] ; FR (traduction CFTL)
-  « Initial, Discipliné, Ajusté, Géré quantitativement, En optimisation »
-  [CTEL-ITP 2011 FR, §3.3.2, pp. 28-29]. (La même traduction appelle aussi le niveau 2
-  « Géré » à la p. 29.)
+  measurement, Optimization » (à lire : CTEL-ITP 2011 EN §3.3.2) ; FR (traduction CFTL)
+  « Initial, Discipliné, Ajusté, Géré quantitativement, En optimisation » (à lire :
+  CTEL-ITP 2011 FR §3.3.2). (La même traduction appelle aussi le niveau 2 « Géré » dans
+  cette section.)
 - Domaines de processus du **niveau 2** : politique et stratégie de test, planification
   de test, supervision et contrôle du test, conception et exécution des tests,
-  environnement de test [CTEL-ITP 2011 EN, §3.3.2, p. 26 ; FR p. 29]. La **politique et
+  environnement de test (à lire : CTEL-ITP 2011 EN et FR §3.3.2). La **politique et
   la stratégie de test relèvent donc du niveau 2**, pas du niveau 3.
 
 Les critères des niveaux 3 à 5 ci-dessous sont une **adaptation du dépôt** (les

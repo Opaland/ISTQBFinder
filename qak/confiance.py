@@ -20,10 +20,15 @@ MALUS = {
     "raisonnement": (10, "une partie repose sur un raisonnement sans source"),
 }
 PLAFOND_NON_COUVERT = 60  # une notion de la question n'est couverte ni par un passage lu ni par le Web
+# #226 : la section qui fait autorité sur LA notion de la question (syllabus dédié, titre
+# qui la nomme), lue en entier, vaut une lecture complète et une concordance suffisante :
+# une question de cours n'a pas besoin de trois syllabus. Les questions larges ne sont pas
+# concernées (rien ne change sans --autorite 1).
 
 
 def calculer(base: int, lus: int, concordants: int, ancien: bool = False, contradiction: bool = False,
-             web: bool = False, raisonnement: bool = False, non_couvert: bool = False) -> dict:
+             web: bool = False, raisonnement: bool = False, non_couvert: bool = False,
+             autorite: bool = False) -> dict:
     """Renvoie {score, libelle, calcul:[lignes]}. Lève ValueError sur une entrée incohérente."""
     if not 0 <= base <= 100:
         raise ValueError(f"--base : couverture lexicale entre 0 et 100 attendue (reçu : {base}).")
@@ -32,13 +37,18 @@ def calculer(base: int, lus: int, concordants: int, ancien: bool = False, contra
     if concordants > lus:
         raise ValueError(f"--concordants ({concordants}) ne peut dépasser --lus ({lus}) : un syllabus ne compte "
                          "comme concordant que si un de ses passages a été lu.")
+    if autorite and not concordants:
+        raise ValueError("--autorite 1 exige d'avoir lu la section qui fait autorité (--lus et --concordants ≥ 1).")
     calcul = []
     score = round(PART_BASE * base)
     calcul.append((f"base : couverture lexicale {base} × {PART_BASE}", score))
     b = BONUS_LUS.get(lus, BONUS_LUS_MAX)
-    calcul.append((f"passages lus (lire/section/page) : {lus}", b))
     c = BONUS_CONCORDANTS.get(concordants, BONUS_CONCORDANTS_MAX)
-    calcul.append((f"syllabus courants concordants, passages lus : {concordants}", c))
+    if autorite:
+        b, c = BONUS_LUS_MAX, BONUS_CONCORDANTS_MAX
+    autorite_txt = " ; section de référence lue" if autorite else ""
+    calcul.append((f"passages lus (lire/section/page) : {lus}{autorite_txt}", b))
+    calcul.append((f"syllabus courants concordants, passages lus : {concordants}{autorite_txt}", c))
     score += b + c
     actifs = {"ancien": ancien, "contradiction": contradiction, "web": web, "raisonnement": raisonnement}
     for cle, (malus, texte) in MALUS.items():

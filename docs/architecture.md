@@ -307,23 +307,33 @@ paire prend le pire verdict, le score de fidélité est la part d'affirmations s
 Un appel par paire (découpage et vérification ensemble, sortie JSON imposée par
 `--json-schema`), sans outil ni réglage du dépôt : `python scripts/etude_juge.py`
 (juge `claude-opus-5-5`, détail dans `eval/nli/juge-2026-10-28*.json`). Même jeu de 48
-paires, deux passes pour la variance.
+paires, deux passes pour la variance. Colonne « passage corrigé » : remesure après #243
+(`--sortie juge-2026-10-28-fenetre.json`, 1,12 $ les deux passes).
 
-| Mesure | NLI mDeBERTa (#108) | Juge, même passage que le NLI | Juge, section entière (`--section-entiere`) |
-|---|---|---|---|
-| Exactitude 3 classes | 69 % | **92 %** · 92 % | **98 %** · 100 % |
-| Fausses alertes sur une citation juste | 4/12 | 2/12 · 2/12 | 1/12 · 0/12 |
-| Citations fausses jugées soutenues (faux négatifs) | 5/36 | 0/36 · 0/36 | 0/36 · 0/36 |
-| dont contradictions jugées soutenues | 4/12 | 0/12 · 0/12 | 0/12 · 0/12 |
-| Verdicts qui changent d'une passe à l'autre | — | 0/48 | 1/48 |
-| Durée par paire | 4,7 s CPU (+ 22 s de chargement) | 4,3-4,8 s | 7,2 s |
-| Coût | 2 Go de dépendances | 0,005 $ par paire (0,017 $ à froid, écriture du cache) | 0,005 $ par paire |
+| Mesure | NLI mDeBERTa (#108) | Juge, même passage que le NLI (avant #243) | Juge, passage corrigé (#243) | Juge, section entière (`--section-entiere`) |
+|---|---|---|---|---|
+| Exactitude 3 classes | 69 % | **92 %** · 92 % | **100 %** · 100 % | **98 %** · 100 % |
+| Fausses alertes sur une citation juste | 4/12 | 2/12 · 2/12 | 0/12 · 0/12 | 1/12 · 0/12 |
+| Citations fausses jugées soutenues (faux négatifs) | 5/36 | 0/36 · 0/36 | 0/36 · 0/36 | 0/36 · 0/36 |
+| dont contradictions jugées soutenues | 4/12 | 0/12 · 0/12 | 0/12 · 0/12 | 0/12 · 0/12 |
+| Verdicts qui changent d'une passe à l'autre | — | 0/48 | 0/48 | 1/48 |
+| Durée par paire | 4,7 s CPU (+ 22 s de chargement) | 4,3-4,8 s | 4,7 s | 7,2 s |
+| Coût | 2 Go de dépendances | 0,005 $ par paire (0,017 $ à froid, écriture du cache) | 0,005 $ par paire (0,019 $ à froid) | 0,005 $ par paire |
 
 Les quatre erreurs du juge sur le passage du NLI ne sont pas les siennes : pour deux des
 douze passages (CTFL §4.1 p. 39, CT-AI §3.4.3 p. 37), le morceau retenu par
 `etude_nli.passage()` (le plus de mots communs avec l'affirmation française) ne contient
 pas la phrase utile, qui est dans le morceau suivant de la même section ; le juge répond
-alors « non soutenue » et le justifie. Le NLI était évalué sur ces mêmes passages. Avec la
+alors « non soutenue » et le justifie. Le NLI était évalué sur ces mêmes passages.
+**Corrigé (#243)** : `passage()` prend toute la section de la page citée si elle tient
+dans la fenêtre du NLI (2 000 caractères ≈ 512 jetons), sinon la suite contiguë de morceaux
+qui partage le plus de termes avec l'affirmation, termes FR/EN du thésaurus compris. Trois
+passages changent (les deux cités, et CTAL-TAE §8.1.2 p. 50, élargi au morceau précédent),
+l'ancien morceau y reste inclus ; le juge atteint alors 100 % aux deux passes. Le NLI n'est
+**pas remesuré** sur le passage corrigé (ses 2 Go de dépendances, torch et transformers,
+ne sont pas installés) : ses chiffres de #108 restent ceux de l'ancien passage, faussés
+sur ces paires ; `python scripts/etude_nli.py` les remesure une fois les dépendances
+installées. Avec la
 section entière, la seule erreur restante (une passe sur deux) est défendable : « les tests
 boîte blanche ne détectent pas les omissions » contre « *may not detect* ».
 

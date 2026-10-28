@@ -1,0 +1,61 @@
+{
+  "manifest_version": "0.3",
+  "name": "istqbfinder",
+  "display_name": "ISTQBFinder",
+  "version": "0.1.0",
+  "description": "Syllabus ISTQB locaux (FR/EN) cités page et section, et base d'idées QA, en lecture seule, depuis un clone installé d'ISTQBFinder.",
+  "long_description": "Extension Claude Desktop du serveur MCP en lecture seule d'ISTQBFinder (`python qa.py mcp`). Elle ne contient ni code ni syllabus : elle lance le Python du venv d'un clone déjà installé avec `installer.sh` ou `installer.ps1`, SDK MCP compris (`requirements-mcp.txt`). Les syllabus restent dans le clone (autorisation propre au dépôt, voir NOTICE.md).",
+  "author": {
+    "name": "Opaland",
+    "url": "https://github.com/Opaland"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Opaland/ISTQBFinder"
+  },
+  "homepage": "https://github.com/Opaland/ISTQBFinder",
+  "documentation": "https://github.com/Opaland/ISTQBFinder/blob/main/docs/installation.md",
+  "support": "https://github.com/Opaland/ISTQBFinder/issues",
+  "license": "MIT",
+  "keywords": ["istqb", "qa", "test", "syllabus", "tmmi"],
+  "server": {
+    "type": "python",
+    "entry_point": "qa.py",
+    "mcp_config": {
+      "command": "${user_config.clone}/.venv/bin/python",
+      "args": ["${user_config.clone}/qa.py", "mcp"],
+      "env": {},
+      "platform_overrides": {
+        "win32": {
+          "command": "${user_config.clone}\\.venv\\Scripts\\python.exe",
+          "args": ["${user_config.clone}\\qa.py", "mcp"]
+        }
+      }
+    }
+  },
+  "user_config": {
+    "clone": {
+      "type": "directory",
+      "title": "Dossier du clone ISTQBFinder",
+      "description": "Racine d'un clone installé avec installer.sh (Windows : installer.ps1), qui contient qa.py et le venv .venv où requirements-mcp.txt est installé.",
+      "required": true
+    }
+  },
+  "tools": [
+    {"name": "chercher", "description": "Recherche plein texte dans les syllabus (FR/EN) : passages, document, section, page."},
+    {"name": "lire", "description": "Lit un passage trouvé par chercher, avec la ligne « Citer : » à recopier."},
+    {"name": "section", "description": "Lit une section entière d'un document, sous-sections incluses."},
+    {"name": "page", "description": "Lit une page ou une plage de pages d'un syllabus."},
+    {"name": "plan", "description": "Plan d'un document : sections numérotées et pages."},
+    {"name": "idee_chercher", "description": "Cherche dans la base d'idées QA capitalisées."},
+    {"name": "idee_voir", "description": "Fiche complète d'une idée capitalisée (QA-xxxx)."},
+    {"name": "confiance", "description": "Score de confiance d'une réponse, selon la grille du skill."},
+    {"name": "passages_lus", "description": "Références lues dans la session, ou LU / NON LU pour une citation."}
+  ],
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "python": ">=3.10"
+    }
+  }
+}

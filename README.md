@@ -7,7 +7,8 @@ citées), dans une base d'idées QA capitalisées au fil du temps, et sur le Web
 quand c'est justifié. Il ne « s'entraîne » pas : il enrichit une mémoire documentaire
 persistante, vérifiable et versionnée avec Git.
 
-Pas de serveur réseau, pas d'interface graphique, pas de clé d'API. Python ≥ 3.10 + `pypdf`
+Pas de serveur réseau, pas d'interface graphique, pas de clé d'API (mais un compte de
+l'assistant : voir « Avant de commencer »). Python ≥ 3.10 + `pypdf`
 (serveur MCP local en lecture seule optionnel : `python qa.py mcp`).
 
 ## Où l'utiliser
@@ -33,6 +34,25 @@ istqb.org depuis la machine. Un paquet dédié à claude.ai (consultation seule)
 évolution possible, non décidée.
 
 ## Installation
+
+> **Avant de commencer**
+> - **Un compte est nécessaire** pour l'assistant, même sans clé d'API : Claude Code
+>   demande un abonnement Claude **Pro, Max, Team ou Enterprise**, un compte **Claude
+>   Console** (crédits prépayés) ou un accès par un fournisseur cloud ; GitHub Copilot, un
+>   abonnement Copilot ; Gemini CLI, un compte Google ou une clé `GEMINI_API_KEY`.
+> - **Premier lancement** : `claude` en interactif à la racine du clone. Il demande de se
+>   connecter au compte (dans le navigateur) et de **faire confiance au dossier** : accepter. Sans cette approbation, `claude -p` (non interactif) ignore les permissions de
+>   `.claude/settings.json` et refuse les `python qa.py …`.
+>
+> **Première question** (après l'installation ci-dessous)
+> ```bash
+> source .venv/bin/activate      # Windows : .venv\Scripts\activate
+> claude
+> ```
+> puis, en français, une question de votre métier, par exemple :
+> « Je suis développeur : c'est quoi un test de non-régression, et quand le lancer ? » ·
+> « Je suis Product Owner : comment savoir si une fonctionnalité est assez testée ? »
+> La réponse cite les syllabus lus (section et page) et finit par un score de confiance.
 
 ```bash
 git clone https://github.com/Opaland/ISTQBFinder && cd ISTQBFinder

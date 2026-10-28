@@ -59,7 +59,10 @@ Règles d'attribution :
 - un niveau n'est atteint que si **tous** ses critères le sont (et ceux des niveaux
   inférieurs) ; un critère non mentionné est « non démontré », pas « acquis » ;
 - donner le niveau atteint, le niveau visé s'il diffère, puis ce qui manque pour le
-  niveau suivant.
+  niveau suivant ;
+- le titre « Niveau atteint : N » porte **toujours le niveau retenu** : un niveau dont un
+  critère n'est pas démontré n'y figure jamais, même qualifié de « provisoire » ou de
+  « non démontré » ; il va dans « niveau visé ».
 
 ## Verdicts d'alignement (par pratique)
 

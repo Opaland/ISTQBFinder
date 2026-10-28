@@ -80,7 +80,12 @@ ancienne, une seule langue ou aucun syllabus local ne couvre la démarche, propo
 - Tableau : `Pratique | Intention / en place | Verdict | Ce que dit l'ISTQB | Source [doc vX, §, p.]`.
 - « Ce qui manque » : puces, chacune avec sa source.
 - « Niveau atteint : N — Nom » (+ « niveau visé : M » si des pratiques ne sont
-  qu'une intention) + justification + « pour passer au niveau N+1 ».
+  qu'une intention ou si des critères ne sont pas démontrés) + justification + « pour
+  passer au niveau N+1 ». **N est le niveau retenu**, celui dont tous les critères sont
+  démontrés : jamais un niveau « provisoire », « probable », « non démontré » ou « en
+  partie » dans ce titre (le lecteur ne retient que lui). Un niveau probable mais non
+  démontré va dans « niveau visé : M » ou dans une phrase à part, jamais après
+  « Niveau atteint ».
 - « Confiance : NN/100 (libellé) » suivi du calcul affiché par
   `qa.py confiance`, sur une ligne « Calcul : » (ex. `Calcul : base 70 × 0,6 = 42 ; 5 passages lus +20 ; 3 syllabus
   concordants +20 ; raisonnement −10 → 72`), puis 1-2 raisons ; « Limites » (ex. : l'ISO/IEC/IEEE 29119 n'est pas

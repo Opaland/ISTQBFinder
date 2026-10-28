@@ -87,6 +87,10 @@ RE_CONFIANCE = re.compile(r"[Cc]onfiance\s*:?\s*\**\s*(\d{1,3})\s*/\s*100")
 RE_ETAPE = re.compile(r"^\s*(?:[-*]\s*)?(?:\*\*)?(?:[ÉE]tape\s*)?\d+\s*[.)—:-]", re.M)
 # Calcul de la confiance recopié de `qa.py confiance` (#227) : « base 70 × 0,6 = 42 ».
 RE_CALCUL_CONFIANCE = re.compile(r"\d{1,3}\s*[×x*]\s*0[,.]6\b", re.I)
+# Titre « Niveau atteint : N » de Sylvie (#228) : le niveau retenu, sans réserve.
+RE_NIVEAU_ATTEINT = re.compile(r"niveau\s+atteint\W{0,6}(\d)(?P<suite>[^\n]*)", re.I)
+RE_NIVEAU_RETENU = re.compile(r"(?:je\s+retiens|niveau\s+retenu)\W{0,6}(?:le\s+)?(?:niveau\s+)?(\d)", re.I)
+RE_NIVEAU_RESERVE = re.compile(r"non\s+d[ée]montr|provisoire|probable|en\s+partie|partiel", re.I)
 RE_NON_COUVERT = re.compile(r"pas de syllabus|aucun syllabus|ne couvre pas|non couvert|absente? de la biblioth|"
                             r"n'est pas dans la biblioth|pas dans la biblioth|hors biblioth", re.I)
 
@@ -97,6 +101,20 @@ def _apres(texte: str, motif: str) -> str:
     return texte[m.end():] if m else ""
 
 
+def niveau_coherent(reponse: str) -> bool:
+    """#228 : chaque « Niveau atteint : N » donne le même N, sans réserve (« provisoire »,
+    « non démontré »…) avant « niveau visé », et « je retiens le niveau M » dit M = N."""
+    atteints = list(RE_NIVEAU_ATTEINT.finditer(reponse))
+    if not atteints:
+        return False
+    niveaux = {m.group(1) for m in atteints} | {m.group(1) for m in RE_NIVEAU_RETENU.finditer(reponse)}
+    # Le titre seul : jusqu'à « niveau visé » ou la fin de la première phrase.
+    reserve = any(RE_NIVEAU_RESERVE.search(re.split(r"niveau\s+vis[ée]|\.(?:\*\*)?\s", m.group("suite"),
+                                                    maxsplit=1, flags=re.I)[0][:100])
+                  for m in atteints)
+    return len(niveaux) == 1 and not reserve
+
+
 def controler(reponse: str, criteres: dict) -> dict[str, bool]:
     """Critères vérifiables d'un essai (fonction pure, testée sans réseau). Clés :
     methode (≥ 4 étapes numérotées de premier niveau après « Méthode »), etapes_sourcees
@@ -104,7 +122,8 @@ def controler(reponse: str, criteres: dict) -> dict[str, bool]:
     domaines et mentions (listes de motifs, tous présents), cadrage, questions_choix
     (« Questions à choix » suivi d'au moins 2 options numérotées), hypotheses,
     non_couvert (absence de syllabus dédié dite franchement), confiance, calcul_confiance
-    (le calcul « base N × 0,6 » de `qa.py confiance` est recopié, #227)."""
+    (le calcul « base N × 0,6 » de `qa.py confiance` est recopié, #227), niveau_coherent
+    (« Niveau atteint : N » porte le niveau retenu, sans réserve ni second chiffre, #228)."""
     out = {}
     methode = _apres(reponse, r"m[ée]thode")
     # La méthode s'arrête au titre de l'exemple (« ## Exemple… », « **Exemple… »), pas à un
@@ -142,6 +161,8 @@ def controler(reponse: str, criteres: dict) -> dict[str, bool]:
         out["non_couvert"] = bool(RE_NON_COUVERT.search(reponse))
     if criteres.get("confiance"):
         out["confiance"] = bool(RE_CONFIANCE.search(reponse))
+    if criteres.get("niveau_coherent"):
+        out["niveau_coherent"] = niveau_coherent(reponse)
     if criteres.get("calcul_confiance"):
         out["calcul_confiance"] = bool(RE_CALCUL_CONFIANCE.search(reponse))
     return out

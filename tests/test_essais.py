@@ -364,7 +364,7 @@ def test_sylvie_calcule_sa_confiance():
     `qa.py confiance`. La consigne l'impose, et le critère `calcul_confiance` le contrôle."""
     from test_agents import AGENTS, corps
     texte = corps(AGENTS / "sylvie.md")
-    assert "calcule-la toujours" in texte and "python qa.py confiance --base" in texte
+    assert "calcule-la toujours" in texte and "python qa.py confiance --autorite 0 --base" in texte
     assert "Calcul :" in texte
     sans_calcul = ("## Confiance : 68/100\n\n- J'ai lu directement les passages sur les revues.\n"
                    "- Ta description est brève.")

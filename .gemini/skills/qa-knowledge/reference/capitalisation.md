@@ -11,10 +11,20 @@ intérêt durable, résultat de recherche brut.
 
 ## Procédure
 
-1. Gabarit : `python qa.py idee modele`.
+1. Gabarit : lance `python qa.py idee modele` **avant** d'écrire le moindre JSON, même
+   une simple proposition « À capitaliser ? », et pars de sa sortie : mêmes clés, mêmes
+   types. Ne devine jamais un champ de mémoire. Sans `idee modele` lancé dans la session,
+   présente l'idée **en clair** (titre, principe, source), sans JSON : le JSON se rédige
+   après l'accord de l'utilisateur.
 2. Rédiger le JSON (champs obligatoires : `titre`, `resume`, `probleme`, `principe`,
    `theme_principal`). Champs utiles : `themes_secondaires`, `domaine_application`,
    `prerequis`, `benefices`, `limites`, `maturite`, `provenance`, `references`.
+   Erreurs déjà rencontrées, toutes refusées par `idee ajouter` (une à la fois) :
+   - `theme` → `theme_principal` (et `themes_secondaires` pour les autres) ;
+   - dans une référence, `document` → `doc_id` exact (ex. `CTAL-TM-3.0-fr`, en-tête de
+     `lire`), `page` → `pages`, **en texte** (`"29"`, `"29-30"`, jamais `29`) ;
+   - `extrait` : au moins 6 mots significatifs recopiés mot pour mot (une phrase entière
+     du passage lu, pas un groupe nominal).
 3. Thèmes : `theme proposer "<titre + résumé>"`, puis vérifier dans `themes`.
 4. Doublons : `idee doublons` en **une ligne**, champs en options (voir plus bas), avec
    la référence ISTQB prévue (`--doc`, `--pages`, `--section`, `--extrait`) : `idee ajouter`
@@ -39,13 +49,19 @@ ligne est couverte par l'autorisation `Bash(python qa.py idee doublons:*)`. `ide
 ajouter` garde le JSON sur l'entrée standard : il demande de toute façon l'accord de
 l'utilisateur.
 
+Exemple complet (les exemples JSON des consignes sont passés à `idee ajouter` par
+`tests/test_consignes_capitalisation.py`, avec le syllabus cité) :
+
 ```bash
-python qa.py idee doublons --titre "..." --resume "..." --probleme "..." --principe "..." --theme rbt --doc CTAL-TM-3.0-fr --pages 29-30 --section 1.3.2 --extrait "phrase recopiée mot pour mot du passage lu"
+python qa.py idee doublons --titre "Identifier les risques qualité avec toutes les parties prenantes" --resume "Recueillir les risques auprès d'un échantillon large de parties prenantes." --principe "Entretiens, ateliers, rétrospectives, checklists ; liste des participants convenue avec le chef de projet." --theme rbt --doc CTAL-TM-3.0-fr --pages 29-30 --section 1.3.2 --extrait "La tâche du Test Manager consiste à recueillir les risques auprès des parties prenantes"
 python qa.py idee ajouter <<'JSON'
-{ "titre": "...", "resume": "...", "probleme": "...", "principe": "...",
+{ "titre": "Identifier les risques qualité avec toutes les parties prenantes",
+  "resume": "Recueillir les risques auprès d'un échantillon large de parties prenantes.",
+  "probleme": "Des risques produit importants passent inaperçus quand une partie prenante clé est absente.",
+  "principe": "Entretiens, ateliers, rétrospectives, checklists ; liste des participants convenue avec le chef de projet.",
   "theme_principal": "rbt", "maturite": "documentee",
-  "references": [{"type": "istqb", "doc_id": "CTAL-TM-3.0-fr", "pages": "29-30",
-                  "section": "1.3.2", "extrait": "phrase recopiée mot pour mot du passage lu"}] }
+  "references": [{"type": "istqb", "doc_id": "CTAL-TM-3.0-fr", "pages": "29-30", "section": "1.3.2",
+                  "extrait": "La tâche du Test Manager consiste à recueillir les risques auprès des parties prenantes"}] }
 JSON
 ```
 

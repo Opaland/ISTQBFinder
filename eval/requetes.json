@@ -1127,6 +1127,171 @@
     }
    ],
    "eloigne": true
+  },
+  {
+   "requete": "nos tests de régression ne trouvent plus aucun défaut depuis plusieurs itérations, faut-il s'inquiéter ?",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "1.3"
+    }
+   ],
+   "eloigne": true,
+   "source": "jeu examens (#150) : ISTQB CTFL v4.0, examen blanc A v1.7, question 3, FL-1.3.1"
+  },
+  {
+   "requete": "convaincre mon manager d'organiser des rétrospectives en fin de release",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "2.1.6"
+    }
+   ],
+   "eloigne": true,
+   "source": "jeu examens (#150) : ISTQB CTFL v4.0, examen blanc A v1.7, question 12, FL-2.1.6"
+  },
+  {
+   "requete": "exigences incomplètes, peu de temps et bonne connaissance du domaine : quelle technique de test choisir",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "4.4.2"
+    }
+   ],
+   "eloigne": true,
+   "source": "jeu examens (#150) : ISTQB CTFL v4.0, examen blanc A v1.7, question 27, FL-4.4.2"
+  },
+  {
+   "requete": "temps de réponse trop long identifié comme risque : atténuation, acceptation ou transfert ?",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.2.4"
+    }
+   ],
+   "eloigne": true,
+   "source": "jeu examens (#150) : ISTQB CTFL v4.0, examen blanc A v1.7, question 35, FL-5.2.4"
+  },
+  {
+   "requete": "graphique burndown pour montrer le travail restant d'une itération",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.3.3"
+    }
+   ],
+   "eloigne": true,
+   "source": "jeu examens (#150) : ISTQB CTFL v4.0, examen blanc A v1.7, question 36, FL-5.3.3"
+  },
+  {
+   "requete": "créer une nouvelle version d'un script de test automatisé dans le référentiel",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.4"
+    }
+   ],
+   "eloigne": true,
+   "source": "jeu examens (#150) : ISTQB CTFL v4.0, examen blanc A v1.7, question 37, FL-5.4.1"
+  },
+  {
+   "requete": "itérations de trois semaines mais tests qui attendent la fin des exigences : quel cycle de vie ?",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.2.4"
+    }
+   ],
+   "eloigne": true,
+   "source": "jeu examens (#150) : ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 6, TM-1.2.4"
+  },
+  {
+   "requete": "reprendre la gestion des tests d'une boutique en ligne livrée chaque jour",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.2.7"
+    }
+   ],
+   "eloigne": true,
+   "source": "jeu examens (#150) : ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 7, TM-1.2.7"
+  },
+  {
+   "requete": "le fournisseur cloud jugeait une panne improbable, pas de test de fiabilité, et le site est tombé deux jours",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.3.1"
+    }
+   ],
+   "eloigne": true,
+   "source": "jeu examens (#150) : ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 9, TM-1.3.1"
+  },
+  {
+   "requete": "« le système doit être sans défaut » : reformuler en objectif de test SMART",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.4.3"
+    }
+   ],
+   "eloigne": true,
+   "source": "jeu examens (#150) : ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 17, TM-1.4.3"
+  },
+  {
+   "requete": "remplacer un outil maison par un outil open source : première étape du retrait",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "1.6.4"
+    }
+   ],
+   "eloigne": true,
+   "source": "jeu examens (#150) : ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 26, TM-1.6.4"
+  },
+  {
+   "requete": "compétences à rechercher pour l'équipe de test d'une plateforme de jeux en ligne",
+   "attendus": [
+    {
+     "code": "CTAL-TM",
+     "section": "3.1.2"
+    }
+   ],
+   "eloigne": true,
+   "source": "jeu examens (#150) : ISTQB CTAL-TM v3.0, examen blanc A v1.3.3, question 44, TM-3.1.2"
+  },
+  {
+   "requete": "valeurs de test pour une vanne ouverte si la pression atteint 9 bars et la température est entre 90 et 96 °C",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.1.1"
+    }
+   ],
+   "eloigne": true,
+   "source": "jeu examens (#150) : ISTQB CTAL-TA v4.0, examen blanc v4.1, question 13, TA-3.1.1"
+  },
+  {
+   "requete": "configurations système d'exploitation, mémoire et port USB-C à combiner pour tester les environnements",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.1.2"
+    }
+   ],
+   "eloigne": true,
+   "source": "jeu examens (#150) : ISTQB CTAL-TA v4.0, examen blanc v4.1, question 14, TA-3.1.2"
+  },
+  {
+   "requete": "tester un calcul d'itinéraire le plus court sans oracle en comparant deux exécutions",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "3.3.2"
+    }
+   ],
+   "eloigne": true,
+   "source": "jeu examens (#150) : ISTQB CTAL-TA v4.0, examen blanc v4.1, question 25, TA-3.3.2"
   }
  ]
 }

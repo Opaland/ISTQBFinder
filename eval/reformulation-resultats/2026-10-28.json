@@ -1,0 +1,3562 @@
+{
+ "consigne": "**Reformuler avant de chercher** : une question en mots de métier ou en mise en situation (« la mise en production a planté un vendredi », « personne ne relit nos specs ») ne contient souvent aucun terme des syllabus. Écris d'abord 2 ou 3 requêtes courtes dans le vocabulaire ISTQB, celui des titres de sections — au moins une en anglais (CTFL v4.0 n'existe qu'en anglais) et une en français — et lance-les en plus de la question (« les utilisateurs se perdent dans les menus » → `chercher \"usability testing\"`, `chercher \"test d'utilisabilité\"`).",
+ "modele": "défaut de la CLI",
+ "passages": [
+  {
+   "eloigne": [
+    [
+     "test automation maintainability",
+     "maintenabilité des scripts de test automatisés",
+     "test automation architecture"
+    ],
+    [
+     "shift-left",
+     "approche shift-left",
+     "early testing"
+    ],
+    [
+     "exit criteria",
+     "critères de sortie",
+     "definition of done"
+    ],
+    [
+     "defect report",
+     "rapport de défaut",
+     "communicating test results"
+    ],
+    [
+     "test estimation techniques",
+     "estimation de l'effort de test",
+     "test effort"
+    ],
+    [
+     "pesticide paradox",
+     "paradoxe des pesticides",
+     "regression testing"
+    ],
+    [
+     "retrospectives and process improvement",
+     "rétrospectives",
+     "test completion activities"
+    ],
+    [
+     "experience-based test techniques",
+     "techniques de test basées sur l'expérience",
+     "exploratory testing"
+    ],
+    [
+     "product risk control",
+     "atténuation des risques",
+     "risk mitigation"
+    ],
+    [
+     "burndown chart",
+     "métriques utilisées en test",
+     "test monitoring and control"
+    ],
+    [
+     "configuration management",
+     "gestion de configuration",
+     "version control testware"
+    ],
+    [
+     "software development lifecycle models",
+     "cycle de vie du développement logiciel",
+     "iterative development model"
+    ],
+    [
+     "test strategy",
+     "stratégie de test",
+     "continuous integration DevOps testing"
+    ],
+    [
+     "risk assessment likelihood impact",
+     "analyse des risques produit",
+     "reliability testing"
+    ],
+    [
+     "test objectives",
+     "objectifs de test",
+     "SMART objectives"
+    ],
+    [
+     "tool retirement",
+     "retrait d'un outil",
+     "tool selection"
+    ],
+    [
+     "tester skills",
+     "compétences du testeur",
+     "test team composition"
+    ],
+    [
+     "boundary value analysis",
+     "analyse des valeurs limites",
+     "decision table testing"
+    ],
+    [
+     "pairwise testing",
+     "test combinatoire",
+     "classification tree"
+    ],
+    [
+     "metamorphic testing",
+     "test métamorphique",
+     "test oracle problem"
+    ]
+   ],
+   "controle": [
+    [
+     "test progress report",
+     "rapport d'avancement des tests",
+     "test monitoring and control"
+    ],
+    [
+     "test plan content",
+     "contenu du plan de test",
+     "test planning"
+    ],
+    [
+     "branch coverage statement coverage",
+     "couverture des branches et des instructions",
+     "white-box test techniques"
+    ],
+    [
+     "error guessing",
+     "estimation d'erreur",
+     "fault attacks"
+    ],
+    [
+     "checklist-based testing",
+     "test basé sur des checklists",
+     "experience-based test techniques"
+    ],
+    [
+     "configuration management testware",
+     "gestion de configuration",
+     "testware"
+    ],
+    [
+     "confirmation testing and regression testing",
+     "tests de confirmation et de régression"
+    ],
+    [
+     "maintenance testing impact analysis",
+     "test de maintenance",
+     "analyse d'impact"
+    ],
+    [
+     "seven testing principles",
+     "principes du test"
+    ],
+    [
+     "DevOps and testing",
+     "DevOps et test",
+     "continuous integration continuous delivery"
+    ],
+    [
+     "tool selection proof of concept",
+     "sélection d'un outil de test",
+     "preuve de concept outil"
+    ],
+    [
+     "security testing",
+     "tests de sécurité",
+     "vulnerability scanning"
+    ],
+    [
+     "mobile application testing device fragmentation",
+     "test d'application mobile",
+     "compatibility testing"
+    ],
+    [
+     "test team motivation mentoring",
+     "motivation de l'équipe de test",
+     "team management"
+    ],
+    [
+     "test stakeholders",
+     "parties prenantes du test",
+     "roles in testing"
+    ],
+    [
+     "prompt engineering test case generation",
+     "génération de cas de test par IA générative",
+     "generative AI for testing"
+    ],
+    [
+     "shift-left approach",
+     "approche shift-left",
+     "early testing"
+    ],
+    [
+     "test automation maintenance cost",
+     "coût de maintenance de l'automatisation des tests",
+     "test automation risks"
+    ],
+    [
+     "test process improvement agile iterative lifecycle",
+     "amélioration du processus de test",
+     "cycle de vie agile"
+    ],
+    [
+     "test process improvement agile",
+     "amélioration du processus de test agile",
+     "retrospectives process improvement"
+    ],
+    [
+     "flaky tests",
+     "test automation maintenance",
+     "tests non fiables automatisation"
+    ],
+    [
+     "review process",
+     "processus de revue",
+     "formal review activities"
+    ],
+    [
+     "stakeholders test management",
+     "parties prenantes gestion des tests",
+     "test stakeholder communication"
+    ],
+    [
+     "errors, defects, and failures",
+     "erreur défaut défaillance",
+     "root cause analysis"
+    ],
+    [
+     "defect management",
+     "gestion des défauts",
+     "incident management"
+    ],
+    [
+     "Critical Testing Processes",
+     "CTP test process improvement",
+     "amélioration du processus de test"
+    ],
+    [
+     "content-based models STEP CTP",
+     "modèles basés sur le contenu",
+     "test process improvement models"
+    ],
+    [
+     "staged and continuous representation",
+     "représentation étagée continue",
+     "TMMi CMMI maturity levels"
+    ],
+    [
+     "team motivation",
+     "motivation de l'équipe de test",
+     "test team dynamics"
+    ],
+    [
+     "motivating testers",
+     "motivation des testeurs",
+     "test team management"
+    ],
+    [
+     "test progress reporting",
+     "rapport d'avancement des tests",
+     "communicating test status to stakeholders"
+    ],
+    [
+     "test effort estimation",
+     "estimation de l'effort de test",
+     "estimation techniques"
+    ],
+    [
+     "test manager role in agile",
+     "rôle du test manager en agile",
+     "agile test management"
+    ],
+    [
+     "test automation architecture layers",
+     "architecture d'automatisation des tests",
+     "generic test automation architecture gTAA"
+    ],
+    [
+     "generic test automation architecture",
+     "architecture en couches automatisation des tests",
+     "test automation framework layers"
+    ],
+    [
+     "test case prioritization",
+     "priorisation des cas de test",
+     "risk-based testing"
+    ],
+    [
+     "boundary value analysis",
+     "analyse des valeurs limites",
+     "black-box test techniques"
+    ],
+    [
+     "exploratory testing",
+     "tests exploratoires",
+     "experience-based test techniques"
+    ],
+    [
+     "defect management",
+     "gestion des défauts",
+     "defect report"
+    ],
+    [
+     "usability testing",
+     "évaluation de l'utilisabilité",
+     "test d'utilisabilité"
+    ],
+    [
+     "exploratory testing",
+     "tests exploratoires",
+     "experience-based test techniques"
+    ],
+    [
+     "exploratory testing",
+     "tests exploratoires",
+     "techniques de test basées sur l'expérience"
+    ],
+    [
+     "equivalence partitioning",
+     "partitionnement en classes d'équivalence",
+     "black-box test techniques"
+    ],
+    [
+     "component testing",
+     "unit testing",
+     "test de composants"
+    ],
+    [
+     "exploratory testing",
+     "tests exploratoires",
+     "session-based testing"
+    ],
+    [
+     "session-based exploratory testing",
+     "test exploratoire basé sur les sessions",
+     "test charter"
+    ],
+    [
+     "whole team approach",
+     "approche équipe intégrée",
+     "approche de l'équipe complète"
+    ]
+   ],
+   "reglage": [
+    [
+     "risk identification",
+     "risk assessment",
+     "analyse des risques produit"
+    ],
+    [
+     "equivalence partitioning",
+     "partitions d'équivalence"
+    ],
+    [
+     "boundary value analysis",
+     "analyse des valeurs limites"
+    ],
+    [
+     "state transition testing",
+     "test de transition d'états",
+     "transition coverage"
+    ],
+    [
+     "decision table testing",
+     "tests par tables de décision"
+    ],
+    [
+     "whole team approach",
+     "approche équipe intégrée"
+    ],
+    [
+     "independence of testing",
+     "indépendance du test"
+    ],
+    [
+     "shift-left",
+     "test au plus tôt",
+     "early testing"
+    ],
+    [
+     "retrospectives and process improvement",
+     "rétrospectives",
+     "amélioration des processus"
+    ],
+    [
+     "IDEAL model",
+     "test process improvement",
+     "amélioration du processus de test"
+    ],
+    [
+     "TPI Next",
+     "TMMi",
+     "modèles d'amélioration du processus de test"
+    ],
+    [
+     "PDCA cycle",
+     "Deming cycle",
+     "cycle PDCA"
+    ],
+    [
+     "test effort estimation techniques",
+     "estimation de l'effort de test"
+    ],
+    [
+     "factors influencing test effort",
+     "facteurs influençant l'effort de test"
+    ],
+    [
+     "defect lifecycle",
+     "defect management",
+     "gestion des défauts"
+    ],
+    [
+     "test automation solution maintainability",
+     "maintenabilité de l'automatisation des tests"
+    ],
+    [
+     "CI/CD pipeline test automation",
+     "continuous integration",
+     "intégration continue"
+    ],
+    [
+     "session-based exploratory testing",
+     "test charter",
+     "test exploratoire basé sur des sessions"
+    ],
+    [
+     "review roles and responsibilities",
+     "rôles et responsabilités dans les revues"
+    ],
+    [
+     "acceptance test-driven development",
+     "acceptance criteria",
+     "critères d'acceptation"
+    ],
+    [
+     "test case prioritization",
+     "priorisation des tests",
+     "risk-based prioritization"
+    ],
+    [
+     "test pyramid",
+     "pyramide des tests",
+     "test levels automation"
+    ],
+    [
+     "testing quadrants",
+     "quadrants de test",
+     "agile testing quadrants"
+    ],
+    [
+     "entry criteria exit criteria",
+     "critères d'entrée et de sortie",
+     "definition of ready definition of done"
+    ],
+    [
+     "load generation",
+     "génération de charge",
+     "performance test tools"
+    ],
+    [
+     "performance metrics",
+     "métriques de performance",
+     "performance monitoring"
+    ],
+    [
+     "bias in AI-based systems",
+     "biais des systèmes d'IA",
+     "fairness AI testing"
+    ],
+    [
+     "hallucinations generative AI",
+     "hallucinations des LLM",
+     "risks of generative AI in testing"
+    ],
+    [
+     "heuristic evaluation",
+     "évaluation heuristique",
+     "usability review"
+    ],
+    [
+     "root cause analysis",
+     "analyse des causes racines",
+     "Ishikawa fishbone diagram"
+    ],
+    [
+     "test metrics",
+     "métriques de test",
+     "test effectiveness defect detection percentage"
+    ],
+    [
+     "test automation ROI",
+     "retour sur investissement de l'automatisation",
+     "automation benefits and costs"
+    ],
+    [
+     "value stream mapping",
+     "cartographie de la chaîne de valeur",
+     "lead time DevOps"
+    ],
+    [
+     "equivalence partitioning",
+     "boundary value analysis",
+     "partitions d'équivalence analyse des valeurs limites"
+    ],
+    [
+     "risk-based testing",
+     "test basé sur les risques",
+     "product risk analysis"
+    ],
+    [
+     "test oracle",
+     "oracle de test",
+     "test oracle problem"
+    ]
+   ],
+   "examens": [
+    [
+     "objectives of testing",
+     "objectifs du test",
+     "testing shows the presence, not the absence of defects"
+    ],
+    [
+     "why is testing necessary",
+     "testing's contributions to success",
+     "pourquoi les tests sont-ils nécessaires"
+    ],
+    [
+     "pesticide paradox",
+     "tests wear out",
+     "paradoxe du pesticide"
+    ],
+    [
+     "test analysis",
+     "test activities and tasks",
+     "analyse de test"
+    ],
+    [
+     "test process in context",
+     "test approach factors",
+     "le processus de test dans le contexte"
+    ],
+    [
+     "roles in testing",
+     "testing role versus test management role",
+     "rôles dans le test"
+    ],
+    [
+     "essential skills for testing",
+     "generic skills required for testing",
+     "compétences du testeur"
+    ],
+    [
+     "whole team approach",
+     "collaboration-based test approaches",
+     "approche équipe intégrée"
+    ],
+    [
+     "testing in the context of a software development lifecycle",
+     "good testing practices",
+     "bonnes pratiques de test quel que soit le cycle de vie"
+    ],
+    [
+     "acceptance test-driven development",
+     "ATDD",
+     "développement piloté par les tests d'acceptation"
+    ],
+    [
+     "shift-left approach",
+     "early testing",
+     "approche shift-left"
+    ],
+    [
+     "retrospectives and process improvement",
+     "rétrospectives",
+     "amélioration des processus"
+    ],
+    [
+     "test levels",
+     "component testing integration testing system testing acceptance testing",
+     "niveaux de test"
+    ],
+    [
+     "confirmation testing and regression testing",
+     "test de confirmation",
+     "test de régression"
+    ],
+    [
+     "value of static testing",
+     "static testing benefits",
+     "bénéfices du test statique"
+    ],
+    [
+     "value of early and frequent stakeholder feedback",
+     "feedback from stakeholders",
+     "retours précoces des parties prenantes"
+    ],
+    [
+     "review types",
+     "walkthrough",
+     "types de revue"
+    ],
+    [
+     "success factors for reviews",
+     "review process",
+     "facteurs de succès des revues"
+    ],
+    [
+     "experience-based test techniques",
+     "categories of test techniques",
+     "techniques de test basées sur l'expérience"
+    ],
+    [
+     "equivalence partitioning",
+     "each choice coverage",
+     "partitions d'équivalence"
+    ],
+    [
+     "boundary value analysis",
+     "2-value boundary value analysis",
+     "analyse des valeurs limites"
+    ],
+    [
+     "decision table testing",
+     "infeasible combinations decision table",
+     "test par tables de décision"
+    ],
+    [
+     "state transition testing",
+     "valid transitions coverage",
+     "test de transition d'état"
+    ],
+    [
+     "statement testing and statement coverage",
+     "statement coverage",
+     "test des instructions et couverture des instructions"
+    ],
+    [
+     "the value of white-box testing",
+     "white-box test techniques",
+     "techniques de test boîte blanche"
+    ],
+    [
+     "error guessing",
+     "experience-based test techniques",
+     "estimation d'erreurs"
+    ],
+    [
+     "choosing test techniques",
+     "experience-based test techniques",
+     "techniques de test basées sur l'expérience"
+    ],
+    [
+     "writing acceptance criteria",
+     "given/when/then acceptance criteria format",
+     "critères d'acceptation"
+    ],
+    [
+     "acceptance test-driven development (ATDD)",
+     "collaborative user story writing",
+     "développement piloté par les tests d'acceptation"
+    ],
+    [
+     "tester's contribution to iteration and release planning",
+     "release planning",
+     "contribution du testeur à la planification des itérations et des releases"
+    ],
+    [
+     "entry criteria and exit criteria",
+     "exit criteria",
+     "critères de sortie"
+    ],
+    [
+     "estimation techniques",
+     "three-point estimation",
+     "estimation à trois points"
+    ],
+    [
+     "test case prioritization",
+     "test execution schedule",
+     "priorisation des cas de test"
+    ],
+    [
+     "testing quadrants",
+     "agile testing quadrants",
+     "quadrants de test"
+    ],
+    [
+     "risk control",
+     "risk mitigation",
+     "atténuation des risques produit"
+    ],
+    [
+     "test monitoring and test control",
+     "burndown chart",
+     "pilotage et contrôle des tests"
+    ],
+    [
+     "configuration management",
+     "version control of testware",
+     "gestion de configuration"
+    ],
+    [
+     "defect management",
+     "defect report",
+     "rapport d'anomalie"
+    ],
+    [
+     "tool support for testing",
+     "test data preparation tools",
+     "outils de support aux tests"
+    ],
+    [
+     "benefits and risks of test automation",
+     "risks of test automation",
+     "risques de l'automatisation des tests"
+    ],
+    [
+     "test planning",
+     "planification des tests",
+     "test plan content"
+    ],
+    [
+     "test monitoring and control",
+     "pilotage et contrôle des tests",
+     "test progress metrics"
+    ],
+    [
+     "stakeholder communication",
+     "communication avec les parties prenantes",
+     "test manager stakeholders"
+    ],
+    [
+     "stakeholder analysis",
+     "analyse des parties prenantes",
+     "stakeholder matrix"
+    ],
+    [
+     "testing in hybrid software development models",
+     "tests dans les modèles de développement hybrides",
+     "shift from sequential to iterative lifecycle"
+    ],
+    [
+     "software development lifecycle models",
+     "modèles de cycle de vie du développement logiciel",
+     "iterative development testing"
+    ],
+    [
+     "test management in DevOps continuous delivery",
+     "gestion des tests en livraison continue",
+     "continuous testing"
+    ],
+    [
+     "regression testing in agile",
+     "tests de régression en agile",
+     "test automation for safety-critical systems"
+    ],
+    [
+     "risk analysis likelihood and impact",
+     "analyse des risques produit",
+     "reliability testing"
+    ],
+    [
+     "risk identification techniques",
+     "techniques d'identification des risques",
+     "failure mode and effect analysis FMEA"
+    ],
+    [
+     "risk mitigation",
+     "atténuation des risques",
+     "quantitative risk analysis"
+    ],
+    [
+     "risk-based testing",
+     "test basé sur les risques",
+     "product risk mitigation test types"
+    ],
+    [
+     "lightweight risk analysis techniques",
+     "analyse de risques légère",
+     "risk poker"
+    ],
+    [
+     "test strategy",
+     "stratégie de test",
+     "factors influencing test approach"
+    ],
+    [
+     "test approach",
+     "approche de test",
+     "organizational test strategy"
+    ],
+    [
+     "test approach security testing",
+     "approche de test sécurité",
+     "test data management anonymization"
+    ],
+    [
+     "test objectives",
+     "objectifs de test",
+     "SMART objectives"
+    ],
+    [
+     "SMART test objectives",
+     "objectifs de test SMART",
+     "mobile application testing"
+    ],
+    [
+     "IDEAL improvement model",
+     "modèle IDEAL",
+     "test process improvement"
+    ],
+    [
+     "TMMi",
+     "amélioration du processus de test",
+     "model-based test process improvement agile"
+    ],
+    [
+     "retrospective",
+     "rétrospective",
+     "test closure activities"
+    ],
+    [
+     "iteration retrospective",
+     "rétrospective agile",
+     "tester role in agile team"
+    ],
+    [
+     "tool selection",
+     "sélection d'un outil",
+     "pilot project tool introduction"
+    ],
+    [
+     "open source tools",
+     "outils open source",
+     "licensing open source tool"
+    ],
+    [
+     "return on investment tool",
+     "retour sur investissement outils",
+     "cost-benefit test automation"
+    ],
+    [
+     "tool lifecycle",
+     "cycle de vie d'un outil",
+     "tool retirement"
+    ],
+    [
+     "test metrics",
+     "métriques de test",
+     "test monitoring and control"
+    ],
+    [
+     "purpose of test metrics",
+     "objectifs des métriques de test",
+     "test reporting stakeholders"
+    ],
+    [
+     "test progress report",
+     "rapport d'avancement des tests",
+     "risk-based testing"
+    ],
+    [
+     "test reporting",
+     "rapports de test",
+     "metrics used in testing"
+    ],
+    [
+     "test effort estimation factors",
+     "facteurs d'estimation de l'effort de test",
+     "estimation des tests"
+    ],
+    [
+     "test estimation agile",
+     "estimation de l'effort de test",
+     "planning poker"
+    ],
+    [
+     "metrics-based estimation",
+     "estimation basée sur les métriques",
+     "estimation techniques"
+    ],
+    [
+     "defect management",
+     "gestion des défauts",
+     "false positive"
+    ],
+    [
+     "defect lifecycle",
+     "cycle de vie des défauts",
+     "defect workflow states"
+    ],
+    [
+     "defect lifecycle",
+     "cycle de vie d'un défaut",
+     "defect report states"
+    ],
+    [
+     "defect management agile",
+     "gestion des défauts agile",
+     "defect report"
+    ],
+    [
+     "defect management",
+     "gestion des défauts",
+     "hybrid lifecycle"
+    ],
+    [
+     "defect report content",
+     "contenu d'un rapport de défaut",
+     "defect report fields"
+    ],
+    [
+     "defect report information",
+     "informations du rapport de défaut",
+     "outsourced testing"
+    ],
+    [
+     "defect prevention",
+     "root cause analysis",
+     "prévention des défauts"
+    ],
+    [
+     "test team skills",
+     "methodological skills",
+     "compétences de l'équipe de test"
+    ],
+    [
+     "test analyst skills",
+     "safety-critical systems",
+     "compétences de l'analyste de test"
+    ],
+    [
+     "test team skills",
+     "domain knowledge",
+     "compétences de l'équipe de test"
+    ],
+    [
+     "skills assessment",
+     "test team skills",
+     "évaluation des compétences"
+    ],
+    [
+     "test team development",
+     "mentoring and coaching",
+     "développement des compétences de l'équipe"
+    ],
+    [
+     "test team management",
+     "team development stages",
+     "gestion de l'équipe de test"
+    ],
+    [
+     "cost of quality",
+     "prevention costs appraisal costs failure costs",
+     "coût de la qualité"
+    ],
+    [
+     "cost-benefit analysis of testing",
+     "business value of testing",
+     "valeur métier du test"
+    ],
+    [
+     "cost of failure",
+     "product risk factors",
+     "coûts des défaillances"
+    ],
+    [
+     "test process iterative lifecycle",
+     "test activities in iterative development",
+     "processus de test cycle itératif"
+    ],
+    [
+     "test design",
+     "boundary value analysis",
+     "conception des tests"
+    ],
+    [
+     "keyword-driven testing",
+     "test implementation",
+     "implémentation des tests"
+    ],
+    [
+     "test environment requirements",
+     "simulators and stubs",
+     "environnement de test"
+    ],
+    [
+     "test oracle",
+     "pseudo-oracle",
+     "oracle de test"
+    ],
+    [
+     "test data",
+     "data anonymization",
+     "données de test"
+    ],
+    [
+     "keyword-driven testing",
+     "composite keywords",
+     "test piloté par les mots-clés"
+    ],
+    [
+     "testware management",
+     "test management tools",
+     "outils de gestion des tests"
+    ],
+    [
+     "product risk analysis",
+     "risk-based testing test analyst",
+     "analyse des risques produit"
+    ],
+    [
+     "regression test selection",
+     "traceability matrix",
+     "sélection des tests de régression"
+    ],
+    [
+     "regression testing",
+     "impact analysis",
+     "test de régression"
+    ],
+    [
+     "domain testing",
+     "boundary value analysis",
+     "test de domaine"
+    ],
+    [
+     "boundary value analysis",
+     "equivalence partitioning",
+     "analyse des valeurs limites"
+    ],
+    [
+     "combinatorial testing",
+     "pairwise testing",
+     "test combinatoire"
+    ],
+    [
+     "pairwise testing",
+     "orthogonal array",
+     "test par paires"
+    ],
+    [
+     "adaptive random testing",
+     "random testing",
+     "test aléatoire"
+    ],
+    [
+     "CRUD testing",
+     "data lifecycle testing",
+     "test CRUD"
+    ],
+    [
+     "state transition testing",
+     "round-trip coverage",
+     "test de transition d'états"
+    ],
+    [
+     "N-switch coverage",
+     "state transition testing",
+     "couverture 1-switch"
+    ],
+    [
+     "use case testing",
+     "alternative flow",
+     "test de cas d'utilisation"
+    ],
+    [
+     "scenario testing",
+     "activity diagram",
+     "test de scénarios"
+    ],
+    [
+     "decision table testing",
+     "test par tables de décision"
+    ],
+    [
+     "minimized decision table",
+     "decision table checksum",
+     "table de décision minimisée"
+    ],
+    [
+     "metamorphic testing",
+     "metamorphic relation",
+     "test métamorphique"
+    ],
+    [
+     "metamorphic testing",
+     "test oracle problem",
+     "problème de l'oracle de test"
+    ],
+    [
+     "test charter",
+     "exploratory testing session",
+     "charte de test exploratoire"
+    ],
+    [
+     "session-based test management",
+     "test charter",
+     "charte de test session"
+    ],
+    [
+     "checklist-based testing",
+     "test basé sur des checklists"
+    ],
+    [
+     "checklist-based testing",
+     "checklist maintenance",
+     "mise à jour de checklist"
+    ],
+    [
+     "crowd testing",
+     "crowdtesting benefits",
+     "test participatif"
+    ],
+    [
+     "risk-based testing",
+     "test technique selection",
+     "test basé sur les risques"
+    ],
+    [
+     "testing AI-based systems",
+     "combinatorial testing",
+     "test des systèmes basés sur l'IA"
+    ],
+    [
+     "test automation benefits",
+     "model-based testing",
+     "avantages de l'automatisation des tests"
+    ],
+    [
+     "functional correctness testing",
+     "equivalence partitioning",
+     "test d'exactitude fonctionnelle"
+    ],
+    [
+     "usability testing",
+     "test analyst role usability evaluation",
+     "test d'utilisabilité"
+    ],
+    [
+     "adaptability testing",
+     "portability testing",
+     "test de portabilité"
+    ],
+    [
+     "interoperability testing",
+     "compatibility testing",
+     "test d'interopérabilité"
+    ],
+    [
+     "defect prevention",
+     "static testing benefits",
+     "prévention des défauts"
+    ],
+    [
+     "decision table testing",
+     "static analysis of requirements",
+     "test par tables de décision"
+    ],
+    [
+     "state transition testing",
+     "model-based testing requirements defects",
+     "test de transition d'états"
+    ],
+    [
+     "use case review",
+     "reviewing requirements",
+     "revue des cas d'utilisation"
+    ],
+    [
+     "review techniques",
+     "checklist-based reviewing",
+     "techniques de revue"
+    ],
+    [
+     "phase containment",
+     "defect metrics",
+     "confinement par phase"
+    ],
+    [
+     "defect density metrics",
+     "defect prediction",
+     "métriques de défauts"
+    ],
+    [
+     "defect classification",
+     "root cause analysis",
+     "analyse des causes racines"
+    ]
+   ]
+  },
+  {
+   "eloigne": [
+    [
+     "test automation maintainability",
+     "maintenance des tests automatisés",
+     "test automation architecture"
+    ],
+    [
+     "shift-left",
+     "shift left approach",
+     "test au plus tôt"
+    ],
+    [
+     "exit criteria",
+     "critères de sortie",
+     "test completion"
+    ],
+    [
+     "defect report",
+     "rapport de défaut",
+     "communication de l'avancement des tests"
+    ],
+    [
+     "test estimation techniques",
+     "estimation de l'effort de test",
+     "test planning"
+    ],
+    [
+     "pesticide paradox",
+     "paradoxe des pesticides",
+     "regression testing"
+    ],
+    [
+     "retrospectives",
+     "rétrospectives et amélioration des processus",
+     "test completion activities"
+    ],
+    [
+     "experience-based test techniques",
+     "exploratory testing",
+     "techniques de test basées sur l'expérience"
+    ],
+    [
+     "risk mitigation",
+     "product risk control",
+     "contrôle des risques produit"
+    ],
+    [
+     "burndown chart",
+     "test progress monitoring metrics",
+     "suivi et contrôle des tests"
+    ],
+    [
+     "configuration management",
+     "gestion de configuration",
+     "testware version control"
+    ],
+    [
+     "software development lifecycle",
+     "iterative development model",
+     "modèle de cycle de vie itératif"
+    ],
+    [
+     "test management continuous delivery",
+     "DevOps testing",
+     "gestion des tests en contexte agile"
+    ],
+    [
+     "risk-based testing",
+     "reliability testing",
+     "analyse des risques produit"
+    ],
+    [
+     "test objectives",
+     "SMART objectives",
+     "objectifs de test"
+    ],
+    [
+     "tool selection",
+     "test tool introduction",
+     "sélection et introduction d'outils"
+    ],
+    [
+     "test team skills",
+     "tester skills",
+     "compétences de l'équipe de test"
+    ],
+    [
+     "boundary value analysis",
+     "decision table testing",
+     "analyse des valeurs limites"
+    ],
+    [
+     "combinatorial testing",
+     "pairwise testing",
+     "test combinatoire"
+    ],
+    [
+     "metamorphic testing",
+     "test oracle problem",
+     "test métamorphique"
+    ]
+   ],
+   "controle": [
+    [
+     "test progress report",
+     "rapport d'avancement des tests",
+     "test monitoring and control"
+    ],
+    [
+     "test plan",
+     "plan de test",
+     "test planning"
+    ],
+    [
+     "branch coverage",
+     "statement coverage",
+     "couverture des branches"
+    ],
+    [
+     "error guessing",
+     "estimation d'erreur",
+     "fault attack"
+    ],
+    [
+     "checklist-based testing",
+     "test basé sur des checklists"
+    ],
+    [
+     "configuration management",
+     "gestion de configuration",
+     "testware"
+    ],
+    [
+     "confirmation testing",
+     "regression testing",
+     "tests de confirmation et de régression"
+    ],
+    [
+     "maintenance testing",
+     "impact analysis",
+     "test de maintenance"
+    ],
+    [
+     "seven testing principles",
+     "principes du test"
+    ],
+    [
+     "DevOps and testing",
+     "continuous integration",
+     "DevOps et test"
+    ],
+    [
+     "tool selection",
+     "proof of concept",
+     "sélection d'outils"
+    ],
+    [
+     "security testing",
+     "vulnerability scanning",
+     "tests de sécurité"
+    ],
+    [
+     "mobile application testing",
+     "device fragmentation",
+     "test d'applications mobiles"
+    ],
+    [
+     "test team management",
+     "mentoring and motivation",
+     "gestion de l'équipe de test"
+    ],
+    [
+     "stakeholders",
+     "test stakeholders",
+     "parties prenantes"
+    ],
+    [
+     "prompt engineering",
+     "AI test case generation",
+     "génération de cas de test par IA"
+    ],
+    [
+     "shift left",
+     "early testing",
+     "test précoce"
+    ],
+    [
+     "test automation maintenance",
+     "maintenabilité de l'automatisation",
+     "test automation cost"
+    ],
+    [
+     "test process improvement agile",
+     "amélioration du processus de test",
+     "iterative life cycle"
+    ],
+    [
+     "test process improvement agile",
+     "amélioration du processus de test agile",
+     "iterative life cycle"
+    ],
+    [
+     "flaky tests",
+     "test automation maintenance",
+     "tests non fiables automatisation"
+    ],
+    [
+     "review process",
+     "processus de revue",
+     "types of reviews"
+    ],
+    [
+     "stakeholders test management",
+     "parties prenantes",
+     "gestion des parties prenantes"
+    ],
+    [
+     "error defect failure",
+     "erreur défaut défaillance",
+     "root cause"
+    ],
+    [
+     "defect management",
+     "gestion des défauts",
+     "defect report"
+    ],
+    [
+     "Critical Testing Processes",
+     "CTP",
+     "amélioration du processus de test"
+    ],
+    [
+     "content-based models",
+     "STEP CTP",
+     "modèles basés sur le contenu"
+    ],
+    [
+     "staged representation continuous representation",
+     "représentation étagée continue",
+     "TMMi maturity levels"
+    ],
+    [
+     "motivation",
+     "team motivation",
+     "motivation de l'équipe"
+    ],
+    [
+     "motivating testers",
+     "motivation des testeurs",
+     "test team dynamics"
+    ],
+    [
+     "test progress reporting",
+     "rapport d'avancement des tests",
+     "test status report stakeholders"
+    ],
+    [
+     "test estimation",
+     "estimation de l'effort de test",
+     "estimation techniques"
+    ],
+    [
+     "test manager agile",
+     "testing in Agile",
+     "rôle du test manager en agile"
+    ],
+    [
+     "test automation architecture",
+     "generic test automation architecture",
+     "architecture d'automatisation des tests"
+    ],
+    [
+     "test automation framework layers",
+     "generic test automation architecture",
+     "couches de l'architecture d'automatisation"
+    ],
+    [
+     "test case prioritization",
+     "priorisation des cas de test",
+     "risk-based testing"
+    ],
+    [
+     "boundary value analysis",
+     "analyse des valeurs limites",
+     "equivalence partitioning"
+    ],
+    [
+     "exploratory testing",
+     "tests exploratoires",
+     "session-based testing"
+    ],
+    [
+     "defect management",
+     "gestion des défauts",
+     "defect lifecycle"
+    ],
+    [
+     "usability testing",
+     "test d'utilisabilité",
+     "usability evaluation"
+    ],
+    [
+     "exploratory testing",
+     "tests exploratoires",
+     "experience-based test techniques"
+    ],
+    [
+     "exploratory testing",
+     "tests exploratoires",
+     "techniques de test basées sur l'expérience"
+    ],
+    [
+     "equivalence partitioning",
+     "partitionnement d'équivalence",
+     "black-box test techniques"
+    ],
+    [
+     "component testing",
+     "tests unitaires",
+     "test de composants"
+    ],
+    [
+     "exploratory testing",
+     "tests exploratoires",
+     "experience-based test techniques"
+    ],
+    [
+     "session-based exploratory testing",
+     "test exploratoire basé sur les sessions",
+     "test charter"
+    ],
+    [
+     "whole team approach",
+     "approche équipe intégrée",
+     "approche d'équipe complète"
+    ]
+   ],
+   "reglage": [
+    [
+     "risk identification",
+     "risk assessment",
+     "analyse des risques produit"
+    ],
+    [
+     "equivalence partitioning",
+     "partitions d'équivalence"
+    ],
+    [
+     "boundary value analysis",
+     "analyse des valeurs limites"
+    ],
+    [
+     "state transition testing",
+     "transition coverage",
+     "test de transition d'états"
+    ],
+    [
+     "decision table testing",
+     "test par tables de décision"
+    ],
+    [
+     "whole team approach",
+     "approche équipe intégrée"
+    ],
+    [
+     "independence of testing",
+     "indépendance du test"
+    ],
+    [
+     "shift left",
+     "early testing",
+     "test au plus tôt"
+    ],
+    [
+     "retrospectives and process improvement",
+     "rétrospectives amélioration des processus"
+    ],
+    [
+     "IDEAL model test process improvement",
+     "modèle IDEAL amélioration du processus de test"
+    ],
+    [
+     "TPI Next",
+     "TMMi",
+     "modèles d'amélioration des processus de test"
+    ],
+    [
+     "Deming cycle PDCA",
+     "cycle de Deming planifier faire vérifier agir"
+    ],
+    [
+     "test effort estimation techniques",
+     "techniques d'estimation de l'effort de test"
+    ],
+    [
+     "factors influencing test effort",
+     "facteurs influençant l'effort de test"
+    ],
+    [
+     "defect lifecycle",
+     "defect management",
+     "gestion des défauts"
+    ],
+    [
+     "test automation solution maintainability",
+     "maintenabilité de la solution d'automatisation de test"
+    ],
+    [
+     "continuous integration test automation pipeline",
+     "CI/CD DevOps",
+     "intégration continue automatisation des tests"
+    ],
+    [
+     "session-based exploratory testing",
+     "test charter",
+     "test exploratoire basé sur les sessions"
+    ],
+    [
+     "roles and responsibilities in reviews",
+     "rôles et responsabilités dans les revues"
+    ],
+    [
+     "acceptance criteria",
+     "acceptance test-driven development ATDD",
+     "critères d'acceptation"
+    ],
+    [
+     "test case prioritization",
+     "priorisation des tests",
+     "risk-based test prioritization"
+    ],
+    [
+     "test pyramid",
+     "pyramide des tests",
+     "test levels automation"
+    ],
+    [
+     "testing quadrants",
+     "quadrants de test",
+     "agile testing quadrants"
+    ],
+    [
+     "entry criteria exit criteria",
+     "critères d'entrée et de sortie",
+     "definition of ready definition of done"
+    ],
+    [
+     "load generation",
+     "génération de charge",
+     "performance test environment load"
+    ],
+    [
+     "performance metrics",
+     "métriques de performance",
+     "performance test monitoring"
+    ],
+    [
+     "bias in AI-based systems",
+     "biais des systèmes d'IA",
+     "algorithmic bias"
+    ],
+    [
+     "hallucinations generative AI",
+     "hallucinations IA générative",
+     "LLM risks in testing"
+    ],
+    [
+     "heuristic evaluation",
+     "évaluation heuristique",
+     "usability evaluation"
+    ],
+    [
+     "root cause analysis",
+     "analyse des causes racines",
+     "Ishikawa fishbone diagram"
+    ],
+    [
+     "test metrics",
+     "métriques de test",
+     "test effectiveness measurement"
+    ],
+    [
+     "test automation business case",
+     "ROI de l'automatisation des tests",
+     "automation costs and benefits"
+    ],
+    [
+     "value stream mapping",
+     "cartographie de la chaîne de valeur",
+     "lead time cycle time"
+    ],
+    [
+     "equivalence partitioning",
+     "partition d'équivalence",
+     "boundary value analysis"
+    ],
+    [
+     "risk-based testing",
+     "test basé sur les risques",
+     "product risk analysis"
+    ],
+    [
+     "test oracle",
+     "oracle de test",
+     "metamorphic testing"
+    ]
+   ],
+   "examens": [
+    [
+     "objectives of testing",
+     "objectifs du test",
+     "testing shows the presence of defects"
+    ],
+    [
+     "why is testing necessary",
+     "testing's contributions to success",
+     "pourquoi le test est-il nécessaire"
+    ],
+    [
+     "pesticide paradox",
+     "tests wear out",
+     "paradoxe des pesticides"
+    ],
+    [
+     "test analysis",
+     "test activities and tasks",
+     "analyse de test"
+    ],
+    [
+     "test process in context",
+     "contextual factors test approach",
+     "processus de test dans le contexte"
+    ],
+    [
+     "roles in testing",
+     "testing role test management role",
+     "rôles dans le test"
+    ],
+    [
+     "generic skills required for testing",
+     "compétences requises pour le test",
+     "tester skills"
+    ],
+    [
+     "whole team approach",
+     "approche équipe intégrée",
+     "collaboration testers business representatives"
+    ],
+    [
+     "testing in the context of a SDLC",
+     "good testing practices SDLC",
+     "test dans le cycle de vie du développement logiciel"
+    ],
+    [
+     "acceptance test-driven development",
+     "ATDD",
+     "développement piloté par les tests d'acceptation"
+    ],
+    [
+     "shift-left approach",
+     "approche shift-left",
+     "early testing"
+    ],
+    [
+     "retrospectives and process improvement",
+     "rétrospectives et amélioration des processus",
+     "lessons learned test completion"
+    ],
+    [
+     "test levels",
+     "niveaux de test",
+     "component integration system acceptance testing"
+    ],
+    [
+     "confirmation testing and regression testing",
+     "test de confirmation et test de régression",
+     "maintenance testing"
+    ],
+    [
+     "value of static testing",
+     "bénéfices du test statique",
+     "static testing benefits"
+    ],
+    [
+     "early and frequent stakeholder feedback",
+     "feedback précoce et fréquent des parties prenantes",
+     "benefits of early feedback"
+    ],
+    [
+     "review types",
+     "walkthrough",
+     "types de revues"
+    ],
+    [
+     "success factors for reviews",
+     "facteurs de succès des revues",
+     "review process"
+    ],
+    [
+     "experience-based test techniques",
+     "techniques de test basées sur l'expérience",
+     "categories of test techniques black-box white-box"
+    ],
+    [
+     "equivalence partitioning",
+     "partitions d'équivalence",
+     "each choice coverage"
+    ],
+    [
+     "boundary value analysis",
+     "2-value boundary value analysis",
+     "analyse des valeurs limites"
+    ],
+    [
+     "decision table testing",
+     "infeasible combinations",
+     "test par tables de décision"
+    ],
+    [
+     "state transition testing",
+     "valid transitions coverage",
+     "test de transition d'état"
+    ],
+    [
+     "statement coverage",
+     "statement testing",
+     "couverture des instructions"
+    ],
+    [
+     "white-box testing",
+     "value of white-box testing",
+     "test boîte blanche"
+    ],
+    [
+     "error guessing",
+     "experience-based test techniques",
+     "estimation d'erreurs"
+    ],
+    [
+     "exploratory testing",
+     "choosing test techniques",
+     "test exploratoire"
+    ],
+    [
+     "acceptance criteria",
+     "given/when/then format",
+     "critères d'acceptation"
+    ],
+    [
+     "acceptance test-driven development",
+     "ATDD",
+     "développement piloté par les tests d'acceptation"
+    ],
+    [
+     "release and iteration planning",
+     "tester's contribution to planning",
+     "planification des itérations et des releases"
+    ],
+    [
+     "exit criteria",
+     "definition of done",
+     "critères de sortie"
+    ],
+    [
+     "three-point estimation",
+     "test effort estimation",
+     "estimation de l'effort de test"
+    ],
+    [
+     "test case prioritization",
+     "test execution schedule",
+     "priorisation des cas de test"
+    ],
+    [
+     "testing quadrants",
+     "agile testing quadrants",
+     "quadrants de test"
+    ],
+    [
+     "risk mitigation",
+     "product risk control",
+     "atténuation des risques"
+    ],
+    [
+     "burndown chart",
+     "test monitoring metrics",
+     "suivi et contrôle des tests"
+    ],
+    [
+     "configuration management",
+     "version control testware",
+     "gestion de configuration"
+    ],
+    [
+     "defect report",
+     "defect management",
+     "rapport d'anomalie"
+    ],
+    [
+     "test tools",
+     "test data preparation tools",
+     "outils de test"
+    ],
+    [
+     "test automation risks",
+     "benefits and risks of test automation",
+     "risques de l'automatisation des tests"
+    ],
+    [
+     "test planning",
+     "planification des tests",
+     "plan de test"
+    ],
+    [
+     "test monitoring and control",
+     "pilotage et contrôle des tests",
+     "métriques de test"
+    ],
+    [
+     "stakeholder communication",
+     "communication avec les parties prenantes",
+     "test manager stakeholders"
+    ],
+    [
+     "stakeholder analysis",
+     "analyse des parties prenantes",
+     "stakeholder communication"
+    ],
+    [
+     "hybrid software development lifecycle",
+     "test dans les cycles de vie itératifs",
+     "agile testing"
+    ],
+    [
+     "iterative development model",
+     "modèle de développement itératif",
+     "shift left"
+    ],
+    [
+     "continuous delivery testing",
+     "test management DevOps",
+     "gestion des tests en intégration continue"
+    ],
+    [
+     "regression testing",
+     "test de régression",
+     "risk-based testing"
+    ],
+    [
+     "risk analysis",
+     "évaluation des risques",
+     "reliability testing"
+    ],
+    [
+     "failure mode and effect analysis",
+     "AMDE analyse des modes de défaillance",
+     "risk identification techniques"
+    ],
+    [
+     "risk mitigation",
+     "atténuation des risques",
+     "risk-based testing"
+    ],
+    [
+     "risk-based testing",
+     "test basé sur les risques",
+     "quality characteristics test types"
+    ],
+    [
+     "lightweight risk analysis",
+     "analyse des risques en agile",
+     "risk poker"
+    ],
+    [
+     "test strategy",
+     "stratégie de test",
+     "test approach"
+    ],
+    [
+     "test approach",
+     "approche de test",
+     "organizational test strategy"
+    ],
+    [
+     "test approach security testing",
+     "approche de test",
+     "test data anonymization"
+    ],
+    [
+     "test objectives",
+     "objectifs de test",
+     "SMART objectives"
+    ],
+    [
+     "SMART test objectives",
+     "objectifs de test",
+     "mobile application testing"
+    ],
+    [
+     "IDEAL model",
+     "modèle IDEAL amélioration du processus de test",
+     "test process improvement"
+    ],
+    [
+     "TMMi",
+     "amélioration du processus de test",
+     "test process improvement agile"
+    ],
+    [
+     "retrospectives",
+     "process improvement",
+     "rétrospective"
+    ],
+    [
+     "retrospectives",
+     "tester role in agile",
+     "rétrospective agile"
+    ],
+    [
+     "tool selection",
+     "test tools",
+     "sélection d'outils de test"
+    ],
+    [
+     "open source tools",
+     "tool selection risks",
+     "outils open source"
+    ],
+    [
+     "return on investment tools",
+     "benefits and risks of test automation",
+     "retour sur investissement des outils"
+    ],
+    [
+     "tool lifecycle",
+     "tool retirement",
+     "cycle de vie des outils"
+    ],
+    [
+     "metrics used in testing",
+     "test monitoring and test control",
+     "métriques de test"
+    ],
+    [
+     "test metrics",
+     "purpose of test metrics",
+     "métriques utilisées en test"
+    ],
+    [
+     "test progress reports",
+     "risk-based testing",
+     "rapport d'avancement des tests"
+    ],
+    [
+     "test reporting",
+     "test completion report",
+     "communication de l'état des tests"
+    ],
+    [
+     "test effort estimation",
+     "factors influencing test effort",
+     "estimation de l'effort de test"
+    ],
+    [
+     "estimation techniques",
+     "planning poker",
+     "estimation des tests agile"
+    ],
+    [
+     "metrics-based estimation",
+     "test estimation techniques",
+     "estimation basée sur les métriques"
+    ],
+    [
+     "defect management",
+     "defect report",
+     "gestion des défauts"
+    ],
+    [
+     "defect lifecycle",
+     "defect workflow",
+     "cycle de vie des défauts"
+    ],
+    [
+     "defect lifecycle states",
+     "defect report workflow",
+     "états du rapport de défaut"
+    ],
+    [
+     "defect management in agile",
+     "agile defect handling",
+     "gestion des défauts agile"
+    ],
+    [
+     "defect management",
+     "hybrid lifecycle",
+     "gestion des défauts"
+    ],
+    [
+     "defect report contents",
+     "defect report",
+     "contenu du rapport de défaut"
+    ],
+    [
+     "defect report contents",
+     "outsourced testing",
+     "rapport de défaut"
+    ],
+    [
+     "defect prevention root cause analysis",
+     "analyse des causes racines défauts",
+     "defect report analysis process improvement"
+    ],
+    [
+     "test team skills",
+     "compétences de l'équipe de test",
+     "methodological skills tester"
+    ],
+    [
+     "test analyst skills safety-critical",
+     "compétences analyste de test",
+     "safety-critical systems testing"
+    ],
+    [
+     "test team composition skills",
+     "compétences de l'équipe de test",
+     "gaming application testing skills"
+    ],
+    [
+     "skills assessment test team",
+     "évaluation des compétences de l'équipe",
+     "individual skills test management"
+    ],
+    [
+     "test team development training mentoring",
+     "développement des compétences de l'équipe de test",
+     "coaching mentoring test team"
+    ],
+    [
+     "team dynamics test management",
+     "dynamique d'équipe gestion des tests",
+     "Tuckman team development stages"
+    ],
+    [
+     "cost of quality",
+     "coût de la qualité",
+     "prevention appraisal internal external failure costs"
+    ],
+    [
+     "cost-benefit analysis testing",
+     "analyse coût-bénéfice du test",
+     "business value of testing"
+    ],
+    [
+     "cost of failure risk factors",
+     "coûts de défaillance facteurs de risque",
+     "product risk likelihood impact"
+    ],
+    [
+     "test analyst iterative lifecycle",
+     "analyste de test cycle de vie itératif",
+     "test activities in Agile iterations"
+    ],
+    [
+     "test design test analyst tasks",
+     "conception des tests tâches",
+     "boundary value analysis test cases"
+    ],
+    [
+     "test implementation keyword-driven scripts",
+     "implémentation des tests",
+     "keyword-driven testing"
+    ],
+    [
+     "test environment requirements simulator",
+     "exigences de l'environnement de test",
+     "test implementation environment simulators"
+    ],
+    [
+     "test oracle pseudo-oracle",
+     "oracle de test",
+     "legacy system as test oracle"
+    ],
+    [
+     "test data anonymization limitations",
+     "données de test anonymisées",
+     "test data preparation"
+    ],
+    [
+     "keyword-driven testing composite keywords",
+     "test piloté par mots-clés",
+     "test automation keywords"
+    ],
+    [
+     "testware management test management tool",
+     "gestion du testware",
+     "test analyst traceability tool"
+    ],
+    [
+     "product risk analysis test analyst",
+     "analyse des risques produit",
+     "risk-based testing test analyst contribution"
+    ],
+    [
+     "regression test selection traceability",
+     "sélection des tests de régression",
+     "traceability matrix risk-based testing"
+    ],
+    [
+     "regression testing",
+     "impact analysis",
+     "test de régression"
+    ],
+    [
+     "domain testing",
+     "boundary value analysis",
+     "test de domaine"
+    ],
+    [
+     "boundary value analysis",
+     "equivalence partitioning",
+     "analyse des valeurs limites"
+    ],
+    [
+     "combinatorial testing",
+     "configuration testing",
+     "test combinatoire"
+    ],
+    [
+     "pairwise testing",
+     "combinatorial testing",
+     "test par paires"
+    ],
+    [
+     "random testing",
+     "test aléatoire"
+    ],
+    [
+     "CRUD testing",
+     "test CRUD"
+    ],
+    [
+     "state transition testing",
+     "round-trip coverage",
+     "test de transition d'états"
+    ],
+    [
+     "state transition testing",
+     "N-switch coverage",
+     "couverture des transitions d'états"
+    ],
+    [
+     "use case testing",
+     "test des cas d'utilisation"
+    ],
+    [
+     "scenario testing",
+     "activity diagram",
+     "test par scénarios"
+    ],
+    [
+     "decision table testing",
+     "test par tables de décision"
+    ],
+    [
+     "decision table minimization",
+     "decision table testing",
+     "table de décision minimisée"
+    ],
+    [
+     "metamorphic testing",
+     "metamorphic relation",
+     "test métamorphique"
+    ],
+    [
+     "metamorphic testing",
+     "test oracle problem",
+     "test métamorphique"
+    ],
+    [
+     "exploratory testing test charter",
+     "session-based testing",
+     "charte de test exploratoire"
+    ],
+    [
+     "session-based exploratory testing",
+     "test charter",
+     "charte de session"
+    ],
+    [
+     "checklist-based testing",
+     "test basé sur des checklists"
+    ],
+    [
+     "checklist-based testing",
+     "checklist maintenance",
+     "test basé sur des checklists"
+    ],
+    [
+     "crowd testing",
+     "test participatif"
+    ],
+    [
+     "risk-based testing",
+     "selecting test techniques",
+     "test basé sur les risques"
+    ],
+    [
+     "testing AI-based systems",
+     "combinatorial testing",
+     "test des systèmes basés sur l'IA"
+    ],
+    [
+     "test automation benefits",
+     "model-based testing",
+     "automatisation de la conception des tests"
+    ],
+    [
+     "functional correctness testing",
+     "equivalence partitioning",
+     "test d'exactitude fonctionnelle"
+    ],
+    [
+     "usability testing",
+     "test analyst role usability",
+     "test d'utilisabilité"
+    ],
+    [
+     "adaptability testing",
+     "portability testing",
+     "test de portabilité"
+    ],
+    [
+     "interoperability testing",
+     "compatibility testing",
+     "test d'interopérabilité"
+    ],
+    [
+     "defect prevention",
+     "prévention des défauts"
+    ],
+    [
+     "decision table testing",
+     "static testing of specifications",
+     "test par tables de décision"
+    ],
+    [
+     "state transition testing",
+     "model-based testing defect prevention",
+     "test de transition d'états"
+    ],
+    [
+     "use case testing",
+     "reviews",
+     "revue de cas d'utilisation"
+    ],
+    [
+     "review techniques",
+     "perspective-based reading",
+     "techniques de revue"
+    ],
+    [
+     "phase containment",
+     "defect detection percentage",
+     "confinement des défauts par phase"
+    ],
+    [
+     "defect prediction",
+     "defect density per component",
+     "analyse des défauts"
+    ],
+    [
+     "defect classification",
+     "root cause analysis",
+     "classification des défauts"
+    ]
+   ]
+  },
+  {
+   "eloigne": [
+    [
+     "test automation maintainability",
+     "maintenabilité des scripts de test automatisés",
+     "test automation architecture"
+    ],
+    [
+     "shift left",
+     "test au plus tôt",
+     "early testing"
+    ],
+    [
+     "exit criteria",
+     "critères de sortie",
+     "definition of done"
+    ],
+    [
+     "defect report",
+     "rapport de défaut",
+     "communication testeurs développeurs"
+    ],
+    [
+     "test estimation techniques",
+     "estimation de l'effort de test",
+     "test effort"
+    ],
+    [
+     "pesticide paradox",
+     "paradoxe du pesticide",
+     "regression testing"
+    ],
+    [
+     "retrospectives",
+     "rétrospectives et amélioration des processus",
+     "test process improvement"
+    ],
+    [
+     "experience-based test techniques",
+     "techniques de test basées sur l'expérience",
+     "exploratory testing"
+    ],
+    [
+     "risk mitigation",
+     "mesures de contrôle du risque",
+     "product risk analysis"
+    ],
+    [
+     "burndown chart",
+     "tableaux de bord et métriques de test",
+     "test monitoring and control"
+    ],
+    [
+     "configuration management",
+     "gestion de configuration",
+     "version control testware"
+    ],
+    [
+     "hybrid software development lifecycle",
+     "modèle de cycle de vie du développement logiciel",
+     "iterative development models"
+    ],
+    [
+     "test management continuous delivery",
+     "DevOps et test",
+     "continuous testing"
+    ],
+    [
+     "risk-based testing",
+     "test basé sur les risques",
+     "reliability testing"
+    ],
+    [
+     "test objectives",
+     "objectifs de test",
+     "test plan"
+    ],
+    [
+     "tool retirement",
+     "introduction et retrait d'un outil",
+     "tool selection open source"
+    ],
+    [
+     "tester skills",
+     "compétences du testeur",
+     "test team composition"
+    ],
+    [
+     "boundary value analysis",
+     "analyse des valeurs limites",
+     "decision table testing"
+    ],
+    [
+     "combinatorial testing",
+     "test par paires",
+     "pairwise testing"
+    ],
+    [
+     "metamorphic testing",
+     "test métamorphique",
+     "test oracle problem"
+    ]
+   ],
+   "controle": [
+    [
+     "test progress report",
+     "rapport d'avancement des tests",
+     "test monitoring and control"
+    ],
+    [
+     "test plan content",
+     "contenu du plan de test",
+     "test planning"
+    ],
+    [
+     "branch coverage",
+     "statement coverage",
+     "couverture des branches"
+    ],
+    [
+     "error guessing",
+     "fault attacks",
+     "estimation d'erreur"
+    ],
+    [
+     "checklist-based testing",
+     "test basé sur des checklists"
+    ],
+    [
+     "configuration management",
+     "gestion de configuration",
+     "testware"
+    ],
+    [
+     "confirmation testing",
+     "regression testing",
+     "tests de confirmation et de régression"
+    ],
+    [
+     "maintenance testing",
+     "impact analysis",
+     "test de maintenance"
+    ],
+    [
+     "testing principles",
+     "seven principles of testing",
+     "principes du test"
+    ],
+    [
+     "DevOps and testing",
+     "continuous integration",
+     "DevOps et test"
+    ],
+    [
+     "tool selection",
+     "proof of concept",
+     "sélection d'outil de test"
+    ],
+    [
+     "security testing",
+     "vulnerability scanning",
+     "test de sécurité"
+    ],
+    [
+     "mobile application testing",
+     "device fragmentation",
+     "test d'application mobile"
+    ],
+    [
+     "test team motivation",
+     "mentoring",
+     "motivation de l'équipe de test"
+    ],
+    [
+     "stakeholders",
+     "test stakeholders",
+     "parties prenantes"
+    ],
+    [
+     "prompt engineering",
+     "test case generation with generative AI",
+     "ingénierie de prompt"
+    ],
+    [
+     "shift-left",
+     "early testing",
+     "test au plus tôt"
+    ],
+    [
+     "test automation maintenance",
+     "maintainability of test scripts",
+     "maintenance de l'automatisation des tests"
+    ],
+    [
+     "test process improvement agile",
+     "iterative life cycle",
+     "amélioration du processus de test"
+    ],
+    [
+     "test process improvement agile",
+     "retrospectives",
+     "amélioration du processus de test en agile"
+    ],
+    [
+     "flaky tests",
+     "tests instables non déterministes",
+     "test automation maintenance"
+    ],
+    [
+     "review process",
+     "processus de revue",
+     "formal review activities"
+    ],
+    [
+     "stakeholders test management",
+     "parties prenantes du test",
+     "stakeholder communication test manager"
+    ],
+    [
+     "error defect failure",
+     "erreur défaut défaillance",
+     "root cause analysis"
+    ],
+    [
+     "defect management",
+     "gestion des défauts",
+     "defect report"
+    ],
+    [
+     "Critical Testing Processes CTP",
+     "content-based test process improvement",
+     "amélioration du processus de test basée sur le contenu"
+    ],
+    [
+     "content-based models STEP CTP",
+     "Systematic Test and Evaluation Process",
+     "modèles d'amélioration basés sur le contenu"
+    ],
+    [
+     "staged continuous representation maturity model",
+     "représentation étagée continue",
+     "TMMi maturity levels"
+    ],
+    [
+     "team motivation",
+     "motivation de l'équipe de test",
+     "human factors testing"
+    ],
+    [
+     "tester motivation",
+     "motivation des testeurs",
+     "managing the test team"
+    ],
+    [
+     "test progress reporting",
+     "rapport d'avancement des tests",
+     "test status report stakeholders"
+    ],
+    [
+     "test effort estimation",
+     "estimation de l'effort de test",
+     "estimation techniques metrics-based expert-based"
+    ],
+    [
+     "test manager agile",
+     "rôle du test manager en agile",
+     "agile testing"
+    ],
+    [
+     "generic test automation architecture",
+     "architecture d'automatisation des tests",
+     "test automation framework layers"
+    ],
+    [
+     "test automation framework layers",
+     "generic test automation architecture gTAA",
+     "architecture d'automatisation des tests"
+    ],
+    [
+     "test case prioritization",
+     "priorisation des cas de test",
+     "risk-based testing"
+    ],
+    [
+     "boundary value analysis",
+     "analyse des valeurs limites",
+     "equivalence partitioning"
+    ],
+    [
+     "exploratory testing",
+     "tests exploratoires",
+     "experience-based test techniques"
+    ],
+    [
+     "defect management",
+     "gestion des défauts",
+     "defect report"
+    ],
+    [
+     "usability evaluation",
+     "évaluation de l'utilisabilité",
+     "usability testing"
+    ],
+    [
+     "exploratory testing",
+     "tests exploratoires",
+     "experience-based test techniques"
+    ],
+    [
+     "exploratory testing",
+     "tests exploratoires",
+     "techniques de test basées sur l'expérience"
+    ],
+    [
+     "equivalence partitioning",
+     "partitionnement d'équivalence",
+     "black-box test techniques"
+    ],
+    [
+     "component testing",
+     "tests unitaires",
+     "test de composants"
+    ],
+    [
+     "exploratory testing",
+     "tests exploratoires",
+     "experience-based test techniques"
+    ],
+    [
+     "session-based exploratory testing",
+     "test exploratoire basé sur des sessions",
+     "test charter"
+    ],
+    [
+     "whole team approach",
+     "approche équipe intégrée",
+     "approche d'équipe intégrée"
+    ]
+   ],
+   "reglage": [
+    [
+     "risk identification",
+     "risk assessment",
+     "product risk analysis"
+    ],
+    [
+     "equivalence partitioning",
+     "partitionnement en classes d'équivalence"
+    ],
+    [
+     "boundary value analysis",
+     "analyse des valeurs limites"
+    ],
+    [
+     "state transition testing",
+     "valid transitions coverage",
+     "test de transition d'état"
+    ],
+    [
+     "decision table testing",
+     "test par tables de décision"
+    ],
+    [
+     "whole team approach",
+     "approche équipe intégrée"
+    ],
+    [
+     "independence of testing",
+     "indépendance du test"
+    ],
+    [
+     "shift-left approach",
+     "early testing",
+     "approche shift-left"
+    ],
+    [
+     "retrospectives and process improvement",
+     "rétrospectives et amélioration des processus"
+    ],
+    [
+     "IDEAL model test process improvement",
+     "modèle IDEAL amélioration du processus de test"
+    ],
+    [
+     "TPI Next",
+     "TMMi",
+     "model-based test process improvement"
+    ],
+    [
+     "Deming cycle plan-do-check-act",
+     "PDCA",
+     "cycle de Deming"
+    ],
+    [
+     "test effort estimation techniques",
+     "Wideband Delphi planning poker",
+     "techniques d'estimation de l'effort de test"
+    ],
+    [
+     "factors influencing test effort",
+     "facteurs influençant l'effort de test"
+    ],
+    [
+     "defect management",
+     "defect lifecycle",
+     "gestion des défauts"
+    ],
+    [
+     "test automation solution maintainability",
+     "test automation architecture",
+     "maintenabilité de la solution d'automatisation des tests"
+    ],
+    [
+     "continuous integration continuous delivery test automation",
+     "DevOps pipeline",
+     "automatisation des tests intégration continue"
+    ],
+    [
+     "session-based exploratory testing",
+     "test charter",
+     "test exploratoire basé sur les sessions"
+    ],
+    [
+     "roles and responsibilities in reviews",
+     "review process",
+     "rôles et responsabilités dans les revues"
+    ],
+    [
+     "acceptance test-driven development ATDD",
+     "acceptance criteria",
+     "critères d'acceptation"
+    ],
+    [
+     "test case prioritization",
+     "priorisation des tests",
+     "risk-based test prioritization"
+    ],
+    [
+     "test pyramid",
+     "pyramide des tests",
+     "test levels automation"
+    ],
+    [
+     "testing quadrants",
+     "quadrants de test",
+     "agile testing quadrants"
+    ],
+    [
+     "entry criteria exit criteria",
+     "critères d'entrée et de sortie",
+     "definition of ready definition of done"
+    ],
+    [
+     "load generation",
+     "génération de charge",
+     "performance test tools"
+    ],
+    [
+     "performance metrics",
+     "métriques de performance",
+     "monitoring performance test"
+    ],
+    [
+     "bias in AI-based systems",
+     "biais des systèmes d'IA",
+     "fairness testing"
+    ],
+    [
+     "LLM hallucinations",
+     "hallucinations de l'IA générative",
+     "generative AI risks in testing"
+    ],
+    [
+     "heuristic evaluation",
+     "évaluation heuristique",
+     "usability evaluation"
+    ],
+    [
+     "root cause analysis",
+     "analyse des causes racines",
+     "Ishikawa fishbone diagram"
+    ],
+    [
+     "test metrics",
+     "métriques de test",
+     "defect detection percentage"
+    ],
+    [
+     "test automation business case",
+     "ROI de l'automatisation des tests",
+     "coûts et bénéfices de l'automatisation"
+    ],
+    [
+     "value stream mapping",
+     "cartographie de la chaîne de valeur",
+     "lead time cycle time"
+    ],
+    [
+     "equivalence partitioning",
+     "boundary value analysis",
+     "partitions d'équivalence analyse des valeurs limites"
+    ],
+    [
+     "risk-based testing",
+     "test basé sur les risques",
+     "product risk analysis"
+    ],
+    [
+     "test oracle",
+     "oracle de test",
+     "test oracle problem"
+    ]
+   ],
+   "examens": [
+    [
+     "objectives of testing",
+     "objectifs du test",
+     "testing shows the presence of defects"
+    ],
+    [
+     "why is testing necessary",
+     "testing's contributions to success",
+     "contribution du test au succès"
+    ],
+    [
+     "pesticide paradox",
+     "tests wear out",
+     "paradoxe du pesticide"
+    ],
+    [
+     "test analysis",
+     "test activities and tasks",
+     "analyse de test"
+    ],
+    [
+     "test process in context",
+     "factors influencing the test approach",
+     "processus de test dans le contexte"
+    ],
+    [
+     "roles in testing",
+     "testing role",
+     "rôles dans le test"
+    ],
+    [
+     "generic skills required for testing",
+     "tester skills",
+     "compétences du testeur"
+    ],
+    [
+     "whole team approach",
+     "approche équipe intégrée",
+     "collaboration-based test approaches"
+    ],
+    [
+     "testing in the context of a software development lifecycle",
+     "good testing practices SDLC",
+     "bonnes pratiques de test cycle de vie"
+    ],
+    [
+     "acceptance test-driven development ATDD",
+     "développement piloté par les tests d'acceptation",
+     "test-first approaches"
+    ],
+    [
+     "shift-left approach",
+     "approche shift-left",
+     "early testing"
+    ],
+    [
+     "retrospectives and process improvement",
+     "rétrospectives",
+     "amélioration des processus"
+    ],
+    [
+     "test levels",
+     "niveaux de test",
+     "component integration system acceptance testing"
+    ],
+    [
+     "confirmation testing and regression testing",
+     "test de confirmation et test de régression",
+     "maintenance testing"
+    ],
+    [
+     "value of static testing",
+     "static testing benefits",
+     "bénéfices du test statique"
+    ],
+    [
+     "value of early and frequent stakeholder feedback",
+     "feedback des parties prenantes",
+     "early feedback"
+    ],
+    [
+     "review types walkthrough",
+     "types de revue",
+     "technical review inspection roles scribe"
+    ],
+    [
+     "success factors for reviews",
+     "facteurs de succès des revues",
+     "review process"
+    ],
+    [
+     "experience-based test techniques",
+     "techniques de test basées sur l'expérience",
+     "categories of test techniques"
+    ],
+    [
+     "equivalence partitioning",
+     "partitionnement en classes d'équivalence",
+     "each choice coverage"
+    ],
+    [
+     "boundary value analysis",
+     "2-value boundary value analysis",
+     "analyse des valeurs limites"
+    ],
+    [
+     "decision table testing",
+     "infeasible combinations decision table",
+     "test par tables de décision"
+    ],
+    [
+     "state transition testing",
+     "valid transitions coverage",
+     "test de transition d'état"
+    ],
+    [
+     "statement testing and statement coverage",
+     "statement coverage",
+     "couverture des instructions"
+    ],
+    [
+     "value of white-box testing",
+     "white-box test techniques",
+     "techniques de test boîte blanche"
+    ],
+    [
+     "error guessing",
+     "experience-based test techniques",
+     "estimation d'erreurs"
+    ],
+    [
+     "exploratory testing",
+     "choosing test techniques",
+     "test exploratoire"
+    ],
+    [
+     "writing acceptance criteria",
+     "Given/When/Then acceptance criteria",
+     "critères d'acceptation"
+    ],
+    [
+     "acceptance test-driven development",
+     "ATDD",
+     "développement piloté par les tests d'acceptation"
+    ],
+    [
+     "release and iteration planning",
+     "tester's contribution to iteration planning",
+     "planification des itérations et des releases"
+    ],
+    [
+     "entry criteria and exit criteria",
+     "exit criteria",
+     "critères de sortie"
+    ],
+    [
+     "three-point estimation",
+     "test effort estimation techniques",
+     "estimation de l'effort de test"
+    ],
+    [
+     "test case prioritization",
+     "test execution schedule",
+     "priorisation des cas de test"
+    ],
+    [
+     "testing quadrants",
+     "agile testing quadrants",
+     "quadrants de test"
+    ],
+    [
+     "risk mitigation",
+     "product risk control",
+     "atténuation des risques"
+    ],
+    [
+     "burndown chart",
+     "test monitoring and test control",
+     "suivi et contrôle des tests"
+    ],
+    [
+     "configuration management",
+     "version control of testware",
+     "gestion de configuration"
+    ],
+    [
+     "defect management",
+     "defect report",
+     "rapport d'anomalie"
+    ],
+    [
+     "tool support for testing",
+     "test data preparation tools",
+     "outils de test"
+    ],
+    [
+     "benefits and risks of test automation",
+     "test automation risks",
+     "risques de l'automatisation des tests"
+    ],
+    [
+     "test planning",
+     "planification des tests",
+     "test plan content"
+    ],
+    [
+     "test monitoring and control",
+     "suivi et contrôle des tests",
+     "test progress metrics"
+    ],
+    [
+     "stakeholder communication",
+     "communication avec les parties prenantes",
+     "test manager stakeholders"
+    ],
+    [
+     "stakeholder analysis",
+     "analyse des parties prenantes",
+     "stakeholder matrix"
+    ],
+    [
+     "hybrid software development lifecycle",
+     "test dans les modèles hybrides",
+     "testing in iterative and agile development"
+    ],
+    [
+     "software development lifecycle models",
+     "cycle de vie du développement logiciel",
+     "iterative development testing"
+    ],
+    [
+     "test management in continuous delivery",
+     "gestion des tests DevOps",
+     "regression test automation"
+    ],
+    [
+     "risk-based testing",
+     "test basé sur les risques",
+     "regression testing safety-critical"
+    ],
+    [
+     "product risk analysis",
+     "test de fiabilité",
+     "reliability testing"
+    ],
+    [
+     "failure mode and effect analysis",
+     "analyse des modes de défaillance et de leurs effets",
+     "risk identification techniques"
+    ],
+    [
+     "risk mitigation",
+     "atténuation des risques produit",
+     "risk level likelihood impact"
+    ],
+    [
+     "risk-based testing test types",
+     "choix des types de test selon les risques",
+     "quality characteristics risk mitigation"
+    ],
+    [
+     "lightweight risk analysis techniques",
+     "analyse de risques légère",
+     "risk poker agile"
+    ],
+    [
+     "test strategy",
+     "stratégie de test",
+     "test levels test types test techniques"
+    ],
+    [
+     "test approach",
+     "approche de test",
+     "organizational test strategy"
+    ],
+    [
+     "test approach security testing",
+     "anonymisation des données de test",
+     "test data management"
+    ],
+    [
+     "test objectives",
+     "objectifs de test SMART",
+     "SMART goals"
+    ],
+    [
+     "SMART test objectives",
+     "objectifs de test mesurables",
+     "mobile application testing"
+    ],
+    [
+     "IDEAL model",
+     "modèle IDEAL amélioration du processus de test",
+     "test process improvement diagnosing"
+    ],
+    [
+     "TMMi",
+     "amélioration du processus de test",
+     "TMMi in agile"
+    ],
+    [
+     "retrospectives",
+     "rétrospective",
+     "lessons learned"
+    ],
+    [
+     "retrospectives agile",
+     "rétrospective d'itération",
+     "role of tester in retrospectives"
+    ],
+    [
+     "tool selection",
+     "sélection d'outils",
+     "test tool evaluation"
+    ],
+    [
+     "open source tools",
+     "outils open source",
+     "test automation tool selection"
+    ],
+    [
+     "return on investment test tools",
+     "retour sur investissement des outils",
+     "test automation cost benefit"
+    ],
+    [
+     "tool lifecycle",
+     "cycle de vie des outils",
+     "retiring a tool"
+    ],
+    [
+     "test metrics",
+     "métriques de test",
+     "test monitoring and control"
+    ],
+    [
+     "test metrics",
+     "métriques utilisées en test",
+     "purpose of metrics"
+    ],
+    [
+     "test reports",
+     "rapports de test",
+     "risk-based test reporting"
+    ],
+    [
+     "test reporting stakeholders",
+     "rapports de test",
+     "test metrics"
+    ],
+    [
+     "test effort estimation factors",
+     "facteurs influençant l'effort de test",
+     "test estimation"
+    ],
+    [
+     "test estimation techniques",
+     "estimation de l'effort de test",
+     "planning poker"
+    ],
+    [
+     "estimation techniques",
+     "techniques d'estimation",
+     "metrics-based estimation"
+    ],
+    [
+     "defect management",
+     "gestion des défauts",
+     "defect report"
+    ],
+    [
+     "defect lifecycle",
+     "cycle de vie des défauts",
+     "defect workflow"
+    ],
+    [
+     "defect report states",
+     "états du rapport de défaut",
+     "defect lifecycle"
+    ],
+    [
+     "defect management agile",
+     "gestion des défauts agile",
+     "defect report"
+    ],
+    [
+     "defect management",
+     "gestion des défauts",
+     "hybrid lifecycle"
+    ],
+    [
+     "defect report contents",
+     "contenu du rapport de défaut",
+     "defect report"
+    ],
+    [
+     "defect report information",
+     "rapport de défaut",
+     "outsourced testing communication"
+    ],
+    [
+     "defect prevention",
+     "root cause analysis",
+     "prévention des défauts"
+    ],
+    [
+     "methodological skills",
+     "test team skills",
+     "compétences de l'équipe de test"
+    ],
+    [
+     "test analyst skills",
+     "safety-critical systems",
+     "compétences de l'analyste de test"
+    ],
+    [
+     "test team skills",
+     "individual skills tester",
+     "compétences de l'équipe de test"
+    ],
+    [
+     "skills assessment",
+     "skills of the test team",
+     "évaluation des compétences"
+    ],
+    [
+     "developing skills test team",
+     "mentoring and coaching",
+     "développement des compétences"
+    ],
+    [
+     "team development stages",
+     "leading the test team",
+     "gestion de l'équipe de test"
+    ],
+    [
+     "cost of quality",
+     "costs of prevention appraisal failure",
+     "coût de la qualité"
+    ],
+    [
+     "cost-benefit of testing",
+     "test business case",
+     "coûts et bénéfices du test"
+    ],
+    [
+     "cost of failure",
+     "product risk factors",
+     "coût des défaillances"
+    ],
+    [
+     "test analyst iterative lifecycle",
+     "test activities in iterative development",
+     "analyste de test cycle de vie itératif"
+    ],
+    [
+     "test design test analyst",
+     "boundary value analysis",
+     "conception des tests"
+    ],
+    [
+     "keyword-driven testing",
+     "test implementation",
+     "implémentation des tests"
+    ],
+    [
+     "test environment requirements",
+     "simulators test environment",
+     "environnement de test"
+    ],
+    [
+     "test oracle",
+     "pseudo-oracle",
+     "oracle de test"
+    ],
+    [
+     "test data anonymization",
+     "test data preparation",
+     "données de test anonymisées"
+    ],
+    [
+     "keyword-driven testing",
+     "composite keywords",
+     "test piloté par mots-clés"
+    ],
+    [
+     "testware management",
+     "test management tool",
+     "outil de gestion des tests"
+    ],
+    [
+     "test analyst risk-based testing",
+     "product risk analysis",
+     "analyse des risques produit"
+    ],
+    [
+     "regression test selection",
+     "traceability matrix",
+     "sélection des tests de régression"
+    ],
+    [
+     "regression testing",
+     "impact analysis",
+     "analyse d'impact test de régression"
+    ],
+    [
+     "domain testing",
+     "domain analysis",
+     "test de domaine"
+    ],
+    [
+     "boundary value analysis",
+     "domain testing",
+     "analyse des valeurs limites"
+    ],
+    [
+     "combinatorial testing",
+     "pairwise testing",
+     "test combinatoire"
+    ],
+    [
+     "pairwise testing",
+     "combinatorial testing",
+     "test par paires"
+    ],
+    [
+     "random testing",
+     "adaptive random testing",
+     "test aléatoire"
+    ],
+    [
+     "CRUD testing",
+     "CRUD matrix",
+     "test CRUD"
+    ],
+    [
+     "state transition testing",
+     "round-trip coverage",
+     "test de transition d'états"
+    ],
+    [
+     "state transition testing",
+     "N-switch coverage",
+     "couverture 1-switch"
+    ],
+    [
+     "use case testing",
+     "scenario-based testing",
+     "test des cas d'utilisation"
+    ],
+    [
+     "scenario-based testing",
+     "activity diagram",
+     "test basé sur les scénarios"
+    ],
+    [
+     "decision table testing",
+     "test par tables de décision"
+    ],
+    [
+     "decision table minimization",
+     "collapsed decision table",
+     "table de décision minimisée"
+    ],
+    [
+     "metamorphic testing",
+     "metamorphic relation",
+     "test métamorphique"
+    ],
+    [
+     "metamorphic testing",
+     "test oracle problem",
+     "problème de l'oracle de test"
+    ],
+    [
+     "test charter",
+     "session-based exploratory testing",
+     "charte de test"
+    ],
+    [
+     "test charter",
+     "session-based test management",
+     "charte de session de test exploratoire"
+    ],
+    [
+     "checklist-based testing",
+     "test basé sur des listes de contrôle"
+    ],
+    [
+     "checklist-based testing",
+     "checklist maintenance",
+     "mise à jour de la liste de contrôle"
+    ],
+    [
+     "crowd testing",
+     "crowdtesting benefits",
+     "test participatif"
+    ],
+    [
+     "risk-based testing",
+     "test basé sur les risques",
+     "selecting test techniques"
+    ],
+    [
+     "testing AI-based systems",
+     "combinatorial testing",
+     "test des systèmes basés sur l'IA"
+    ],
+    [
+     "model-based testing benefits",
+     "automatisation de la conception des tests",
+     "test automation benefits"
+    ],
+    [
+     "functional correctness testing",
+     "test d'exactitude fonctionnelle",
+     "functional suitability"
+    ],
+    [
+     "usability testing",
+     "test d'utilisabilité",
+     "test analyst role usability"
+    ],
+    [
+     "adaptability testing",
+     "test d'adaptabilité",
+     "portability testing"
+    ],
+    [
+     "interoperability testing",
+     "test d'interopérabilité",
+     "compatibility testing"
+    ],
+    [
+     "defect prevention",
+     "prévention des défauts",
+     "test analyst defect prevention"
+    ],
+    [
+     "decision table testing",
+     "test par tables de décision",
+     "static testing of specifications"
+    ],
+    [
+     "state transition testing",
+     "test de transition d'états",
+     "model-based testing requirements"
+    ],
+    [
+     "reviewing use cases",
+     "revue des cas d'utilisation",
+     "use case testing"
+    ],
+    [
+     "review techniques",
+     "techniques de revue",
+     "checklist-based reviewing"
+    ],
+    [
+     "phase containment",
+     "confinement par phase",
+     "defect metrics"
+    ],
+    [
+     "defect prediction",
+     "métriques de défauts",
+     "defect density by component"
+    ],
+    [
+     "defect classification",
+     "classification des défauts",
+     "root cause analysis"
+    ]
+   ]
+  }
+ ],
+ "cout_usd": 1.0417
+}

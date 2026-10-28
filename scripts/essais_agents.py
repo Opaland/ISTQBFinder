@@ -5,6 +5,7 @@ Sylvie) via `claude -p`, puis contrôle automatiquement chaque réponse.
     python scripts/essais_agents.py                 # tous les essais
     python scripts/essais_agents.py T1-couverture S1-rbt   # seulement ces identifiants
     python scripts/essais_agents.py M                       # préfixe : tous les essais M…
+    python scripts/essais_agents.py --fidelite S1-rbt       # + contrôle de fond de fidélité (#152)
 
 Prérequis : CLI `claude` connectée, index construit (`python qa.py actualiser`).
 Les essais tournent avec les permissions réelles du dépôt (règles `allow` de
@@ -25,6 +26,14 @@ manque (#127) :
 - critères propres à l'essai (`"criteres"` dans eval/essais.json, voir `controler()`) :
   méthode en étapes, étapes sourcées, exemple fictif, domaines, questions de cadrage ou à
   choix, hypothèses explicites, couverture absente signalée, mentions attendues.
+
+Contrôle de fond OPTIONNEL `--fidelite` (#152) : chaque citation lue est jugée par un juge
+LLM (méthode RAGAS faithfulness, `scripts/etude_juge.py`) contre le texte de la page lue
+pendant la conversation : chaque ligne qui porte des citations est-elle soutenue par les
+pages qu'elle cite ? Indicateur seulement (score de fidélité moyen et lignes jugées
+contradictoires dans le bilan, jamais un échec) : le juge est de la même famille de
+modèle que l'agent (biais d'auto-évaluation), étalonnage dans docs/architecture.md.
+Coût : ≈ 0,03 $ par ligne citée, en plus de l'essai.
 """
 import json
 import os
@@ -38,6 +47,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import commun  # noqa: E402
+import etude_juge  # noqa: E402
 
 RACINE = Path(__file__).resolve().parent.parent
 # Outils hors Bash dont les agents ont besoin (lecture, skill, Web) ; les commandes Bash
@@ -85,6 +95,8 @@ RE_JETON = re.compile(r"(?P<code>\b(?:CTFL(?:-AT)?|CTAL-[A-Za-z]+|CTEL-[A-Za-z]+
                       r"|(?P<ref>§\s?[\d.]+[^\n\]\)§;]{0,40}?\bpp?\.\s?(?P<p1>\d+)(?:\s?[-–]\s?(?P<p2>\d+))?)")
 RE_CONFIANCE = re.compile(r"[Cc]onfiance\s*:?\s*\**\s*(\d{1,3})\s*/\s*100")
 RE_ETAPE = re.compile(r"^\s*(?:[-*]\s*)?(?:\*\*)?(?:[ÉE]tape\s*)?\d+\s*[.)—:-]", re.M)
+# Calcul de la confiance recopié de `qa.py confiance` (#227) : « base 70 × 0,6 = 42 ».
+RE_CALCUL_CONFIANCE = re.compile(r"\d{1,3}\s*[×x*]\s*0[,.]6\b", re.I)
 RE_NON_COUVERT = re.compile(r"pas de syllabus|aucun syllabus|ne couvre pas|non couvert|absente? de la biblioth|"
                             r"n'est pas dans la biblioth|pas dans la biblioth|hors biblioth", re.I)
 
@@ -101,7 +113,8 @@ def controler(reponse: str, criteres: dict) -> dict[str, bool]:
     (chaque étape, sous-puces comprises, porte « § » ou « interprétation »), exemple (exemple marqué fictif / interprétation),
     domaines et mentions (listes de motifs, tous présents), cadrage, questions_choix
     (« Questions à choix » suivi d'au moins 2 options numérotées), hypotheses,
-    non_couvert (absence de syllabus dédié dite franchement), confiance."""
+    non_couvert (absence de syllabus dédié dite franchement), confiance, calcul_confiance
+    (le calcul « base N × 0,6 » de `qa.py confiance` est recopié, #227)."""
     out = {}
     methode = _apres(reponse, r"m[ée]thode")
     # La méthode s'arrête au titre de l'exemple (« ## Exemple… », « **Exemple… »), pas à un
@@ -139,6 +152,8 @@ def controler(reponse: str, criteres: dict) -> dict[str, bool]:
         out["non_couvert"] = bool(RE_NON_COUVERT.search(reponse))
     if criteres.get("confiance"):
         out["confiance"] = bool(RE_CONFIANCE.search(reponse))
+    if criteres.get("calcul_confiance"):
+        out["calcul_confiance"] = bool(RE_CALCUL_CONFIANCE.search(reponse))
     return out
 
 
@@ -166,12 +181,25 @@ def outils_utilises(evenements: list[dict]) -> tuple[list[str], str]:
     return commandes, "\n".join(sorties)
 
 
+RE_ENTETE = re.compile(r"── ([A-Za-z0-9.-]+?)-(?:BoK-)?[\dv.?]+(?:-[a-z]+)?-(?:en|fr) ·.*?· p\. (\d+)")
+
+
 def pages_lues(sorties: str) -> set[tuple[str, int]]:
     """(code, page) affichés par `lire` / `section` / `page` (lignes « ── DOC · … · p. N »)."""
-    lues = set()
-    for m in re.finditer(r"── ([A-Za-z0-9.-]+?)-(?:BoK-)?[\dv.?]+(?:-[a-z]+)?-(?:en|fr) ·.*?· p\. (\d+)", sorties):
-        lues.add((m.group(1).upper(), int(m.group(2))))
-    return lues
+    return {(m.group(1).upper(), int(m.group(2))) for m in RE_ENTETE.finditer(sorties)}
+
+
+def textes_lus(sorties: str, maximum: int = 4000) -> dict[tuple[str, int], str]:
+    """Texte affiché sous chaque en-tête « ── DOC · … · p. N » (jusqu'à l'en-tête suivant,
+    `maximum` caractères au plus), par (code, page) : le passage réellement lu (#152)."""
+    entetes = list(RE_ENTETE.finditer(sorties))
+    lus: dict[tuple[str, int], str] = {}
+    for m, suivant in zip(entetes, [*entetes[1:], None]):
+        bloc = sorties[m.end():suivant.start() if suivant else len(sorties)][:maximum].strip()
+        cle = (m.group(1).upper(), int(m.group(2)))
+        if bloc and bloc not in lus.get(cle, ""):
+            lus[cle] = f"{lus[cle]}\n{bloc}" if cle in lus else bloc
+    return lus
 
 
 # Sections de bilan (#139) : l'agent y déclare ce qu'il n'a PAS lu ou PAS cité ;
@@ -187,28 +215,32 @@ RE_NON_LU = re.compile(r"\bn['’](?:ai|a|ont|est|sont)\s+(?:donc\s+|pas\s+non\s
                        r"|\blue?s?\s+(?:en\s+partie|partiellement)\b|\ble\s+reste\s+(?:est\s+)?(?:à|a)\s+la\s+p\.", re.I)
 
 
+def sections_bilan(reponse: str) -> list[tuple[int, int]]:
+    """Étendue de chaque section de bilan (« Confiance », « Limites », « Traçabilité »,
+    « Sources retenues ») : du titre au titre suivant."""
+    titres = [m.start() for m in RE_TITRE.finditer(reponse)] + [len(reponse)]
+    return [(d, f) for d, f in zip(titres, titres[1:]) if RE_TITRE_BILAN.match(reponse, d)]
+
+
 def zones_non_lues(reponse: str) -> list[tuple[int, int]]:
     """Phrases des sections de bilan (« Confiance », « Limites », « Traçabilité »,
     « Sources retenues ») qui déclarent une référence non lue, non citée (#139) ou lue
     en partie (#181). Le reste de la réponse, et ces
     sections hors de telles phrases, restent soumis au contrôle strict."""
-    zones, titres = [], [m.start() for m in RE_TITRE.finditer(reponse)] + [len(reponse)]
-    for debut, fin in zip(titres, titres[1:]):
-        if not RE_TITRE_BILAN.match(reponse, debut):
-            continue
+    zones = []
+    for debut, fin in sections_bilan(reponse):
         for ph in RE_PHRASE.finditer(reponse, debut, fin):
             if RE_NON_LU.search(ph.group()):
                 zones.append(ph.span())
     return zones
 
 
-def verifier_citations(reponse: str, lues: set) -> list[dict]:
-    """Chaque citation (code, pages) unique : une des pages a-t-elle été lue ?
+def references(reponse: str):
+    """(code, première page, dernière page, correspondance) de chaque citation unique.
     Une référence que l'agent déclare lui-même non lue ou non citée, dans une section
     de bilan, n'est pas une citation (#139) ; son code garde le contexte des suivantes."""
-    codes_lus = {c for c, _ in lues}
     exclues = zones_non_lues(reponse)
-    out, vues, code = [], set(), None
+    vues, code = set(), None
     for m in RE_JETON.finditer(reponse):
         if m.group("code"):
             code = m.group("code").upper()
@@ -219,10 +251,55 @@ def verifier_citations(reponse: str, lues: set) -> list[dict]:
         if (code, debut, fin) in vues:
             continue
         vues.add((code, debut, fin))
-        code_lu = next((c for c in codes_lus if c == code), None)
-        ok = bool(code_lu) and any((code_lu, p) in lues for p in range(debut, fin + 1))
-        out.append({"citation": f"{code} {m.group('ref')[:60]}", "lue": ok})
+        yield code, debut, fin, m
+
+
+def verifier_citations(reponse: str, lues: set) -> list[dict]:
+    """Chaque citation (code, pages) unique : une des pages a-t-elle été lue ?"""
+    return [{"citation": f"{code} {m.group('ref')[:60]}",
+             "lue": any((code, p) in lues for p in range(debut, fin + 1))}
+            for code, debut, fin, m in references(reponse)]
+
+
+def ligne_citee(reponse: str, position: int) -> tuple[int, str]:
+    """(début, texte sans puce) de la ligne de la réponse qui porte la citation."""
+    debut = reponse.rfind("\n", 0, position) + 1
+    fin = reponse.find("\n", position)
+    ligne = reponse[debut:fin if fin >= 0 else len(reponse)]
+    return debut, re.sub(r"^\s*(?:[-*]|\d+[.)])\s*", "", ligne).strip()
+
+
+def controle_fidelite(reponse: str, sorties: str, juge=etude_juge.juger) -> list[dict]:
+    """Contrôle de fond (#152), par LIGNE de la réponse qui porte des citations lues : le
+    juge reçoit la ligne (une puce, une ligne de tableau…) et le texte lu de toutes les
+    pages qu'elle cite, car une affirmation s'appuie souvent sur plusieurs références de
+    la même ligne. `juge(passage, phrase)` renvoie au moins `cout_usd` et, s'il a abouti,
+    `predit`, `fidelite` et `affirmations`. Les citations non lues sont déjà un échec de
+    l'essai : elles ne sont pas jugées, pas plus que les sections de bilan."""
+    lus, lignes, bilans = textes_lus(sorties), {}, sections_bilan(reponse)
+    for code, debut, fin, m in references(reponse):
+        if any(a <= m.start() < b for a, b in bilans):
+            continue  # liste des sources lues, limites : pas une affirmation sur le contenu
+        textes = [lus[(code, p)] for p in range(debut, fin + 1) if (code, p) in lus]
+        if textes:
+            cle, phrase = ligne_citee(reponse, m.start())
+            ligne = lignes.setdefault(cle, {"phrase": phrase, "citations": [], "textes": []})
+            ligne["citations"].append(f"{code} {m.group('ref')[:60]}")
+            ligne["textes"] += [t for t in textes if t not in ligne["textes"]]
+    out = []
+    for ligne in lignes.values():
+        r = juge("\n\n".join(ligne["textes"]), ligne["phrase"][:1500])
+        out.append({"citations": ligne["citations"], "phrase": ligne["phrase"][:200],
+                    "verdict": r.get("predit", "erreur"), "fidelite": r.get("fidelite"),
+                    "cout_usd": round(r.get("cout_usd") or 0, 4), "affirmations": r.get("affirmations", [])})
     return out
+
+
+def alertes_fidelite(jugements: list[dict]) -> list[str]:
+    """Lignes jugées contradictoires avec les passages lus (citation à contresens) : 0 fausse
+    alerte et 12 contradictions sur 12 à l'étalonnage. « non soutenue » n'alerte pas : une
+    ligne mêle souvent le passage cité et le contexte de l'utilisateur ou un raisonnement."""
+    return [f"{', '.join(j['citations'])} : {j['phrase'][:80]}" for j in jugements if j["verdict"] == "contradictoire"]
 
 
 def motifs_echec(bilan: dict) -> list[str]:
@@ -235,7 +312,7 @@ def motifs_echec(bilan: dict) -> list[str]:
     return motifs
 
 
-def lancer(essai: dict, dossier: Path, donnees: Path) -> dict:
+def lancer(essai: dict, dossier: Path, donnees: Path, fidelite: bool = False) -> dict:
     session = str(uuid.uuid4())
     cmd = ["claude", "-p", essai["question"], "--output-format", "json", "--session-id", session,
            "--allowedTools", *outils_autorises()]
@@ -266,6 +343,16 @@ def lancer(essai: dict, dossier: Path, donnees: Path) -> dict:
         bilan["criteres"] = controler(reponse, essai["criteres"])
         bilan["criteres_ko"] = [c for c, ok in bilan["criteres"].items() if not ok]
     bilan["echec"] = motifs_echec(bilan)
+    fidelite_md = ""
+    if fidelite:
+        bilan["fidelite"] = controle_fidelite(reponse, sorties)
+        bilan["fidelite_alertes"] = alertes_fidelite(bilan["fidelite"])
+        notes = [j["fidelite"] for j in bilan["fidelite"] if j["fidelite"] is not None]
+        bilan["fidelite_moyenne"] = round(sum(notes) / len(notes), 2) if notes else None
+        bilan["cout_usd"] = round(bilan["cout_usd"] + sum(j["cout_usd"] for j in bilan["fidelite"]), 3)
+        fidelite_md = (f" · **fidélité** (juge LLM, indicatif) : {bilan['fidelite_moyenne']} sur "
+                       f"{len(bilan['fidelite'])} lignes citées, {len(bilan['fidelite_alertes'])} contradiction(s)"
+                       + (f" ({' ; '.join(bilan['fidelite_alertes'])})" if bilan["fidelite_alertes"] else ""))
     criteres_md = ""
     if bilan.get("criteres"):
         criteres_md = (f" · **critères** : {sum(bilan['criteres'].values())}/{len(bilan['criteres'])}"
@@ -274,7 +361,7 @@ def lancer(essai: dict, dossier: Path, donnees: Path) -> dict:
         f"# {essai['id']} — {essai.get('agent') or 'skill'}\n\n**Question** : {essai['question']}\n\n"
         f"**Tours** : {bilan['tours']} · **coût** : {bilan['cout_usd']} $ · **confiance annoncée** : "
         f"{bilan['confiance']} · **verdict** : {'ÉCHEC' if bilan['echec'] else 'réussi'} · **citations** : {len(citations) - len(bilan['citations_non_lues'])}/"
-        f"{len(citations)} lues · **Web** : {len(bilan['web'])}{criteres_md}\n\n## Réponse\n\n{reponse}\n\n"
+        f"{len(citations)} lues · **Web** : {len(bilan['web'])}{criteres_md}{fidelite_md}\n\n## Réponse\n\n{reponse}\n\n"
         "## Commandes exécutées\n\n" + "\n".join(f"- `{c[:200]}`" for c in commandes) + "\n",
         encoding="utf-8")
     return bilan
@@ -282,8 +369,9 @@ def lancer(essai: dict, dossier: Path, donnees: Path) -> dict:
 
 def main() -> int:
     essais = json.loads((RACINE / "eval" / "essais.json").read_text(encoding="utf-8"))["essais"]
-    if sys.argv[1:]:
-        demandes = sys.argv[1:]
+    fidelite = "--fidelite" in sys.argv[1:]
+    demandes = [a for a in sys.argv[1:] if a != "--fidelite"]
+    if demandes:
         essais = [e for e in essais if any(e["id"] == d or e["id"].startswith(d) for d in demandes)]
     dossier = RACINE / "eval" / "essais-resultats" / date.today().isoformat()
     if not (RACINE / "bibliotheque" / "index.db").exists():
@@ -294,7 +382,7 @@ def main() -> int:
     try:
         for e in essais:
             print(f"… {e['id']}", flush=True)
-            b = lancer(e, dossier, donnees)
+            b = lancer(e, dossier, donnees, fidelite)
             bilans.append(b)
             if "erreur" in b:
                 b["echec"] = motifs_echec(b)
@@ -303,6 +391,10 @@ def main() -> int:
             print(f"  {b['tours']} tours · {b['cout_usd']} $ · confiance {b['confiance']} · citations "
                   f"{len(b['citations']) - len(b['citations_non_lues'])}/{len(b['citations'])} lues · web {len(b['web'])}"
                   + (f" · critères {sum(b['criteres'].values())}/{len(b['criteres'])} {b['criteres_ko'] or ''}" if b.get("criteres") else ""))
+            if fidelite:
+                print(f"  fidélité (indicatif) : {b['fidelite_moyenne']} sur {len(b['fidelite'])} lignes citées · "
+                      f"contradictions : {len(b['fidelite_alertes'])}"
+                      + (f" — {' ; '.join(b['fidelite_alertes'])}" if b["fidelite_alertes"] else ""))
             print("  ÉCHEC — " + " ; ".join(b["echec"]) if b["echec"] else "  réussi")
     finally:
         shutil.rmtree(donnees, ignore_errors=True)

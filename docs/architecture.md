@@ -142,6 +142,41 @@ deux jours », « vanne ouverte à 9 bars ») loin du vocabulaire des titres. Ce
 réservoir : une question qui en est tirée passe au contrôle (ou au jeu éloigné) AVANT tout
 correctif qu'elle motive.
 
+### Reformulation de la question par l'agent avant `chercher` (#151, 2026-10-28) : retenue
+
+Le jeu éloigné est passé de 5 à **20 questions** : 15 questions du jeu « examens » formulées
+en mots de métier ou en mise en situation, toutes en échec, ajoutées AVANT la consigne
+(éloigné 20 % (1/5) → 5 % (1/20), moteur inchangé). Consigne ajoutée au skill qa-knowledge
+(étape 2, « Reformuler avant de chercher ») : 2 ou 3 requêtes courtes en vocabulaire ISTQB,
+au moins une en anglais et une en français, lancées en plus de la question. Le moteur n'est
+pas modifié.
+
+Mesure : `python scripts/mesure_reformulation.py --jeux eloigne controle reglage examens
+--passages 3` donne la consigne (lue dans le skill) à `claude -p` (modèle par défaut de la
+CLI, sans outil, lots de 20 questions), puis passe chaque requête par `chercher`. Indicateur
+principal : fusion des listes (question + reformulations) par rang réciproque (RRF), 5
+passages gardés, même budget que `evaluer` ; secondaire : « une requête suffit » (la section
+attendue est dans les 5 premiers d'au moins une requête, l'agent lisant chaque liste).
+3 passages, moyenne [extrêmes] ; reformulations enregistrées dans
+`eval/reformulation-resultats/2026-10-28.json` (`--rejouer` recalcule sans repayer). Coût :
+1,04 $.
+
+| Jeu | Question seule | Reformulation, RRF 5 passages | Une requête suffit |
+|---|---|---|---|
+| **Éloigné (20 q.)** | 5 % (1/20) | **58 %** [11-12/20] | 68 % [13-14/20] |
+| Contrôle (47 q.) | 89 % (42/47) | 91 % [41-44/47] | 97 % [45-46/47] |
+| Réglage (36 q.) | 100 % | 100 % [36-36] | 100 % |
+| Examens (135 q.) | 47 % (64/135) | 68 % [90-94/135] | 88 % [117-119/135] |
+
+**Décision : retenue.** Gain net sur le jeu éloigné (+53 points en moyenne, chacun des 3
+passages ≥ 11/20) et sur les examens (+21 points), réglage inchangé, contrôle en hausse en
+moyenne. Un passage sur trois perd 1 question de contrôle sous RRF (41/47) : sur les
+questions déjà au rang 2 (« amélioration du processus de test en agile »), les
+reformulations font remonter d'autres sections ; avec « une requête suffit », aucune perte
+(la question d'origine reste lancée). Restent en échec au jeu éloigné notamment
+« les développeurs ne lisent pas nos rapports de bugs », « le site est tombé deux jours »,
+« compétences pour une plateforme de jeux en ligne ».
+
 ## Critères d'acceptation (vérifiables)
 
 | # | Critère | Vérification |
@@ -217,7 +252,8 @@ contrôle, 100 % → 97 % au réglage ; `paraphrase-multilingual-MiniLM-L12-v2`
 reformulation avec le terme ISTQB) est rempli, mais les embeddings multilingues légers ne
 les résolvent pas (jeu éloigné inchangé), font perdre une question de réglage et coûtent
 15 s par commande. Le prototype reste optionnel pour une réévaluation (autre modèle, ou
-reformulation de la question par l'agent avant `chercher`, piste plus prometteuse).
+reformulation de la question par l'agent avant `chercher`, piste plus prometteuse : mesurée
+et retenue dans #151, voir plus haut).
 
 ## Vérification des citations par NLI : étude (#108, 2026-10-22)
 
@@ -246,4 +282,55 @@ contresens passerait, et chaque contrôle coûte plusieurs secondes et 2 Go de d
 La garde reste la règle du skill (lire avant de citer) et la vérification mot pour mot de
 l'extrait. À réévaluer avec un modèle plus grand ou en découpant le passage en phrases
 (prémisse = phrase la plus proche de l'affirmation) : le jeu et le script sont versionnés.
+
+## Juge LLM de fidélité (méthode RAGAS) : étalonnage (#152, 2026-10-28)
+
+Question : un juge LLM, disponible sans dépendance via `claude -p`, fait-il mieux que le NLI
+(#108) ? Méthode RAGAS *faithfulness* : la réponse est découpée en affirmations atomiques,
+chacune est vérifiée contre le passage lu (soutenue / non soutenue / contradictoire) ; la
+paire prend le pire verdict, le score de fidélité est la part d'affirmations soutenues.
+Un appel par paire (découpage et vérification ensemble, sortie JSON imposée par
+`--json-schema`), sans outil ni réglage du dépôt : `python scripts/etude_juge.py`
+(juge `claude-opus-5-5`, détail dans `eval/nli/juge-2026-10-28*.json`). Même jeu de 48
+paires, deux passes pour la variance.
+
+| Mesure | NLI mDeBERTa (#108) | Juge, même passage que le NLI | Juge, section entière (`--section-entiere`) |
+|---|---|---|---|
+| Exactitude 3 classes | 69 % | **92 %** · 92 % | **98 %** · 100 % |
+| Fausses alertes sur une citation juste | 4/12 | 2/12 · 2/12 | 1/12 · 0/12 |
+| Citations fausses jugées soutenues (faux négatifs) | 5/36 | 0/36 · 0/36 | 0/36 · 0/36 |
+| dont contradictions jugées soutenues | 4/12 | 0/12 · 0/12 | 0/12 · 0/12 |
+| Verdicts qui changent d'une passe à l'autre | — | 0/48 | 1/48 |
+| Durée par paire | 4,7 s CPU (+ 22 s de chargement) | 4,3-4,8 s | 7,2 s |
+| Coût | 2 Go de dépendances | 0,005 $ par paire (0,017 $ à froid, écriture du cache) | 0,005 $ par paire |
+
+Les quatre erreurs du juge sur le passage du NLI ne sont pas les siennes : pour deux des
+douze passages (CTFL §4.1 p. 39, CT-AI §3.4.3 p. 37), le morceau retenu par
+`etude_nli.passage()` (le plus de mots communs avec l'affirmation française) ne contient
+pas la phrase utile, qui est dans le morceau suivant de la même section ; le juge répond
+alors « non soutenue » et le justifie. Le NLI était évalué sur ces mêmes passages. Avec la
+section entière, la seule erreur restante (une passe sur deux) est défendable : « les tests
+boîte blanche ne détectent pas les omissions » contre « *may not detect* ».
+
+**Décision : retenu comme contrôle de fond optionnel des essais** (`python
+scripts/essais_agents.py --fidelite …`), jamais à l'exécution courante de `qa.py`. Chaque
+ligne de la réponse qui porte des citations lues est jugée contre le texte affiché de
+toutes les pages qu'elle cite (une ligne de tableau s'appuie souvent sur plusieurs
+références : jugées une par une, 17 citations justes sur 18 de S3-reglemente étaient
+« non soutenues ») ; les sections de bilan (sources, limites) ne sont pas jugées. Le bilan
+reçoit le score de fidélité moyen et, en **alerte**, les lignes jugées contradictoires
+(0 fausse alerte et 12 contradictions sur 12 à l'étalonnage). « Non soutenue » n'alerte
+pas : sur une vraie réponse (S3-reglemente, 7 lignes, 0,22 $), presque toutes les
+affirmations non soutenues portent sur le contexte de l'utilisateur (« ta matrice ne
+prévoit que… ») ou sur une appréciation (« partiellement aligné »), légitimes mais absentes
+du passage par nature ; le score sert à repérer une ligne à relire (une ligne y obtient
+0,17 : cinq usages du niveau de risque, dont un seul figure, selon le juge, dans la page lue). Ce n'est
+jamais un échec d'essai.
+
+Limites : **biais d'auto-évaluation** — le juge est de la même famille de modèle que les
+agents jugés (Claude) ; il peut partager leurs lectures erronées d'un passage et se montrer
+indulgent envers des formulations qu'il produirait lui-même. Le jeu est petit (48 paires,
+contradictions par négation ou inversion simples, construit par la même famille de modèle)
+et ne mesure pas les contresens subtils ; tout verdict reste à confirmer par une relecture
+humaine du passage. Coût d'un essai `--fidelite` : ≈ 0,03 $ par ligne citée en plus.
 

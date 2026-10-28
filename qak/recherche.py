@@ -3,7 +3,8 @@
 Une question en langage naturel devient une liste de « groupes » :
 - chaque concept du thésaurus repéré donne un groupe OU de tous ses termes FR/EN
   (« partitions d'équivalence » cherche aussi « equivalence partitioning ») ;
-- chaque mot restant (hors mots vides et mots génériques) forme son propre groupe.
+- chaque mot restant (hors mots vides et mots génériques) forme son propre groupe, avec sa
+  traduction anglaise apprise sur les titres de sections alignés FR/EN (issue #241).
 Les candidats (OU de tous les groupes, classés BM25) sont reclassés par COUVERTURE :
 part pondérée des notions de la question présentes dans le passage (un concept du
 thésaurus pèse 2, un mot isolé 1), BM25 départageant les ex æquo. Un passage qui ne
@@ -137,6 +138,10 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
             gs = groupes(requete)
             avert.append("Faute de frappe probable : " + ", ".join(f"« {a} » compris comme « {b} »"
                                                                    for a, b in corrections.items()) + ".")
+        # Mot français sans équivalent au thésaurus (issue #241) : sa traduction apprise sur les
+        # titres alignés FR/EN rejoint son groupe, sinon un syllabus seulement anglais (CTFL v4.0)
+        # ne couvre jamais toute la question et passe derrière les syllabus français.
+        gs = traduire_mots(gs, cx)
         prefixe = f"{obligatoire.fts()} AND " if obligatoire else ""
         ou = prefixe + "(" + " OR ".join(g.fts() for g in gs) + ")" if gs else obligatoire.fts()
         candidats = executer(ou, CANDIDATS)
@@ -154,7 +159,6 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
         # devant une section qui ne fait que l'évoquer (issue #4 : « Shift Left » §2.1.5).
         trouves, en_titre = _notions_des_candidats(candidats, gs)
         total = sum(g.poids for g in gs) or 1
-
         def couverture(r) -> float:
             return sum(gs[k].poids for k in trouves[r["id"]]) / total
 
@@ -232,6 +236,55 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
     finally:
         if propre:
             cx.close()
+
+
+DICE_TRADUCTION = 0.6  # association minimale (Dice) entre un mot français et sa traduction
+_LEXIQUES: dict = {}
+
+
+def lexique_titres(cx: sqlite3.Connection) -> dict[str, str]:
+    """{racine d'un mot français: mot anglais} appris sur les titres de sections ALIGNÉS
+    (même code, même version, même numéro de section en FR et en EN, issue #241) : pour
+    chaque mot français, le mot anglais le plus associé (coefficient de Dice ≥ DICE_TRADUCTION,
+    au moins deux titres en commun). « activités » → « activities », « statique » → « static »,
+    « facteurs » → « factors ». Calculé une fois par état de l'index (≈ 1 000 paires de titres)."""
+    cle = tuple(cx.execute("SELECT (SELECT count(*) FROM sections), "
+                           "(SELECT group_concat(doc_id || statut_version) FROM documents)").fetchone())
+    if cle not in _LEXIQUES:
+        titres: dict = {}
+        for r in cx.execute("SELECT d.code, d.version, d.langue, s.numero, s.titre FROM sections s "
+                            "JOIN documents d ON d.doc_id = s.doc_id WHERE d.statut_version = 'courant'"):
+            titres.setdefault((r["code"], r["version"], r["numero"]), {})[r["langue"]] = r["titre"]
+
+        def mots_titre(t: str) -> set[str]:
+            return {m for m in normaliser(t).split() if m not in MOTS_VIDES and len(m) > 2 and not m.isdigit()}
+        fr, en, ensemble = collections.Counter(), collections.Counter(), collections.Counter()
+        for v in titres.values():
+            if "fr" in v and "en" in v:
+                a, b = {racine(m) for m in mots_titre(v["fr"])}, mots_titre(v["en"])
+                fr.update(a)
+                en.update(b)
+                ensemble.update((x, y) for x in a for y in b)
+        meilleurs: dict = {}
+        for (x, y), n in ensemble.items():
+            dice = 2 * n / (fr[x] + en[y])
+            if n >= 2 and dice >= DICE_TRADUCTION and dice > meilleurs.get(x, (0.0, ""))[0]:
+                meilleurs[x] = (dice, y)
+        _LEXIQUES.clear()
+        _LEXIQUES[cle] = {x: y for x, (_, y) in meilleurs.items()}
+    return _LEXIQUES[cle]
+
+
+def traduire_mots(gs: list[Groupe], cx: sqlite3.Connection) -> list[Groupe]:
+    """Ajoute à chaque groupe d'un seul mot (hors thésaurus) sa traduction anglaise apprise
+    sur les titres alignés : « facteurs de succès d'une revue » cherche aussi « factors »
+    et « success ». Les concepts du thésaurus sont déjà bilingues et restent inchangés."""
+    lex = lexique_titres(cx)
+    out = []
+    for g in gs:
+        trad = lex.get(racine(g.termes[0])) if len(g.termes) == 1 else None
+        out.append(Groupe(g.libelle, [*g.termes, trad], g.poids) if trad and trad != g.termes[0] else g)
+    return out
 
 
 SIMILARITE_THESAURUS = 0.8   # difflib : « priorisasion » / « priorisation » = 0,92

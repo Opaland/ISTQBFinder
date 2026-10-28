@@ -1,0 +1,1897 @@
+{
+ "bilan": {
+  "date": "2026-10-28",
+  "modele": "claude-opus-5-5",
+  "passes": {
+   "1": {
+    "paires": 48,
+    "exactitude": 0.9166666666666666,
+    "fausses_alertes": 2,
+    "citations_justes": 12,
+    "faux_negatifs": 0,
+    "citations_fausses": 36,
+    "contradictions_soutenues": 0,
+    "precision": 0.9473684210526315,
+    "rappel": 1.0,
+    "confusion": {
+     "contradictoire->contradictoire": 10,
+     "contradictoire->non_soutenue": 2,
+     "non_soutenue->non_soutenue": 24,
+     "soutenue->non_soutenue": 2,
+     "soutenue->soutenue": 10
+    }
+   },
+   "2": {
+    "paires": 48,
+    "exactitude": 0.9166666666666666,
+    "fausses_alertes": 2,
+    "citations_justes": 12,
+    "faux_negatifs": 0,
+    "citations_fausses": 36,
+    "contradictions_soutenues": 0,
+    "precision": 0.9473684210526315,
+    "rappel": 1.0,
+    "confusion": {
+     "contradictoire->contradictoire": 10,
+     "contradictoire->non_soutenue": 2,
+     "non_soutenue->non_soutenue": 24,
+     "soutenue->non_soutenue": 2,
+     "soutenue->soutenue": 10
+    }
+   }
+  },
+  "cout_total_usd": 1.036,
+  "erreurs": 0,
+  "paires_instables": []
+ },
+ "details": [
+  {
+   "passe": 1,
+   "paire": 0,
+   "attendu": "soutenue",
+   "affirmation": "La couverture des branches inclut celle des instructions, l'inverse est faux.",
+   "predit": "soutenue",
+   "fidelite": 1.0,
+   "affirmations": [
+    {
+     "affirmation": "La couverture des branches inclut (subsume) la couverture des instructions.",
+     "verdict": "soutenue",
+     "justification": "Le passage indique « Branch coverage subsumes statement coverage » : tout ensemble de tests qui atteint 100 % de couverture des branches atteint aussi 100 % de couverture des instructions."
+    },
+    {
+     "affirmation": "La couverture des instructions n'inclut pas la couverture des branches.",
+     "verdict": "soutenue",
+     "justification": "Le passage précise « (but not vice versa) », donc l'inclusion ne vaut pas dans l'autre sens."
+    }
+   ],
+   "cout_usd": 0.0057025999999999995,
+   "duree_s": 4.416095772000006,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 1,
+   "attendu": "contradictoire",
+   "affirmation": "La couverture des instructions inclut celle des branches.",
+   "predit": "contradictoire",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "La couverture des instructions inclut (subsume) la couverture des branches.",
+     "verdict": "contradictoire",
+     "justification": "Le passage dit l'inverse : c'est la couverture des branches qui inclut la couverture des instructions, « mais pas l'inverse »."
+    }
+   ],
+   "cout_usd": 0.0035808000000000003,
+   "duree_s": 4.797724960000039,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 2,
+   "attendu": "non_soutenue",
+   "affirmation": "La couverture des branches est exigée pour tout logiciel critique.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "La couverture des branches est exigée pour tout logiciel critique.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage définit les tests et la couverture des branches mais ne dit rien d'une exigence pour les logiciels critiques."
+    }
+   ],
+   "cout_usd": 0.0034418,
+   "duree_s": 4.530756897999993,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 3,
+   "attendu": "non_soutenue",
+   "affirmation": "Dans une architecture en couches, les scripts de test n'appellent pas directement les bibliothèques cœur.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Dans une architecture en couches, les scripts de test n'appellent pas directement les bibliothèques cœur.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage porte sur le test des branches et la couverture des branches, et ne dit rien des architectures en couches, des scripts de test ni des bibliothèques cœur."
+    }
+   ],
+   "cout_usd": 0.0040248,
+   "duree_s": 4.5842723540000065,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 4,
+   "attendu": "soutenue",
+   "affirmation": "Les tests boîte blanche ne détectent pas les omissions, c'est-à-dire une exigence non implémentée.",
+   "predit": "soutenue",
+   "fidelite": 1.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests boîte blanche ne détectent pas les défauts d'omission.",
+     "verdict": "soutenue",
+     "justification": "Le passage présente comme une faiblesse le fait que les tests boîte blanche « may not detect the resulting defects of omission », mais il dit « peuvent ne pas détecter » et non « ne détectent pas » : la réponse est plus catégorique que le texte."
+    },
+    {
+     "affirmation": "Un défaut d'omission correspond à une exigence que le logiciel n'implémente pas.",
+     "verdict": "soutenue",
+     "justification": "Le passage relie explicitement les défauts d'omission au cas où « the software does not implement one or more requirements »."
+    }
+   ],
+   "cout_usd": 0.0272282,
+   "duree_s": 9.223518194000007,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 5,
+   "attendu": "contradictoire",
+   "affirmation": "Les tests boîte blanche détectent les exigences qui n'ont pas été implémentées.",
+   "predit": "contradictoire",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests boîte blanche détectent les exigences qui n'ont pas été implémentées.",
+     "verdict": "contradictoire",
+     "justification": "Le passage indique que si le logiciel n'implémente pas une ou plusieurs exigences, les tests boîte blanche risquent de ne pas détecter les défauts d'omission qui en résultent, ce qui est l'inverse de l'affirmation."
+    }
+   ],
+   "cout_usd": 0.0176962,
+   "duree_s": 4.566351941999983,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 6,
+   "attendu": "non_soutenue",
+   "affirmation": "Les tests boîte blanche doivent être conçus par les développeurs.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests boîte blanche doivent être conçus par les développeurs.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage décrit les forces, les faiblesses et les usages des techniques boîte blanche, mais il ne dit nulle part qui doit concevoir ces tests."
+    }
+   ],
+   "cout_usd": 0.0169402,
+   "duree_s": 4.182093484999996,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 7,
+   "attendu": "non_soutenue",
+   "affirmation": "En visant moins de 100 % de couverture, on laisse souvent non testé le code le plus complexe et le plus sujet aux défauts.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Lorsqu'on vise moins de 100 % de couverture, on laisse souvent non testé le code le plus complexe et le plus sujet aux défauts.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage parle de la valeur des mesures de couverture boîte blanche, mais il ne dit rien des conséquences d'un objectif de couverture inférieur à 100 % ni du code complexe ou sujet aux défauts."
+    }
+   ],
+   "cout_usd": 0.0181162,
+   "duree_s": 4.3859593299999915,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 8,
+   "attendu": "soutenue",
+   "affirmation": "Les techniques basées sur l'expérience peuvent détecter des défauts que les techniques boîte noire et boîte blanche manquent.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les techniques de test basées sur l'expérience peuvent détecter des défauts que les techniques boîte noire et boîte blanche manquent.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage cite les techniques basées sur l'expérience comme une catégorie de la classification, mais il ne dit rien de leur capacité à détecter des défauts manqués par les techniques boîte noire et boîte blanche."
+    }
+   ],
+   "cout_usd": 0.0188962,
+   "duree_s": 7.692699957000002,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 9,
+   "attendu": "contradictoire",
+   "affirmation": "Les techniques basées sur l'expérience ne trouvent aucun défaut que les techniques boîte noire et boîte blanche manqueraient.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les techniques de test basées sur l'expérience ne trouvent aucun défaut que les techniques boîte noire et boîte blanche manqueraient.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage cite les techniques basées sur l'expérience uniquement comme une catégorie de classification, sans rien dire des défauts qu'elles trouvent ou non par rapport aux techniques boîte noire et boîte blanche."
+    }
+   ],
+   "cout_usd": 0.0201402,
+   "duree_s": 4.882608942999923,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 10,
+   "attendu": "non_soutenue",
+   "affirmation": "Les techniques basées sur l'expérience doivent être appliquées avant les techniques boîte noire.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les techniques basées sur l'expérience doivent être appliquées avant les techniques boîte noire.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage classe les techniques en boîte noire, boîte blanche et basées sur l'expérience, mais il n'indique aucun ordre dans lequel les appliquer."
+    }
+   ],
+   "cout_usd": 0.0181802,
+   "duree_s": 3.7187242520000154,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 11,
+   "attendu": "non_soutenue",
+   "affirmation": "Les tests de régression sont l'opportunité la plus simple pour passer à l'automatisation.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests de régression sont l'opportunité la plus simple pour passer à l'automatisation.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage décrit les techniques de test (boîte noire, boîte blanche, basées sur l'expérience) et ne parle ni des tests de régression ni de l'automatisation."
+    }
+   ],
+   "cout_usd": 0.0181642,
+   "duree_s": 5.419387235000045,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 12,
+   "attendu": "soutenue",
+   "affirmation": "Le capture/playback est facile à démarrer mais difficile à maintenir et à faire évoluer.",
+   "predit": "soutenue",
+   "fidelite": 1.0,
+   "affirmations": [
+    {
+     "affirmation": "Le capture/playback est facile à démarrer.",
+     "verdict": "soutenue",
+     "justification": "Le passage indique comme avantage « Initially easy to set up and use »."
+    },
+    {
+     "affirmation": "Le capture/playback est difficile à maintenir.",
+     "verdict": "soutenue",
+     "justification": "Le passage indique comme inconvénient « Hard to maintain »."
+    },
+    {
+     "affirmation": "Le capture/playback est difficile à faire évoluer.",
+     "verdict": "soutenue",
+     "justification": "Le passage indique comme inconvénient « Hard to ... evolve »."
+    }
+   ],
+   "cout_usd": 0.018788199999999998,
+   "duree_s": 4.037213074999954,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 13,
+   "attendu": "contradictoire",
+   "affirmation": "Le capture/playback est facile à maintenir et à faire évoluer.",
+   "predit": "contradictoire",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Le capture/playback est facile à maintenir.",
+     "verdict": "contradictoire",
+     "justification": "Le passage cite parmi les inconvénients du capture/playback qu'il est « Hard to maintain », c'est-à-dire difficile à maintenir."
+    },
+    {
+     "affirmation": "Le capture/playback est facile à faire évoluer.",
+     "verdict": "contradictoire",
+     "justification": "Le passage dit que le capture/playback est « Hard to ... evolve », c'est-à-dire difficile à faire évoluer."
+    }
+   ],
+   "cout_usd": 0.0183882,
+   "duree_s": 4.096930662999966,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 14,
+   "attendu": "non_soutenue",
+   "affirmation": "Le capture/playback est interdit dans les projets réglementés.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Le capture/playback est interdit dans les projets réglementés.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage décrit le capture/playback avec ses avantages et ses inconvénients, mais il ne dit rien des projets réglementés ni d'une quelconque interdiction."
+    }
+   ],
+   "cout_usd": 0.016884200000000002,
+   "duree_s": 4.184923646000016,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 15,
+   "attendu": "non_soutenue",
+   "affirmation": "Pendant la planification d'itération, le testeur peut animer des sessions de risk-storming avec le métier et les développeurs.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Pendant la planification d'itération, le testeur peut animer des sessions de risk-storming avec le métier et les développeurs.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage ne parle que des approches d'automatisation des cas de test (capture/playback, TDD, BDD) : il ne mentionne ni la planification d'itération ni le risk-storming."
+    }
+   ],
+   "cout_usd": 0.0175722,
+   "duree_s": 5.463702586999943,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 16,
+   "attendu": "soutenue",
+   "affirmation": "Les tests pilotés par mots-clés peuvent réduire significativement les coûts de maintenance.",
+   "predit": "soutenue",
+   "fidelite": 1.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests pilotés par mots-clés peuvent réduire significativement les coûts de maintenance.",
+     "verdict": "soutenue",
+     "justification": "Le passage indique que « Keyword-based test automation can significantly reduce the maintenance costs of test automation »."
+    }
+   ],
+   "cout_usd": 0.0168722,
+   "duree_s": 4.738160877000041,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 17,
+   "attendu": "contradictoire",
+   "affirmation": "Les tests pilotés par mots-clés augmentent les coûts de maintenance.",
+   "predit": "contradictoire",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests pilotés par mots-clés augmentent les coûts de maintenance.",
+     "verdict": "contradictoire",
+     "justification": "Le passage indique que l'automatisation des tests basée sur les mots-clés peut réduire de manière significative les coûts de maintenance, et non les augmenter."
+    }
+   ],
+   "cout_usd": 0.0161042,
+   "duree_s": 3.796157080999933,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 18,
+   "attendu": "non_soutenue",
+   "affirmation": "Les tests pilotés par mots-clés imposent un outil commercial.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests pilotés par mots-clés imposent l'utilisation d'un outil commercial.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage traite des domaines des mots-clés, des coûts de maintenance et de mise en place, mais ne dit rien sur la nécessité ou non d'un outil commercial."
+    }
+   ],
+   "cout_usd": 0.0162922,
+   "duree_s": 4.385131744000091,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 19,
+   "attendu": "non_soutenue",
+   "affirmation": "Le test basé sur les modèles améliore la couverture de test et la traçabilité.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Le test basé sur les modèles améliore la couverture de test.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage traite de l'automatisation basée sur les mots-clés et de ses coûts de maintenance, sans rien dire du test basé sur les modèles ni de la couverture."
+    },
+    {
+     "affirmation": "Le test basé sur les modèles améliore la traçabilité.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage ne parle ni de test basé sur les modèles ni de traçabilité."
+    }
+   ],
+   "cout_usd": 0.0176242,
+   "duree_s": 4.422192576000043,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 20,
+   "attendu": "soutenue",
+   "affirmation": "Dans une architecture en couches, les scripts de test n'appellent pas directement les bibliothèques cœur.",
+   "predit": "soutenue",
+   "fidelite": 1.0,
+   "affirmations": [
+    {
+     "affirmation": "Dans une architecture en couches de framework d'automatisation des tests, les scripts de test n'appellent pas directement les bibliothèques cœur.",
+     "verdict": "soutenue",
+     "justification": "Le passage indique, à propos des couches du TAF, que « no direct calls should be made to the core libraries from test scripts »."
+    }
+   ],
+   "cout_usd": 0.0169242,
+   "duree_s": 3.961509013999944,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 21,
+   "attendu": "contradictoire",
+   "affirmation": "Dans une architecture en couches, les scripts de test appellent directement les bibliothèques cœur.",
+   "predit": "contradictoire",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Dans une architecture en couches de framework d'automatisation des tests, les scripts de test appellent directement les bibliothèques cœur.",
+     "verdict": "contradictoire",
+     "justification": "Le passage indique explicitement qu'aucun appel direct aux bibliothèques cœur ne doit être fait depuis les scripts de test, qui appellent plutôt les services de la couche de logique métier."
+    }
+   ],
+   "cout_usd": 0.0173922,
+   "duree_s": 4.1780693870000505,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 22,
+   "attendu": "non_soutenue",
+   "affirmation": "Une architecture en couches double le temps d'exécution des tests.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Une architecture en couches double le temps d'exécution des tests.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage dit que trop de couches peut compliquer la conception, mais il ne parle à aucun moment du temps d'exécution des tests ni de son doublement."
+    }
+   ],
+   "cout_usd": 0.0165362,
+   "duree_s": 4.113041022999937,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 23,
+   "attendu": "non_soutenue",
+   "affirmation": "La couverture des neurones ne garantit pas que le réseau de neurones généralise correctement.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "La couverture des neurones ne garantit pas que le réseau de neurones généralise correctement.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage porte sur les couches des frameworks d'automatisation des tests (TAF) et ne parle ni de couverture des neurones ni de réseaux de neurones."
+    }
+   ],
+   "cout_usd": 0.0168762,
+   "duree_s": 7.717873971000017,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 24,
+   "attendu": "soutenue",
+   "affirmation": "En visant moins de 100 % de couverture, on laisse souvent non testé le code le plus complexe et le plus sujet aux défauts.",
+   "predit": "soutenue",
+   "fidelite": 1.0,
+   "affirmations": [
+    {
+     "affirmation": "Quand on vise une couverture inférieure à 100 %, le code laissé non testé est souvent le code le plus complexe.",
+     "verdict": "soutenue",
+     "justification": "Le passage indique que si on exige des niveaux de couverture plus bas, les parties non exercées sont typiquement les plus difficiles à tester et normalement aussi les plus complexes."
+    },
+    {
+     "affirmation": "Quand on vise une couverture inférieure à 100 %, le code laissé non testé est souvent le code le plus sujet aux défauts.",
+     "verdict": "soutenue",
+     "justification": "Le passage dit que ces parties non testées sont normalement les plus « error-prone » et qu'avec 80 % de couverture, le code contenant la majorité des défauts détectables peut rester non testé."
+    }
+   ],
+   "cout_usd": 0.022652199999999997,
+   "duree_s": 5.741865813999993,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 25,
+   "attendu": "contradictoire",
+   "affirmation": "Viser 80 % de couverture garantit que le code le plus complexe est testé.",
+   "predit": "contradictoire",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Viser 80 % de couverture garantit que le code le plus complexe est testé.",
+     "verdict": "contradictoire",
+     "justification": "Le passage indique qu'avec 80 % de couverture, les parties non exercées sont généralement les plus complexes et sujettes aux erreurs, si bien que le code contenant la plupart des défauts peut rester non testé."
+    }
+   ],
+   "cout_usd": 0.0179202,
+   "duree_s": 4.381438633000016,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 26,
+   "attendu": "non_soutenue",
+   "affirmation": "La couverture de code doit être mesurée chaque nuit.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "La couverture de code doit être mesurée chaque nuit.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage indique que la couverture est mesurée après l'application des techniques boîte noire, mais il ne mentionne aucune fréquence de mesure, nocturne ou autre."
+    }
+   ],
+   "cout_usd": 0.0174442,
+   "duree_s": 5.9457223300000805,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 27,
+   "attendu": "non_soutenue",
+   "affirmation": "Placer le code répété avant ou après chaque test dans le setup et le teardown réduit l'effort de maintenance.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Placer le code répété avant ou après chaque test dans le setup et le teardown réduit l'effort de maintenance.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage porte uniquement sur le choix d'une technique de test boîte blanche et sur les niveaux de couverture, il ne dit rien du setup, du teardown ni de l'effort de maintenance."
+    }
+   ],
+   "cout_usd": 0.0181562,
+   "duree_s": 3.9693786479999744,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 28,
+   "attendu": "soutenue",
+   "affirmation": "Les tests de régression sont l'opportunité la plus simple pour passer à l'automatisation.",
+   "predit": "soutenue",
+   "fidelite": 1.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests de régression sont l'opportunité la plus simple pour passer du test manuel à l'automatisation des tests.",
+     "verdict": "soutenue",
+     "justification": "D'après le passage, « l'opportunité la plus simple pour passer du test manuel à l'automatisation des tests est de cibler les tests de régression »."
+    }
+   ],
+   "cout_usd": 0.0188002,
+   "duree_s": 4.055341165000073,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 29,
+   "attendu": "contradictoire",
+   "affirmation": "Les tests de régression sont les plus difficiles à automatiser.",
+   "predit": "contradictoire",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests de régression sont les plus difficiles à automatiser.",
+     "verdict": "contradictoire",
+     "justification": "Le passage dit au contraire que cibler les tests de régression est l'opportunité la plus simple pour passer du test manuel à l'automatisation des tests."
+    }
+   ],
+   "cout_usd": 0.018400200000000002,
+   "duree_s": 3.831480537999937,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 30,
+   "attendu": "non_soutenue",
+   "affirmation": "Les tests de régression doivent être exécutés par une équipe indépendante.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests de régression doivent être exécutés par une équipe indépendante.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage parle des tests de régression comme cible privilégiée de l'automatisation, mais il ne dit nulle part qu'une équipe indépendante doit les exécuter."
+    }
+   ],
+   "cout_usd": 0.0186442,
+   "duree_s": 4.887564987999895,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 31,
+   "attendu": "non_soutenue",
+   "affirmation": "La couverture des branches inclut celle des instructions, l'inverse est faux.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "La couverture des branches inclut la couverture des instructions.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage traite du passage du test manuel à l'automatisation et ne parle pas de couverture des branches ni des instructions."
+    },
+    {
+     "affirmation": "La couverture des instructions n'inclut pas la couverture des branches.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage ne dit rien sur le lien entre couverture des instructions et couverture des branches."
+    }
+   ],
+   "cout_usd": 0.0198122,
+   "duree_s": 4.463732295999989,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 32,
+   "attendu": "soutenue",
+   "affirmation": "Pendant la planification d'itération, le testeur peut animer des sessions de risk-storming avec le métier et les développeurs.",
+   "predit": "soutenue",
+   "fidelite": 1.0,
+   "affirmations": [
+    {
+     "affirmation": "Pendant la planification d'itération, le testeur peut animer des sessions de risk-storming avec les représentants métier et les développeurs.",
+     "verdict": "soutenue",
+     "justification": "Le passage indique que, lors de la planification d'itération, les testeurs peuvent contribuer en animant des sessions de risk-storming avec les représentants métier et les développeurs."
+    }
+   ],
+   "cout_usd": 0.0160802,
+   "duree_s": 4.2301047500000095,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 33,
+   "attendu": "contradictoire",
+   "affirmation": "Pendant la planification d'itération, le testeur ne participe pas à l'identification des risques.",
+   "predit": "contradictoire",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Pendant la planification d'itération, le testeur ne participe pas à l'identification des risques.",
+     "verdict": "contradictoire",
+     "justification": "D'après le passage, pendant la planification d'itération, les testeurs peuvent contribuer en animant des sessions de risk-storming avec les représentants métier et les développeurs, ce qui contredit l'affirmation."
+    }
+   ],
+   "cout_usd": 0.0159922,
+   "duree_s": 4.101061983999898,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 34,
+   "attendu": "non_soutenue",
+   "affirmation": "Les sessions de risk-storming remplacent les rétrospectives.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les sessions de risk-storming remplacent les rétrospectives.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage indique seulement que les testeurs peuvent animer des sessions de risk-storming pendant la planification d'itération ; il ne parle pas des rétrospectives et ne dit pas que ces sessions les remplacent."
+    }
+   ],
+   "cout_usd": 0.0158482,
+   "duree_s": 5.4707962390000375,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 35,
+   "attendu": "non_soutenue",
+   "affirmation": "Les tests boîte blanche ne détectent pas les omissions, c'est-à-dire une exigence non implémentée.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests boîte blanche ne détectent pas les omissions.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage parle de la planification des tests en Agile (planification d'itération et de release) et ne dit rien des tests boîte blanche ni de la détection des omissions."
+    },
+    {
+     "affirmation": "Une omission correspond à une exigence non implémentée.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage ne définit pas la notion d'omission et ne parle pas d'exigences non implémentées."
+    }
+   ],
+   "cout_usd": 0.0171242,
+   "duree_s": 4.913628127999914,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 36,
+   "attendu": "soutenue",
+   "affirmation": "Le test basé sur les modèles améliore la couverture de test et la traçabilité.",
+   "predit": "soutenue",
+   "fidelite": 1.0,
+   "affirmations": [
+    {
+     "affirmation": "Le test basé sur les modèles améliore la couverture de test.",
+     "verdict": "soutenue",
+     "justification": "Le passage cite parmi les bénéfices pour la qualité des tests « Improved test design methods, test coverage and consistency of the test design »."
+    },
+    {
+     "affirmation": "Le test basé sur les modèles améliore la traçabilité.",
+     "verdict": "soutenue",
+     "justification": "Le passage mentionne « Improvements in traceability by improved content and organization of the test design »."
+    }
+   ],
+   "cout_usd": 0.0180162,
+   "duree_s": 4.570720340999969,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 37,
+   "attendu": "contradictoire",
+   "affirmation": "Le test basé sur les modèles dégrade la traçabilité.",
+   "predit": "contradictoire",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Le test basé sur les modèles (MBT) dégrade la traçabilité.",
+     "verdict": "contradictoire",
+     "justification": "Le passage cite parmi les bénéfices du MBT des « Improvements in traceability », ce qui veut dire que la traçabilité s'améliore au lieu de se dégrader."
+    }
+   ],
+   "cout_usd": 0.0168882,
+   "duree_s": 3.8162317800000665,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 38,
+   "attendu": "non_soutenue",
+   "affirmation": "Le test basé sur les modèles supprime le besoin de testeurs.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Le test basé sur les modèles (MBT) supprime le besoin de testeurs.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage cite des bénéfices du MBT (efficacité, réduction du nombre de cas de test, aide à la gestion des tests) sans jamais dire qu'il supprime le besoin de testeurs ; il mentionne même un gestionnaire de test qui sélectionne les cas de test."
+    }
+   ],
+   "cout_usd": 0.0196842,
+   "duree_s": 5.306926680999936,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 39,
+   "attendu": "non_soutenue",
+   "affirmation": "Les techniques basées sur l'expérience peuvent détecter des défauts que les techniques boîte noire et boîte blanche manquent.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les techniques basées sur l'expérience peuvent détecter des défauts que les techniques boîte noire et boîte blanche manquent.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage porte uniquement sur les bénéfices du test basé sur les modèles (MBT) et ne parle ni des techniques basées sur l'expérience ni des techniques boîte noire ou boîte blanche."
+    }
+   ],
+   "cout_usd": 0.0177202,
+   "duree_s": 5.146507876999976,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 40,
+   "attendu": "soutenue",
+   "affirmation": "La couverture des neurones ne garantit pas que le réseau de neurones généralise correctement.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "La couverture des neurones ne garantit pas que le réseau de neurones généralise correctement.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage dit que les métriques de couverture aident surtout à repérer les zones du modèle non testées, mais il ne dit rien du lien entre couverture des neurones et capacité de généralisation."
+    }
+   ],
+   "cout_usd": 0.0182882,
+   "duree_s": 4.50334164800006,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 41,
+   "attendu": "contradictoire",
+   "affirmation": "Une couverture des neurones élevée garantit que le réseau de neurones généralise correctement.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Une couverture des neurones élevée garantit que le réseau de neurones généralise correctement.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage dit seulement que les métriques de couverture « peuvent être utiles », surtout pour repérer les zones du modèle non testées ; il ne dit rien d'une garantie de bonne généralisation et ne l'exclut pas non plus explicitement."
+    }
+   ],
+   "cout_usd": 0.021168199999999998,
+   "duree_s": 5.5604208229999585,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 42,
+   "attendu": "non_soutenue",
+   "affirmation": "La couverture des neurones est imposée par la norme ISO 26262.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "La couverture des neurones est imposée par la norme ISO 26262.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage décrit la couverture des neurones comme une métrique « qui peut être utile » en test d'IA, mais il ne parle ni de la norme ISO 26262 ni d'une quelconque exigence normative."
+    }
+   ],
+   "cout_usd": 0.0181842,
+   "duree_s": 3.8637945140000056,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 43,
+   "attendu": "non_soutenue",
+   "affirmation": "Le capture/playback est facile à démarrer mais difficile à maintenir et à faire évoluer.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Le capture/playback est facile à démarrer.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage porte sur les mesures de couverture des réseaux de neurones et ne parle pas du capture/playback."
+    },
+    {
+     "affirmation": "Le capture/playback est difficile à maintenir.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage ne dit rien de la maintenabilité du capture/playback."
+    },
+    {
+     "affirmation": "Le capture/playback est difficile à faire évoluer.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage n'aborde pas l'évolutivité du capture/playback."
+    }
+   ],
+   "cout_usd": 0.0202322,
+   "duree_s": 4.55086084200002,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 44,
+   "attendu": "soutenue",
+   "affirmation": "Placer le code répété avant ou après chaque test dans le setup et le teardown réduit l'effort de maintenance.",
+   "predit": "soutenue",
+   "fidelite": 1.0,
+   "affirmations": [
+    {
+     "affirmation": "Placer les actions répétées avant ou après chaque test dans des méthodes de setup et de teardown réduit l'effort de maintenance.",
+     "verdict": "soutenue",
+     "justification": "Le passage dit que les actions répétées avant ou après chaque script de test doivent être placées dans des méthodes setup ou teardown, ce qui réduit les efforts de maintenance."
+    }
+   ],
+   "cout_usd": 0.0162362,
+   "duree_s": 3.9734984809999787,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 45,
+   "attendu": "contradictoire",
+   "affirmation": "Le code de préparation doit être recopié dans chaque test pour réduire la maintenance.",
+   "predit": "contradictoire",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Le code de préparation doit être recopié dans chaque test pour réduire la maintenance.",
+     "verdict": "contradictoire",
+     "justification": "Selon le passage, les actions répétées doivent être déplacées dans des méthodes setup/teardown, et non recopiées, afin que les modifications se fassent à un seul endroit et que la maintenance diminue."
+    }
+   ],
+   "cout_usd": 0.016044199999999998,
+   "duree_s": 4.241069678000031,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 46,
+   "attendu": "non_soutenue",
+   "affirmation": "Le setup et le teardown doivent être écrits dans le même langage que l'application.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Le setup et le teardown doivent être écrits dans le même langage que l'application.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage parle de regrouper les actions répétées dans des méthodes de setup ou de teardown pour réduire la maintenance, mais il ne dit rien du langage dans lequel ces méthodes doivent être écrites."
+    }
+   ],
+   "cout_usd": 0.0160602,
+   "duree_s": 4.074941102000025,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 1,
+   "paire": 47,
+   "attendu": "non_soutenue",
+   "affirmation": "Les tests pilotés par mots-clés peuvent réduire significativement les coûts de maintenance.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests pilotés par mots-clés peuvent réduire significativement les coûts de maintenance.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage parle de la réduction de la maintenance grâce aux méthodes setup/teardown, et non des tests pilotés par mots-clés, qu'il ne mentionne pas."
+    }
+   ],
+   "cout_usd": 0.0159962,
+   "duree_s": 8.11970058399993,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 0,
+   "attendu": "soutenue",
+   "affirmation": "La couverture des branches inclut celle des instructions, l'inverse est faux.",
+   "predit": "soutenue",
+   "fidelite": 1.0,
+   "affirmations": [
+    {
+     "affirmation": "La couverture des branches inclut (subsume) la couverture des instructions.",
+     "verdict": "soutenue",
+     "justification": "Le passage indique « Branch coverage subsumes statement coverage », ce qui signifie que 100 % de couverture des branches donne aussi 100 % de couverture des instructions."
+    },
+    {
+     "affirmation": "La couverture des instructions n'inclut pas la couverture des branches.",
+     "verdict": "soutenue",
+     "justification": "Le passage précise « (but not vice versa) » : atteindre 100 % de couverture des instructions ne garantit donc pas 100 % de couverture des branches."
+    }
+   ],
+   "cout_usd": 0.0058226,
+   "duree_s": 4.430193487999986,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 1,
+   "attendu": "contradictoire",
+   "affirmation": "La couverture des instructions inclut celle des branches.",
+   "predit": "contradictoire",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "La couverture des instructions inclut (subsume) la couverture des branches.",
+     "verdict": "contradictoire",
+     "justification": "Le passage affirme l'inverse : c'est la couverture des branches qui inclut celle des instructions (« Branch coverage subsumes statement coverage… but not vice versa »)."
+    }
+   ],
+   "cout_usd": 0.0038408,
+   "duree_s": 4.009518506000063,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 2,
+   "attendu": "non_soutenue",
+   "affirmation": "La couverture des branches est exigée pour tout logiciel critique.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "La couverture des branches est exigée pour tout logiciel critique.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage définit le test et la couverture des branches mais ne dit rien d'une exigence de couverture des branches pour les logiciels critiques."
+    }
+   ],
+   "cout_usd": 0.0035618000000000004,
+   "duree_s": 3.6948718650000956,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 3,
+   "attendu": "non_soutenue",
+   "affirmation": "Dans une architecture en couches, les scripts de test n'appellent pas directement les bibliothèques cœur.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Dans une architecture en couches, les scripts de test n'appellent pas directement les bibliothèques cœur.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage porte uniquement sur le test des branches et la couverture des branches, et ne dit rien des architectures en couches, des scripts de test ni des bibliothèques cœur."
+    }
+   ],
+   "cout_usd": 0.0041048000000000005,
+   "duree_s": 6.891665590999992,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 4,
+   "attendu": "soutenue",
+   "affirmation": "Les tests boîte blanche ne détectent pas les omissions, c'est-à-dire une exigence non implémentée.",
+   "predit": "soutenue",
+   "fidelite": 1.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests boîte blanche ne détectent pas les défauts d'omission.",
+     "verdict": "soutenue",
+     "justification": "Le passage indique que les tests boîte blanche peuvent ne pas détecter les défauts d'omission (« may not detect »), même s'il formule cette faiblesse de manière moins catégorique que la réponse."
+    },
+    {
+     "affirmation": "Un défaut d'omission correspond à une exigence que le logiciel n'implémente pas.",
+     "verdict": "soutenue",
+     "justification": "Le passage relie explicitement les défauts d'omission au cas où le logiciel n'implémente pas une ou plusieurs exigences."
+    }
+   ],
+   "cout_usd": 0.0111258,
+   "duree_s": 7.218844584000067,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 5,
+   "attendu": "contradictoire",
+   "affirmation": "Les tests boîte blanche détectent les exigences qui n'ont pas été implémentées.",
+   "predit": "contradictoire",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests boîte blanche détectent les exigences qui n'ont pas été implémentées.",
+     "verdict": "contradictoire",
+     "justification": "Le passage précise que si le logiciel n'implémente pas une ou plusieurs exigences, les tests boîte blanche risquent de ne pas détecter les défauts d'omission qui en résultent, ce qui est le contraire de l'affirmation."
+    }
+   ],
+   "cout_usd": 0.004424,
+   "duree_s": 3.7518918819999953,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 6,
+   "attendu": "non_soutenue",
+   "affirmation": "Les tests boîte blanche doivent être conçus par les développeurs.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests boîte blanche doivent être conçus par les développeurs.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage décrit les forces, les faiblesses et les usages des techniques boîte blanche, mais il ne dit pas qui doit concevoir ces tests."
+    }
+   ],
+   "cout_usd": 0.0037026,
+   "duree_s": 3.84460556800002,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 7,
+   "attendu": "non_soutenue",
+   "affirmation": "En visant moins de 100 % de couverture, on laisse souvent non testé le code le plus complexe et le plus sujet aux défauts.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Lorsqu'on vise moins de 100 % de couverture, on laisse souvent non testé le code le plus complexe et le plus sujet aux défauts.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage parle de la valeur des mesures de couverture boîte blanche, mais il ne dit rien des conséquences d'un objectif de couverture inférieur à 100 % ni du code complexe ou sujet aux défauts."
+    }
+   ],
+   "cout_usd": 0.004747,
+   "duree_s": 4.53648659299995,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 8,
+   "attendu": "soutenue",
+   "affirmation": "Les techniques basées sur l'expérience peuvent détecter des défauts que les techniques boîte noire et boîte blanche manquent.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les techniques de test basées sur l'expérience peuvent détecter des défauts que les techniques boîte noire et boîte blanche manquent.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage dit seulement que les techniques basées sur l'expérience forment l'une des trois catégories, sans rien dire de leur capacité à détecter des défauts manqués par les techniques boîte noire et boîte blanche."
+    }
+   ],
+   "cout_usd": 0.00465,
+   "duree_s": 4.110395868000069,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 9,
+   "attendu": "contradictoire",
+   "affirmation": "Les techniques basées sur l'expérience ne trouvent aucun défaut que les techniques boîte noire et boîte blanche manqueraient.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les techniques basées sur l'expérience ne trouvent aucun défaut que les techniques boîte noire et boîte blanche manqueraient.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage se contente de mentionner les techniques basées sur l'expérience dans la classification, sans rien dire des défauts qu'elles trouvent par rapport aux techniques boîte noire et boîte blanche."
+    }
+   ],
+   "cout_usd": 0.0045906,
+   "duree_s": 5.236780754000051,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 10,
+   "attendu": "non_soutenue",
+   "affirmation": "Les techniques basées sur l'expérience doivent être appliquées avant les techniques boîte noire.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les techniques de test basées sur l'expérience doivent être appliquées avant les techniques de test boîte noire.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage classe les techniques en boîte noire, boîte blanche et basées sur l'expérience, mais il ne fixe aucun ordre d'application entre les techniques basées sur l'expérience et les techniques boîte noire."
+    }
+   ],
+   "cout_usd": 0.0044676,
+   "duree_s": 4.163869819999945,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 11,
+   "attendu": "non_soutenue",
+   "affirmation": "Les tests de régression sont l'opportunité la plus simple pour passer à l'automatisation.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests de régression sont l'opportunité la plus simple pour passer à l'automatisation.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage décrit les techniques de test (boîte noire, boîte blanche, basées sur l'expérience) et ne parle ni des tests de régression ni de l'automatisation."
+    }
+   ],
+   "cout_usd": 0.0040072,
+   "duree_s": 4.427279144000067,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 12,
+   "attendu": "soutenue",
+   "affirmation": "Le capture/playback est facile à démarrer mais difficile à maintenir et à faire évoluer.",
+   "predit": "soutenue",
+   "fidelite": 1.0,
+   "affirmations": [
+    {
+     "affirmation": "Le capture/playback est facile à démarrer.",
+     "verdict": "soutenue",
+     "justification": "Le passage indique en avantage « Initially easy to set up and use »."
+    },
+    {
+     "affirmation": "Le capture/playback est difficile à maintenir.",
+     "verdict": "soutenue",
+     "justification": "Le passage cite en inconvénient « Hard to maintain »."
+    },
+    {
+     "affirmation": "Le capture/playback est difficile à faire évoluer.",
+     "verdict": "soutenue",
+     "justification": "Le passage cite en inconvénient « Hard to ... evolve »."
+    }
+   ],
+   "cout_usd": 0.0054838000000000005,
+   "duree_s": 4.1545744840000225,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 13,
+   "attendu": "contradictoire",
+   "affirmation": "Le capture/playback est facile à maintenir et à faire évoluer.",
+   "predit": "contradictoire",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Le capture/playback est facile à maintenir.",
+     "verdict": "contradictoire",
+     "justification": "Le passage indique parmi les inconvénients du capture/playback qu'il est « Hard to maintain »."
+    },
+    {
+     "affirmation": "Le capture/playback est facile à faire évoluer.",
+     "verdict": "contradictoire",
+     "justification": "Le passage indique que le capture/playback est « Hard to ... evolve »."
+    }
+   ],
+   "cout_usd": 0.0045418,
+   "duree_s": 3.635596742000075,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 14,
+   "attendu": "non_soutenue",
+   "affirmation": "Le capture/playback est interdit dans les projets réglementés.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Le capture/playback est interdit dans les projets réglementés.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage décrit le capture/playback, avec ses avantages et ses inconvénients, mais ne parle ni de projets réglementés ni d'une interdiction."
+    }
+   ],
+   "cout_usd": 0.0036612000000000003,
+   "duree_s": 3.7274031460000288,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 15,
+   "attendu": "non_soutenue",
+   "affirmation": "Pendant la planification d'itération, le testeur peut animer des sessions de risk-storming avec le métier et les développeurs.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Pendant la planification d'itération, le testeur peut animer des sessions de risk-storming avec le métier et les développeurs.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage traite des approches d'automatisation des cas de test (capture/playback, TDD, BDD) et ne mentionne ni la planification d'itération ni le risk-storming."
+    }
+   ],
+   "cout_usd": 0.004185400000000001,
+   "duree_s": 5.561841644999959,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 16,
+   "attendu": "soutenue",
+   "affirmation": "Les tests pilotés par mots-clés peuvent réduire significativement les coûts de maintenance.",
+   "predit": "soutenue",
+   "fidelite": 1.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests pilotés par mots-clés peuvent réduire significativement les coûts de maintenance.",
+     "verdict": "soutenue",
+     "justification": "Le passage indique que « Keyword-based test automation can significantly reduce the maintenance costs of test automation », ce qui correspond à l'affirmation."
+    }
+   ],
+   "cout_usd": 0.0047824,
+   "duree_s": 12.467937721999988,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 17,
+   "attendu": "contradictoire",
+   "affirmation": "Les tests pilotés par mots-clés augmentent les coûts de maintenance.",
+   "predit": "contradictoire",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests pilotés par mots-clés augmentent les coûts de maintenance.",
+     "verdict": "contradictoire",
+     "justification": "Le passage dit que l'automatisation des tests par mots-clés peut réduire nettement les coûts de maintenance (« can significantly reduce the maintenance costs »), donc l'inverse de l'affirmation."
+    }
+   ],
+   "cout_usd": 0.0041012,
+   "duree_s": 4.104613230999917,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 18,
+   "attendu": "non_soutenue",
+   "affirmation": "Les tests pilotés par mots-clés imposent un outil commercial.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests pilotés par mots-clés imposent l'utilisation d'un outil commercial.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage ne parle ni d'outils commerciaux ni d'une obligation d'outil : il traite seulement de la maintenance des mots-clés et des coûts de l'automatisation par mots-clés."
+    }
+   ],
+   "cout_usd": 0.004140400000000001,
+   "duree_s": 5.981718275000048,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 19,
+   "attendu": "non_soutenue",
+   "affirmation": "Le test basé sur les modèles améliore la couverture de test et la traçabilité.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Le test basé sur les modèles améliore la couverture de test.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage parle de l'automatisation des tests basée sur les mots-clés et de ses coûts de maintenance, pas de test basé sur les modèles ni de couverture."
+    },
+    {
+     "affirmation": "Le test basé sur les modèles améliore la traçabilité.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage ne parle ni de traçabilité ni de test basé sur les modèles."
+    }
+   ],
+   "cout_usd": 0.0052212000000000005,
+   "duree_s": 5.815878618999932,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 20,
+   "attendu": "soutenue",
+   "affirmation": "Dans une architecture en couches, les scripts de test n'appellent pas directement les bibliothèques cœur.",
+   "predit": "soutenue",
+   "fidelite": 1.0,
+   "affirmations": [
+    {
+     "affirmation": "Dans une architecture de framework d'automatisation des tests en couches, les scripts de test n'appellent pas directement les bibliothèques cœur.",
+     "verdict": "soutenue",
+     "justification": "Le passage sur les couches du TAF indique explicitement « no direct calls should be made to the core libraries from test scripts » (aucun appel direct aux bibliothèques cœur ne doit être fait depuis les scripts de test)."
+    }
+   ],
+   "cout_usd": 0.005858199999999999,
+   "duree_s": 4.666403405999972,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 21,
+   "attendu": "contradictoire",
+   "affirmation": "Dans une architecture en couches, les scripts de test appellent directement les bibliothèques cœur.",
+   "predit": "contradictoire",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Dans une architecture de framework d'automatisation des tests en couches, les scripts de test appellent directement les bibliothèques cœur.",
+     "verdict": "contradictoire",
+     "justification": "Le passage précise qu'aucun appel direct aux bibliothèques cœur ne doit être fait depuis les scripts de test, et que ceux-ci appellent les services de la couche de logique métier."
+    }
+   ],
+   "cout_usd": 0.0043574,
+   "duree_s": 5.985226965999914,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 22,
+   "attendu": "non_soutenue",
+   "affirmation": "Une architecture en couches double le temps d'exécution des tests.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Une architecture en couches double le temps d'exécution des tests.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage dit qu'avoir beaucoup de couches peut compliquer la conception, mais il ne parle jamais du temps d'exécution des tests ni du fait qu'il doublerait."
+    }
+   ],
+   "cout_usd": 0.0038550000000000004,
+   "duree_s": 4.485558201999993,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 23,
+   "attendu": "non_soutenue",
+   "affirmation": "La couverture des neurones ne garantit pas que le réseau de neurones généralise correctement.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "La couverture des neurones ne garantit pas que le réseau de neurones généralise correctement.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage porte sur les couches des frameworks d'automatisation des tests (TAF) et ne parle ni de couverture des neurones ni de réseaux de neurones."
+    }
+   ],
+   "cout_usd": 0.003897,
+   "duree_s": 3.9595873549999396,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 24,
+   "attendu": "soutenue",
+   "affirmation": "En visant moins de 100 % de couverture, on laisse souvent non testé le code le plus complexe et le plus sujet aux défauts.",
+   "predit": "soutenue",
+   "fidelite": 1.0,
+   "affirmations": [
+    {
+     "affirmation": "Quand on vise une couverture inférieure à 100 %, le code laissé non testé est souvent le code le plus complexe et le plus sujet aux défauts.",
+     "verdict": "soutenue",
+     "justification": "D'après le passage, exiger moins de 100 % signifie généralement que les parties non exercées sont les plus difficiles à tester, et que ces parties sont normalement aussi les plus complexes et les plus sujettes aux erreurs."
+    }
+   ],
+   "cout_usd": 0.0061204,
+   "duree_s": 5.483276173999911,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 25,
+   "attendu": "contradictoire",
+   "affirmation": "Viser 80 % de couverture garantit que le code le plus complexe est testé.",
+   "predit": "contradictoire",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Viser 80 % de couverture garantit que le code le plus complexe est testé.",
+     "verdict": "contradictoire",
+     "justification": "Le passage indique qu'une couverture de 80 % laisse typiquement non testées les parties les plus difficiles à tester, qui sont aussi les plus complexes et les plus sujettes aux erreurs."
+    }
+   ],
+   "cout_usd": 0.0040766,
+   "duree_s": 4.614588720999905,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 26,
+   "attendu": "non_soutenue",
+   "affirmation": "La couverture de code doit être mesurée chaque nuit.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "La couverture de code doit être mesurée chaque nuit.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage indique que la couverture se mesure après l'application des techniques boîte noire, mais il ne parle d'aucune fréquence de mesure, nocturne ou autre."
+    }
+   ],
+   "cout_usd": 0.0037352,
+   "duree_s": 5.4005712069999845,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 27,
+   "attendu": "non_soutenue",
+   "affirmation": "Placer le code répété avant ou après chaque test dans le setup et le teardown réduit l'effort de maintenance.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Placer le code répété avant ou après chaque test dans le setup et le teardown réduit l'effort de maintenance.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage porte sur le choix d'une technique de test boîte blanche et sur les niveaux de couverture, il ne dit rien du setup, du teardown ni de l'effort de maintenance."
+    }
+   ],
+   "cout_usd": 0.004239000000000001,
+   "duree_s": 4.206543814000042,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 28,
+   "attendu": "soutenue",
+   "affirmation": "Les tests de régression sont l'opportunité la plus simple pour passer à l'automatisation.",
+   "predit": "soutenue",
+   "fidelite": 1.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests de régression sont l'opportunité la plus simple pour passer du test manuel à l'automatisation des tests.",
+     "verdict": "soutenue",
+     "justification": "Le passage indique que l'opportunité la plus simple pour passer du test manuel à l'automatisation des tests est de cibler les tests de régression."
+    }
+   ],
+   "cout_usd": 0.0039246,
+   "duree_s": 5.1635146880000775,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 29,
+   "attendu": "contradictoire",
+   "affirmation": "Les tests de régression sont les plus difficiles à automatiser.",
+   "predit": "contradictoire",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests de régression sont les plus difficiles à automatiser.",
+     "verdict": "contradictoire",
+     "justification": "Le passage affirme au contraire que cibler les tests de régression est l'opportunité la plus simple pour passer du test manuel à l'automatisation des tests."
+    }
+   ],
+   "cout_usd": 0.0036626000000000002,
+   "duree_s": 3.6364592360000643,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 30,
+   "attendu": "non_soutenue",
+   "affirmation": "Les tests de régression doivent être exécutés par une équipe indépendante.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests de régression doivent être exécutés par une équipe indépendante.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage parle des tests de régression comme cible privilégiée de l'automatisation, mais ne dit rien sur le fait qu'une équipe indépendante doive les exécuter."
+    }
+   ],
+   "cout_usd": 0.0039032000000000003,
+   "duree_s": 3.7090285980000317,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 31,
+   "attendu": "non_soutenue",
+   "affirmation": "La couverture des branches inclut celle des instructions, l'inverse est faux.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "La couverture des branches inclut la couverture des instructions.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage porte sur le passage du test manuel à l'automatisation et ne mentionne ni la couverture des branches ni celle des instructions."
+    },
+    {
+     "affirmation": "La couverture des instructions n'inclut pas la couverture des branches.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage ne dit rien sur la relation entre la couverture des instructions et celle des branches."
+    }
+   ],
+   "cout_usd": 0.0051434,
+   "duree_s": 2.9572023059999992,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 32,
+   "attendu": "soutenue",
+   "affirmation": "Pendant la planification d'itération, le testeur peut animer des sessions de risk-storming avec le métier et les développeurs.",
+   "predit": "soutenue",
+   "fidelite": 1.0,
+   "affirmations": [
+    {
+     "affirmation": "Pendant la planification d'itération, le testeur peut animer des sessions de risk-storming avec les représentants métier et les développeurs.",
+     "verdict": "soutenue",
+     "justification": "Le passage indique que, lors de la planification d'itération, les testeurs peuvent contribuer en animant des sessions de risk-storming avec les représentants métier et les développeurs."
+    }
+   ],
+   "cout_usd": 0.004169600000000001,
+   "duree_s": 2.627409639999996,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 33,
+   "attendu": "contradictoire",
+   "affirmation": "Pendant la planification d'itération, le testeur ne participe pas à l'identification des risques.",
+   "predit": "contradictoire",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Pendant la planification d'itération, le testeur ne participe pas à l'identification des risques.",
+     "verdict": "contradictoire",
+     "justification": "Le passage indique que pendant la planification d'itération, les testeurs peuvent contribuer en animant des sessions de « risk-storming » avec les représentants métier et les développeurs, ce qui contredit l'idée qu'ils ne participent pas à l'identification des risques."
+    }
+   ],
+   "cout_usd": 0.0045474,
+   "duree_s": 2.9406874619999144,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 34,
+   "attendu": "non_soutenue",
+   "affirmation": "Les sessions de risk-storming remplacent les rétrospectives.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les sessions de risk-storming remplacent les rétrospectives.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage dit seulement que les testeurs peuvent animer des sessions de risk-storming pendant la planification d'itération, sans jamais parler des rétrospectives ni d'un quelconque remplacement."
+    }
+   ],
+   "cout_usd": 0.0039658,
+   "duree_s": 2.605079615999898,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 35,
+   "attendu": "non_soutenue",
+   "affirmation": "Les tests boîte blanche ne détectent pas les omissions, c'est-à-dire une exigence non implémentée.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests boîte blanche ne détectent pas les omissions.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage traite de la planification des tests en Agile et ne parle ni des tests boîte blanche ni de la détection des omissions."
+    },
+    {
+     "affirmation": "Une omission correspond à une exigence non implémentée.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage ne définit pas la notion d'omission et ne mentionne pas les exigences non implémentées."
+    }
+   ],
+   "cout_usd": 0.0050292,
+   "duree_s": 3.444869906000008,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 36,
+   "attendu": "soutenue",
+   "affirmation": "Le test basé sur les modèles améliore la couverture de test et la traçabilité.",
+   "predit": "soutenue",
+   "fidelite": 1.0,
+   "affirmations": [
+    {
+     "affirmation": "Le test basé sur les modèles améliore la couverture de test.",
+     "verdict": "soutenue",
+     "justification": "Le passage cite parmi les bénéfices pour la qualité des tests « Improved test design methods, test coverage and consistency of the test design »."
+    },
+    {
+     "affirmation": "Le test basé sur les modèles améliore la traçabilité.",
+     "verdict": "soutenue",
+     "justification": "Le passage cite « Improvements in traceability by improved content and organization of the test design » comme bénéfice du MBT."
+    }
+   ],
+   "cout_usd": 0.005139,
+   "duree_s": 3.1521376740000733,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 37,
+   "attendu": "contradictoire",
+   "affirmation": "Le test basé sur les modèles dégrade la traçabilité.",
+   "predit": "contradictoire",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Le test basé sur les modèles (MBT) dégrade la traçabilité.",
+     "verdict": "contradictoire",
+     "justification": "Le passage cite parmi les bénéfices du MBT des « Improvements in traceability », soit le contraire d'une dégradation."
+    }
+   ],
+   "cout_usd": 0.0035378000000000002,
+   "duree_s": 2.8264472790000355,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 38,
+   "attendu": "non_soutenue",
+   "affirmation": "Le test basé sur les modèles supprime le besoin de testeurs.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Le test basé sur les modèles (MBT) supprime le besoin de testeurs.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage énumère des avantages du MBT (détection précoce des défauts, aide à la gestion des tests, réduction du nombre de cas de test, meilleure qualité) sans jamais dire que le MBT supprime le besoin de testeurs ; il mentionne même le rôle du gestionnaire de tests, mais cela ne suffit pas à réfuter explicitement l'affirmation."
+    }
+   ],
+   "cout_usd": 0.0053582,
+   "duree_s": 3.334631943999966,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 39,
+   "attendu": "non_soutenue",
+   "affirmation": "Les techniques basées sur l'expérience peuvent détecter des défauts que les techniques boîte noire et boîte blanche manquent.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les techniques de test basées sur l'expérience peuvent détecter des défauts que les techniques boîte noire et boîte blanche manquent.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage traite uniquement des avantages du test basé sur les modèles (MBT) et ne mentionne ni les techniques basées sur l'expérience ni les techniques boîte noire ou boîte blanche."
+    }
+   ],
+   "cout_usd": 0.0045226,
+   "duree_s": 2.792298106999965,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 40,
+   "attendu": "soutenue",
+   "affirmation": "La couverture des neurones ne garantit pas que le réseau de neurones généralise correctement.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "La couverture des neurones ne garantit pas que le réseau de neurones généralise correctement.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage dit seulement que les métriques de couverture aident à repérer les parties du modèle non testées ; il ne dit rien de leur lien avec la capacité de généralisation du réseau."
+    }
+   ],
+   "cout_usd": 0.0045278,
+   "duree_s": 2.970437372000106,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 41,
+   "attendu": "contradictoire",
+   "affirmation": "Une couverture des neurones élevée garantit que le réseau de neurones généralise correctement.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Une couverture des neurones élevée garantit que le réseau de neurones généralise correctement.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage dit seulement que les métriques de couverture peuvent aider à révéler les zones non testées du modèle ; il ne dit nulle part qu'une couverture élevée garantit une bonne généralisation, et il ne dit pas non plus explicitement le contraire."
+    }
+   ],
+   "cout_usd": 0.006987800000000001,
+   "duree_s": 4.00731649699992,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 42,
+   "attendu": "non_soutenue",
+   "affirmation": "La couverture des neurones est imposée par la norme ISO 26262.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "La couverture des neurones est imposée par la norme ISO 26262.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage décrit la couverture des neurones comme une mesure utile pour les tests d'IA, mais il ne mentionne ni la norme ISO 26262 ni aucune obligation réglementaire."
+    }
+   ],
+   "cout_usd": 0.0039862000000000005,
+   "duree_s": 3.131970803999934,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 43,
+   "attendu": "non_soutenue",
+   "affirmation": "Le capture/playback est facile à démarrer mais difficile à maintenir et à faire évoluer.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Le capture/playback est facile à démarrer.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage ne traite que des mesures de couverture des réseaux de neurones et ne parle pas du capture/playback."
+    },
+    {
+     "affirmation": "Le capture/playback est difficile à maintenir.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage ne dit rien de la maintenabilité du capture/playback."
+    },
+    {
+     "affirmation": "Le capture/playback est difficile à faire évoluer.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage n'aborde pas l'évolutivité du capture/playback."
+    }
+   ],
+   "cout_usd": 0.006048400000000001,
+   "duree_s": 3.4838668140000664,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 44,
+   "attendu": "soutenue",
+   "affirmation": "Placer le code répété avant ou après chaque test dans le setup et le teardown réduit l'effort de maintenance.",
+   "predit": "soutenue",
+   "fidelite": 1.0,
+   "affirmations": [
+    {
+     "affirmation": "Placer dans les méthodes de setup et de teardown le code répété avant ou après chaque test réduit l'effort de maintenance.",
+     "verdict": "soutenue",
+     "justification": "Le passage indique que les actions et configurations répétées avant ou après chaque script ou suite de test doivent être déplacées dans des méthodes de setup ou de teardown, ce qui réduit l'effort de maintenance (« decreased maintenance efforts »)."
+    }
+   ],
+   "cout_usd": 0.0068119999999999995,
+   "duree_s": 4.178913789000035,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 45,
+   "attendu": "contradictoire",
+   "affirmation": "Le code de préparation doit être recopié dans chaque test pour réduire la maintenance.",
+   "predit": "contradictoire",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Le code de préparation doit être recopié dans chaque test.",
+     "verdict": "contradictoire",
+     "justification": "Le passage dit que les actions répétées avant chaque test doivent être déplacées dans des méthodes de setup ou de teardown, et non recopiées dans chaque test."
+    },
+    {
+     "affirmation": "Recopier le code de préparation dans chaque test réduit la maintenance.",
+     "verdict": "contradictoire",
+     "justification": "Selon le passage, c'est le regroupement dans des méthodes de setup ou de teardown, mises à jour en un seul endroit, qui réduit l'effort de maintenance."
+    }
+   ],
+   "cout_usd": 0.0058302,
+   "duree_s": 3.474280586999953,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 46,
+   "attendu": "non_soutenue",
+   "affirmation": "Le setup et le teardown doivent être écrits dans le même langage que l'application.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Le setup et le teardown doivent être écrits dans le même langage de programmation que l'application testée.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage dit seulement que les actions répétées doivent être placées dans des méthodes de setup ou de teardown, sans rien exiger sur le langage dans lequel elles sont écrites."
+    }
+   ],
+   "cout_usd": 0.0040496,
+   "duree_s": 2.886244187000102,
+   "modele": "claude-opus-5-5"
+  },
+  {
+   "passe": 2,
+   "paire": 47,
+   "attendu": "non_soutenue",
+   "affirmation": "Les tests pilotés par mots-clés peuvent réduire significativement les coûts de maintenance.",
+   "predit": "non_soutenue",
+   "fidelite": 0.0,
+   "affirmations": [
+    {
+     "affirmation": "Les tests pilotés par mots-clés peuvent réduire significativement les coûts de maintenance.",
+     "verdict": "non_soutenue",
+     "justification": "Le passage parle de la réduction de l'effort de maintenance grâce aux méthodes de setup et teardown, et ne mentionne pas les tests pilotés par mots-clés."
+    }
+   ],
+   "cout_usd": 0.004011,
+   "duree_s": 2.8350671399999783,
+   "modele": "claude-opus-5-5"
+  }
+ ]
+}

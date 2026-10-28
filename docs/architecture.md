@@ -56,7 +56,7 @@ par `lire` / `section` / `page` sont relevés (`cli.LECTURES`) et consultables p
 
 ## Mesures de la recherche (bibliothèque réelle : 42 fichiers, 26 codes EN + 14 FR)
 
-`python qa.py evaluer --jeu reglage|controle` — rappel@5 = la réponse attendue
+`python qa.py evaluer --jeu reglage|controle|eloigne|examens` — rappel@5 = la réponse attendue
 (code + section) figure dans les 5 premiers résultats. La CI exige `evaluer --jeu controle --min-rappel 0.80`
 (code retour 2 sous le seuil, ou si aucune question n'a pu être évaluée).
 
@@ -110,6 +110,73 @@ passer « motivation » du rang 1 au rang 5 (titres courts favorisés contre BM2
 Temps : une recherche ≈ 50 ms de calcul (0,2-0,45 s pour la commande complète) ; import initial ≈ 3 s par syllabus (≈ 2-3 min pour 42) ;
 actualisation sans changement < 1 s.
 
+### Jeu « examens » : questions des examens blancs officiels (#150, 2026-10-28)
+
+`python qa.py evaluer --jeu examens` lit `eval/examens.json` (fichier à part, hors seuil de la
+CI, jamais utilisé pour régler le moteur) : 135 questions, une par question des examens blancs
+ISTQB CTFL v4.0 A v1.7 (40), CTAL-TM v3.0 A v1.3.3 (50) et CTAL-TA v4.0 v4.1 (45). Chaque
+question est reformulée en requête courte en français (l'énoncé n'est pas recopié) ; la vérité
+terrain est l'objectif d'apprentissage donné par le corrigé officiel, ramené à la section la
+plus profonde du plan (FL-4.2.1 → CTFL §4.2.1, FL-1.3.1 → CTFL §1.3 ; numérotation des
+objectifs vérifiée sur les syllabus : elle suit celle des sections). Les corrigés se
+téléchargent sur istqb.org (pages des certifications) et ne sont pas versionnés. Une seule
+réponse attendue par question : un autre syllabus qui traite le même sujet ne compte pas,
+ce jeu est donc plus sévère que le contrôle.
+
+Ligne de base (moteur lexical inchangé) :
+
+| Jeu | Rappel@5 | MRR |
+|---|---|---|
+| Réglage (36 q.) | 100 % (36/36) | 0,95 |
+| Contrôle (47 q.) | 89 % (42/47) | 0,77 |
+| Éloigné (5 q.) | 20 % (1/5) | 0,20 |
+| **Examens (135 q.)** | **47 % (64/135)** (rappel@10 : 59 %) | **0,37** |
+| — dont CTFL v4.0 (40 q.) | 20 % (8/40) | 0,12 |
+| — dont CTAL-TM v3.0 (50 q.) | 58 % (29/50) | 0,47 |
+| — dont CTAL-TA v4.0 (45 q.) | 60 % (27/45) | 0,47 |
+
+Lecture : le CTFL v4.0 n'existe qu'en anglais dans la bibliothèque, et une question posée en
+français fait remonter les syllabus français qui traitent le même sujet (CTFL-AT, CTAL-TA,
+CTAL-TM FR) ; les questions d'examen sont aussi des mises en situation (« le site est tombé
+deux jours », « vanne ouverte à 9 bars ») loin du vocabulaire des titres. Ce jeu sert de
+réservoir : une question qui en est tirée passe au contrôle (ou au jeu éloigné) AVANT tout
+correctif qu'elle motive.
+
+### Reformulation de la question par l'agent avant `chercher` (#151, 2026-10-28) : retenue
+
+Le jeu éloigné est passé de 5 à **20 questions** : 15 questions du jeu « examens » formulées
+en mots de métier ou en mise en situation, toutes en échec, ajoutées AVANT la consigne
+(éloigné 20 % (1/5) → 5 % (1/20), moteur inchangé). Consigne ajoutée au skill qa-knowledge
+(étape 2, « Reformuler avant de chercher ») : 2 ou 3 requêtes courtes en vocabulaire ISTQB,
+au moins une en anglais et une en français, lancées en plus de la question. Le moteur n'est
+pas modifié.
+
+Mesure : `python scripts/mesure_reformulation.py --jeux eloigne controle reglage examens
+--passages 3` donne la consigne (lue dans le skill) à `claude -p` (modèle par défaut de la
+CLI, sans outil, lots de 20 questions), puis passe chaque requête par `chercher`. Indicateur
+principal : fusion des listes (question + reformulations) par rang réciproque (RRF), 5
+passages gardés, même budget que `evaluer` ; secondaire : « une requête suffit » (la section
+attendue est dans les 5 premiers d'au moins une requête, l'agent lisant chaque liste).
+3 passages, moyenne [extrêmes] ; reformulations enregistrées dans
+`eval/reformulation-resultats/2026-10-28.json` (`--rejouer` recalcule sans repayer). Coût :
+1,04 $.
+
+| Jeu | Question seule | Reformulation, RRF 5 passages | Une requête suffit |
+|---|---|---|---|
+| **Éloigné (20 q.)** | 5 % (1/20) | **58 %** [11-12/20] | 68 % [13-14/20] |
+| Contrôle (47 q.) | 89 % (42/47) | 91 % [41-44/47] | 97 % [45-46/47] |
+| Réglage (36 q.) | 100 % | 100 % [36-36] | 100 % |
+| Examens (135 q.) | 47 % (64/135) | 68 % [90-94/135] | 88 % [117-119/135] |
+
+**Décision : retenue.** Gain net sur le jeu éloigné (+53 points en moyenne, chacun des 3
+passages ≥ 11/20) et sur les examens (+21 points), réglage inchangé, contrôle en hausse en
+moyenne. Un passage sur trois perd 1 question de contrôle sous RRF (41/47) : sur les
+questions déjà au rang 2 (« amélioration du processus de test en agile »), les
+reformulations font remonter d'autres sections ; avec « une requête suffit », aucune perte
+(la question d'origine reste lancée). Restent en échec au jeu éloigné notamment
+« les développeurs ne lisent pas nos rapports de bugs », « le site est tombé deux jours »,
+« compétences pour une plateforme de jeux en ligne ».
+
 ## Critères d'acceptation (vérifiables)
 
 | # | Critère | Vérification |
@@ -143,6 +210,23 @@ actualisation sans changement < 1 s.
 - La recherche est lexicale : une notion absente du thésaurus et formulée autrement que
   dans le syllabus peut être manquée → ajouter le terme au thésaurus (une ligne JSON).
 
+## Standard Agent Skills (#154, 2026-10-28)
+
+Les skills suivent la [spécification Agent Skills](https://agentskills.io/specification),
+vérifiée par son validateur de référence `skills-ref` 0.1.1 (CLI `agentskills validate`, Python
+3.11+) : job CI `tests` et `tests/test_agent_skills.py` (ignoré avec la raison si `skills-ref`
+est absent). Écarts assumés, tous propres à Claude Code
+([doc des skills](https://code.claude.com/docs/en/skills), consultée le 2026-10-28) :
+
+| Champ | Standard | Ce dépôt | Pourquoi |
+|---|---|---|---|
+| `argument-hint` (`bibliotheque`, `ajouter-syllabus`, `installer` de l'export) ; `disable-model-invocation` (`installer`) | hors liste : « Unexpected fields in frontmatter » | gardés **à la racine** de l'en-tête, tolérés par le test et seulement ceux-là | Claude Code ne les lit qu'à la racine ; sous `metadata:` ils seraient ignorés (« Claude Code doesn't act on its contents »), l'indice d'autocomplétion de `/bibliotheque` disparaîtrait. L'envoi sur claude.ai / API Skills les refuse : ces skills ne sont pas faits pour y être téléversés. |
+| `allowed-tools` | chaîne séparée par des **espaces**, expérimental | **virgules** et motifs Claude Code avec espaces internes (`Bash(python qa.py idee chercher:*)`) | Claude Code accepte espaces, virgules ou liste YAML ; découper sur les espaces casserait les motifs à plusieurs mots. `skills-ref` 0.1.1 ne contrôle pas ce champ ; un autre agent qui le lirait au sens strict obtiendrait des règles fausses — il n'accorde de toute façon aucune permission hors Claude Code (Copilot l'ignore, la copie Gemini ne l'a pas). Non modifié : ce sont les permissions. |
+| `compatibility` | facultatif, ≤ 500 caractères | déclaré dans les trois skills (Claude Code, Python 3.10+, CLI `qa.py`, réseau éventuel) | Accepté par Claude Code, sans effet ; recopié dans `plugin/skills/`. |
+
+Les copies `.gemini/skills/` (générées) n'ont que `name` et `description` : elles sont
+validées **sans aucune tolérance**, par `agentskills validate` dans la CI.
+
 ## Recherche sémantique : évaluation chiffrée (#107, 2026-10-22)
 
 Jeux : contrôle (40 q.), réglage (36 q.) et un jeu **« éloigné »** (`evaluer --jeu
@@ -168,7 +252,8 @@ contrôle, 100 % → 97 % au réglage ; `paraphrase-multilingual-MiniLM-L12-v2`
 reformulation avec le terme ISTQB) est rempli, mais les embeddings multilingues légers ne
 les résolvent pas (jeu éloigné inchangé), font perdre une question de réglage et coûtent
 15 s par commande. Le prototype reste optionnel pour une réévaluation (autre modèle, ou
-reformulation de la question par l'agent avant `chercher`, piste plus prometteuse).
+reformulation de la question par l'agent avant `chercher`, piste plus prometteuse : mesurée
+et retenue dans #151, voir plus haut).
 
 ## Vérification des citations par NLI : étude (#108, 2026-10-22)
 

@@ -1,6 +1,7 @@
 ---
 name: qa-knowledge
 description: Assistant de connaissances QA — recherche dans les syllabus ISTQB locaux (FR/EN, pages et sections citées), dans la base d'idées QA capitalisées, et sur le Web seulement si nécessaire ; capitalise les idées utiles sans doublon. À utiliser pour une question de test logiciel posée par l'utilisateur sur son métier (techniques de test, processus, risk-based testing, automatisation, métriques, TMMi…), pour classer ou retrouver une idée QA, ou pour repérer les thèmes pauvres de la base. Recherche approfondie ou comparaison multi-syllabus → agent thomas. Pas pour le développement de ce dépôt (code, tests, `evaluer`, qualité de la recherche) ni pour une revue de démarche (→ agent sylvie).
+compatibility: "Claude Code (allowed-tools au format Claude Code) ; Python 3.10+ et la CLI qa.py d'ISTQBFinder avec son index local des syllabus ; Web facultatif, seulement si un besoin le justifie."
 allowed-tools: Bash(qa chercher:*), Bash(qa lire:*), Bash(qa section:*), Bash(qa page:*), Bash(qa plan:*), Bash(qa inventaire:*), Bash(qa manquants:*), Bash(qa catalogue:*), Bash(qa themes:*), Bash(qa couverture:*), Bash(qa journal:*), Bash(qa evaluer:*), Bash(qa idee chercher:*), Bash(qa idee lister:*), Bash(qa idee voir:*), Bash(qa idee doublons:*), Bash(qa idee modele:*), Bash(qa idee verifier-refs:*), Bash(qa theme proposer:*), Bash(qa confiance:*), Bash(qa diagnostic:*), Bash(qa --help:*), Read, WebSearch, WebFetch, AskUserQuestion, mcp__plugin_istqbfinder_istqbfinder__*
 ---
 <!-- Fichier généré par scripts/generer_integrations.py depuis .claude/skills/qa-knowledge/SKILL.md : ne pas modifier, relancer le script. -->
@@ -29,6 +30,13 @@ Linux/macOS si `python` est absent). `--help` sur chaque commande.
    traduis-le dans ta réponse. Les versions remplacées sont exclues (sauf `--toutes-versions`).
    Un avertissement « existe seulement en… » / « exclu par… » n'est PAS une absence :
    relance sans le filtre avant de dire qu'un syllabus manque.
+   **Reformuler avant de chercher** : une question en mots de métier ou en mise en
+   situation (« la mise en production a planté un vendredi », « personne ne relit nos specs ») ne
+   contient souvent aucun terme des syllabus. Écris d'abord 2 ou 3 requêtes courtes dans le
+   vocabulaire ISTQB, celui des titres de sections — au moins une en anglais (CTFL v4.0
+   n'existe qu'en anglais) et une en français — et lance-les en plus de la question
+   (« les utilisateurs se perdent dans les menus » → `chercher "usability testing"`,
+   `chercher "test d'utilisabilité"`).
 3. **Lire avant de citer** : `lire <passage> --contexte 1`, `section <doc> <num>`,
    `page <doc> <p>`. Un extrait de recherche ne suffit jamais pour affirmer.
    **Jamais de `| head`** (ni `tail`, `cut`, `grep`) sur `lire`, `section` ou `page` : la

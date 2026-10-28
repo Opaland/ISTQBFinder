@@ -490,42 +490,87 @@ def _verifier_reference_istqb(ref: dict, relecture: bool = False) -> list[str]:
 CHAMPS_CHAINE = (*CHAMPS_TEXTE, "theme_principal", "maturite", "statut", "provenance")
 
 
-def _controler_types(donnees) -> None:
-    """Types attendus du JSON saisi : un message français plutôt qu'une trace Python."""
+# Clés qu'une référence peut porter (colonnes de `refs`) ; `empreinte` est posée par l'outil
+# à la vérification d'une référence ISTQB, donc acceptée (relecture du JSONL) mais pas annoncée.
+CLES_REFERENCE = tuple(c for c in CHAMPS_REF if c != "empreinte")
+# Noms proches que l'on recopie spontanément (#230, #235) : suggérés dans le message d'erreur.
+ALIAS_CHAMPS = {"theme": "theme_principal", "themes": "themes_secondaires", "reference": "references",
+                "refs": "references", "sources": "references", "description": "resume"}
+ALIAS_REFERENCE = {"document": "doc_id", "doc": "doc_id", "docid": "doc_id", "syllabus": "doc_id",
+                   "page": "pages", "citation": "extrait", "passage": "extrait", "texte": "extrait",
+                   "lien": "url", "link": "url", "date": "consulte_le", "commentaire": "note",
+                   "paragraphe": "section"}
+
+
+def _inconnues(cles, alias: dict) -> str:
+    return ", ".join(f"{k} (→ {alias[k]} ?)" if k in alias else k for k in sorted(cles))
+
+
+def _erreurs_reference(n: int, r: dict) -> list[str]:
+    """Erreurs de schéma d'une référence (n : rang à partir de 1), toutes à la fois."""
+    erreurs, lieu = [], f"référence {n}"
+    inconnues = [k for k in r if k not in CHAMPS_REF]
+    if inconnues:
+        erreurs.append(f"{lieu} : clé(s) inconnue(s) : {_inconnues(inconnues, ALIAS_REFERENCE)} ; clés attendues : "
+                       f"{', '.join(CLES_REFERENCE)} (voir `idee modele`).")
+    for k, v in r.items():
+        if k in CHAMPS_REF and v is not None and not isinstance(v, str) and not (
+                k == "pages" and isinstance(v, int) and not isinstance(v, bool)):
+            erreurs.append(f"Champ references.{k} ({lieu}) : texte attendu (reçu {type(v).__name__}).")
+    type_ = r.get("type")
+    if type_ not in TYPES_REFERENCE:
+        erreurs.append(f"{lieu} : type de référence invalide : {type_} ({', '.join(TYPES_REFERENCE)}).")
+    elif type_ == "web" and not (isinstance(r.get("url"), str) and r["url"].strip()):
+        erreurs.append(f"{lieu} : une référence web doit avoir une URL.")
+    return erreurs
+
+
+def _erreurs_schema(donnees, partiel: bool) -> list[str]:
+    """Toutes les erreurs de forme de l'idée saisie (types, champs, valeurs contrôlées,
+    références), pour les rapporter en une fois (#235) plutôt qu'une par aller-retour."""
     if not isinstance(donnees, dict):
-        raise ErreurValidation("L'idée doit être un objet JSON ({…}) : voir `idee modele`.")
+        return ["L'idée doit être un objet JSON ({…}) : voir `idee modele`."]
+    erreurs = []
+    geres = [f"« {k} » ({CHAMPS_GERES[k]})" for k in donnees if k in CHAMPS_GERES]
+    if geres:
+        erreurs.append(f"Champ(s) non modifiable(s) par saisie : {', '.join(geres)}.")
+    inconnus = [k for k in donnees if k not in CHAMPS_SAISIE and k not in CHAMPS_GERES]
+    if inconnus:
+        erreurs.append(f"Champ(s) inconnu(s) : {_inconnues(inconnus, ALIAS_CHAMPS)} (voir `idee modele`).")
     for champ in CHAMPS_CHAINE:
         if donnees.get(champ) is not None and not isinstance(donnees[champ], str):
-            raise ErreurValidation(f"Champ {champ} : texte attendu (reçu {type(donnees[champ]).__name__}).")
+            erreurs.append(f"Champ {champ} : texte attendu (reçu {type(donnees[champ]).__name__}).")
+    if not partiel:
+        manquants = [c for c in ("titre", "resume", "probleme", "principe", "theme_principal")
+                     if donnees.get(c) is None or (isinstance(donnees[c], str) and not donnees[c].strip())]
+        if manquants:
+            erreurs.append(f"Champs obligatoires manquants : {', '.join(manquants)}.")
+    for champ, permis in (("statut", STATUTS), ("maturite", MATURITES)):
+        v = donnees.get(champ)
+        if isinstance(v, str) and v.strip() and v.strip() not in permis:
+            erreurs.append(f"{champ} invalide : {v.strip()} (valeurs : {', '.join(permis)}).")
     t = donnees.get("themes_secondaires")
     if t is not None and not (isinstance(t, list) and all(isinstance(x, str) for x in t)):
-        raise ErreurValidation("Champ themes_secondaires : liste de codes de thème attendue "
-                               "(ex. [\"metriques\"]).")
+        erreurs.append("Champ themes_secondaires : liste de codes de thème attendue (ex. [\"metriques\"]).")
     refs = donnees.get("references")
     if refs is not None and not (isinstance(refs, list) and all(isinstance(r, dict) for r in refs)):
-        raise ErreurValidation("Champ references : liste d'objets attendue (ex. [{\"type\": \"web\", …}]).")
-    for r in refs or []:
-        for k, v in r.items():
-            if v is not None and not isinstance(v, str) and not (k == "pages" and isinstance(v, int)
-                                                                 and not isinstance(v, bool)):
-                raise ErreurValidation(f"Champ references.{k} : texte attendu (reçu {type(v).__name__}).")
+        erreurs.append("Champ references : liste d'objets attendue (ex. [{\"type\": \"web\", …}]).")
+    elif refs:
+        for n, r in enumerate(refs, 1):
+            erreurs += _erreurs_reference(n, r)
+    return erreurs
 
 
 def valider(donnees: dict, partiel: bool = False) -> tuple[dict, list[str]]:
     """Normalise et contrôle une idée. Renvoie (idée, avertissements)."""
-    _controler_types(donnees)
+    erreurs = _erreurs_schema(donnees, partiel)
+    if len(erreurs) == 1:
+        raise ErreurValidation(erreurs[0])
+    if erreurs:
+        raise ErreurValidation(f"{len(erreurs)} erreurs dans l'idée (toutes listées, gabarit : `idee modele`) :\n"
+                               + "\n".join(f"  - {e}" for e in erreurs))
     avert = []
-    geres = [f"« {k} » ({CHAMPS_GERES[k]})" for k in donnees if k in CHAMPS_GERES]
-    if geres:
-        raise ErreurValidation(f"Champ(s) non modifiable(s) par saisie : {', '.join(geres)}.")
-    inconnus = sorted(k for k in donnees if k not in CHAMPS_SAISIE)
-    if inconnus:
-        raise ErreurValidation(f"Champ(s) inconnu(s) : {', '.join(inconnus)} (voir `idee modele`).")
     d = {k: (v.strip() if isinstance(v, str) else v) for k, v in donnees.items() if v not in (None, "", [])}
-    if not partiel:
-        manquants = [c for c in ("titre", "resume", "probleme", "principe", "theme_principal") if not d.get(c)]
-        if manquants:
-            raise ErreurValidation(f"Champs obligatoires manquants : {', '.join(manquants)}.")
     for champ in ("theme_principal",):
         if champ in d:
             code = taxonomie.resoudre(d[champ])
@@ -537,19 +582,12 @@ def valider(donnees: dict, partiel: bool = False) -> tuple[dict, list[str]]:
     if not partiel:
         d.setdefault("statut", "a_explorer")
         d.setdefault("maturite", "hypothese")
-    for champ, permis in (("statut", STATUTS), ("maturite", MATURITES)):
-        if champ in d and d[champ] not in permis:
-            raise ErreurValidation(f"{champ} invalide : {d[champ]} (valeurs : {', '.join(permis)}).")
     if not partiel and d["statut"] in ("validee", "experimentee"):
         raise ErreurValidation("Une nouvelle idée ne peut pas être créée « validée » ou « expérimentée » : "
                                "la créer puis utiliser `idee statut` avec un motif (et un retour d'expérience).")
     refs = []
     for r in d.get("references", []):
         r = {k: (str(v) if k == "pages" else v.strip()) for k, v in r.items() if v not in (None, "")}
-        if r.get("type") not in TYPES_REFERENCE:
-            raise ErreurValidation(f"Type de référence invalide : {r.get('type')} ({', '.join(TYPES_REFERENCE)}).")
-        if r["type"] == "web" and not r.get("url"):
-            raise ErreurValidation("Une référence web doit avoir une URL.")
         if r["type"] == "istqb":
             avert += [f"référence {r.get('doc_id')} : {p}" for p in _verifier_reference_istqb(r)]
         if r["type"] in ("web", "article") and not r.get("consulte_le"):

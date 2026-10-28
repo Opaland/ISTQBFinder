@@ -328,6 +328,10 @@ Le lanceur suit ces règles :
     par Claude Code. Rien ne doit être écrit dans le dossier du plugin. istqb.org
     injoignable → ignoré avec la raison ; mauvaise réponse → échec. Le test ne tourne
     qu'avec `QAK_ESSAI_PREMIER_USAGE=1`.
+- `tests/test_agent_skills.py` (#154) valide les skills de `plugin/skills/` et le modèle
+  `installer` avec `skills-ref` (standard Agent Skills), en tolérant seulement
+  `argument-hint` et `disable-model-invocation` ; écarts détaillés dans
+  [architecture.md](architecture.md#standard-agent-skills-154-2026-10-28).
 - Job CI `plugin-export` (Linux, Python 3.10, version minimale) : export,
   `claude plugin validate --strict` sur l'export, puis ces tests avec
   `QAK_ESSAI_PREMIER_USAGE=1`.

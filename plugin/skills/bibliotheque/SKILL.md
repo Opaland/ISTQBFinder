@@ -1,6 +1,7 @@
 ---
 name: bibliotheque
 description: Maintenance de la bibliothèque ISTQB locale — état de l'index, syllabus manquants (par langue), réindexation, références des idées à revérifier ; sert aussi à détecter les nouvelles versions publiées sur istqb.org. À utiliser quand l'utilisateur demande quels syllabus sont présents ou manquants, s'il existe de nouvelles versions, ou de vérifier / remettre en état la bibliothèque. Pour installer un fichier ou une version précise, enchaîner sur /ajouter-syllabus.
+compatibility: "Claude Code (argument-hint et allowed-tools au format Claude Code) ; Python 3.10+ et la CLI qa.py d'ISTQBFinder ; accès à istqb.org pour détecter les nouvelles versions."
 argument-hint: "[etat | manquants | versions | reparer]"
 allowed-tools: Bash(qa chercher:*), Bash(qa lire:*), Bash(qa section:*), Bash(qa page:*), Bash(qa plan:*), Bash(qa inventaire:*), Bash(qa manquants:*), Bash(qa catalogue:*), Bash(qa themes:*), Bash(qa couverture:*), Bash(qa journal:*), Bash(qa evaluer:*), Bash(qa idee chercher:*), Bash(qa idee lister:*), Bash(qa idee voir:*), Bash(qa idee doublons:*), Bash(qa idee modele:*), Bash(qa idee verifier-refs:*), Bash(qa theme proposer:*), Bash(qa confiance:*), Bash(qa diagnostic:*), Bash(qa --help:*), Bash(git status:*), Bash(git diff:*), mcp__plugin_istqbfinder_istqbfinder__*
 ---

@@ -132,7 +132,9 @@ def commande_gemini(chemin: Path) -> str:
 
 def skill_gemini(dossier: Path) -> dict[str, str]:
     """Copie du skill : en-tête réduit à name/description (allowed-tools, argument-hint sont
-    propres à Claude Code), arborescence conservée pour que les liens relatifs restent valides."""
+    propres à Claude Code, compatibility est rédigé pour lui), donc strictement conforme au
+    standard Agent Skills (#154, tests/test_agent_skills.py) ; arborescence conservée pour que
+    les liens relatifs restent valides."""
     fichiers = {}
     for f in sorted(p for p in dossier.rglob("*") if p.is_file()):
         rel = f.relative_to(dossier).as_posix()

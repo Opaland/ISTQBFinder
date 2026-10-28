@@ -142,6 +142,41 @@ deux jours », « vanne ouverte à 9 bars ») loin du vocabulaire des titres. Ce
 réservoir : une question qui en est tirée passe au contrôle (ou au jeu éloigné) AVANT tout
 correctif qu'elle motive.
 
+### Reformulation de la question par l'agent avant `chercher` (#151, 2026-10-28) : retenue
+
+Le jeu éloigné est passé de 5 à **20 questions** : 15 questions du jeu « examens » formulées
+en mots de métier ou en mise en situation, toutes en échec, ajoutées AVANT la consigne
+(éloigné 20 % (1/5) → 5 % (1/20), moteur inchangé). Consigne ajoutée au skill qa-knowledge
+(étape 2, « Reformuler avant de chercher ») : 2 ou 3 requêtes courtes en vocabulaire ISTQB,
+au moins une en anglais et une en français, lancées en plus de la question. Le moteur n'est
+pas modifié.
+
+Mesure : `python scripts/mesure_reformulation.py --jeux eloigne controle reglage examens
+--passages 3` donne la consigne (lue dans le skill) à `claude -p` (modèle par défaut de la
+CLI, sans outil, lots de 20 questions), puis passe chaque requête par `chercher`. Indicateur
+principal : fusion des listes (question + reformulations) par rang réciproque (RRF), 5
+passages gardés, même budget que `evaluer` ; secondaire : « une requête suffit » (la section
+attendue est dans les 5 premiers d'au moins une requête, l'agent lisant chaque liste).
+3 passages, moyenne [extrêmes] ; reformulations enregistrées dans
+`eval/reformulation-resultats/2026-10-28.json` (`--rejouer` recalcule sans repayer). Coût :
+1,04 $.
+
+| Jeu | Question seule | Reformulation, RRF 5 passages | Une requête suffit |
+|---|---|---|---|
+| **Éloigné (20 q.)** | 5 % (1/20) | **58 %** [11-12/20] | 68 % [13-14/20] |
+| Contrôle (47 q.) | 89 % (42/47) | 91 % [41-44/47] | 97 % [45-46/47] |
+| Réglage (36 q.) | 100 % | 100 % [36-36] | 100 % |
+| Examens (135 q.) | 47 % (64/135) | 68 % [90-94/135] | 88 % [117-119/135] |
+
+**Décision : retenue.** Gain net sur le jeu éloigné (+53 points en moyenne, chacun des 3
+passages ≥ 11/20) et sur les examens (+21 points), réglage inchangé, contrôle en hausse en
+moyenne. Un passage sur trois perd 1 question de contrôle sous RRF (41/47) : sur les
+questions déjà au rang 2 (« amélioration du processus de test en agile »), les
+reformulations font remonter d'autres sections ; avec « une requête suffit », aucune perte
+(la question d'origine reste lancée). Restent en échec au jeu éloigné notamment
+« les développeurs ne lisent pas nos rapports de bugs », « le site est tombé deux jours »,
+« compétences pour une plateforme de jeux en ligne ».
+
 ## Critères d'acceptation (vérifiables)
 
 | # | Critère | Vérification |
@@ -217,7 +252,8 @@ contrôle, 100 % → 97 % au réglage ; `paraphrase-multilingual-MiniLM-L12-v2`
 reformulation avec le terme ISTQB) est rempli, mais les embeddings multilingues légers ne
 les résolvent pas (jeu éloigné inchangé), font perdre une question de réglage et coûtent
 15 s par commande. Le prototype reste optionnel pour une réévaluation (autre modèle, ou
-reformulation de la question par l'agent avant `chercher`, piste plus prometteuse).
+reformulation de la question par l'agent avant `chercher`, piste plus prometteuse : mesurée
+et retenue dans #151, voir plus haut).
 
 ## Vérification des citations par NLI : étude (#108, 2026-10-22)
 

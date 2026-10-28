@@ -83,18 +83,17 @@ par `lire` / `section` / `page` sont relevés (`cli.LECTURES`) et consultables p
 | #210 extraction : intertitres de signets sans numéro propre (passages rattachés à la section numérotée), signet numéroté en double écarté (27 numéros en double → 0 ; mêmes classements sur les trois jeux, éloigné 20 % → 20 %) | 100 % (0,94) → 100 % (0,94) | 89 % (41/46, 0,77) → 89 % (41/46, 0,77) |
 | #209 participes : masculin, féminin, singulier et pluriel ont la même racine (« défini/définie » → « definy », « intégré/intégrée » → « integr », « vérifié/vérifiée » → « verify ») ; question « approche d'équipe intégré » ajoutée au contrôle avant correctif (éloigné 20 % → 20 %) | 100 % (0,94) → 100 % (0,94) | 87 % (41/47, 0,75) → 89 % (42/47, 0,77) |
 | #220 extraction : ligne du titre d'un signet cherchée sans espaces (« 2.1 Whole T eam Approach ») ; 22 titres du CTAL-AT v2.0 EN replacés sur leur vraie ligne, l'introduction ne passe plus sous la 1re sous-section (« coût de maintenance des tests automatisés » rang 3 → 4, toujours trouvée ; éloigné 20 % → 20 %) | 100 % (0,94) → 100 % (0,95) | 89 % (42/47, 0,77) → 89 % (42/47, 0,77) |
-| **État actuel** (moteur lexical ; #59 : mêmes classements, ≈ 8 × plus rapide) | **100 % (MRR 0,95)** | **89 % (42/47, MRR 0,77)** |
+| #241 mot français hors thésaurus traduit par les titres de sections alignés FR/EN (« activités » → « activities », « facteurs » → « factors ») ; 4 questions sur des sections du CTFL v4.0 seulement anglais ajoutées au contrôle avant correctif (éloigné 5 % → 5 % ; examens 47 % (64/135) → 52 % (70/135), dont CTFL 20 % → 30 %) | 100 % (0,95) → 100 % (0,95) | 82 % (42/51, 0,71) → 92 % (47/51, 0,78) |
+| **État actuel** (moteur lexical ; #59 : mêmes classements, ≈ 8 × plus rapide) | **100 % (MRR 0,95)** | **92 % (47/51, MRR 0,78)** |
 
 Le 100 % du jeu de réglage est optimiste par construction ; le chiffre honnête est celui
 du jeu de contrôle. Les questions ajoutées au contrôle l'ont été AVANT la correction qu'elles
-motivent ; le contrôle est passé de 18 à 47 questions, en grande partie des questions
+motivent ; le contrôle est passé de 18 à 51 questions, en grande partie des questions
 difficiles issues des revues (fautes de frappe, questions de Test Manager, formulations loin
 du vocabulaire ISTQB) : sa baisse de 89 % à 82 % (avant #165) vient de ces ajouts, pas d'une régression
-(chaque PR a été mesurée avant/après sur le même jeu). Les 5 échecs actuels :
-- requêtes très courtes faites de mots omniprésents (« principes du test », « contenu d'un
-  plan de test ») : avec le terme ISTQB anglais (« testing principles », « purpose and
-  content of a test plan ») la bonne section sort en 1re ou 2e position — le skill demande
-  d'ajouter le terme anglais quand il est connu ;
+(chaque PR a été mesurée avant/après sur le même jeu). Les 4 échecs actuels :
+- « différence entre tester et déboguer » (#241) : « déboguer » ne figure dans aucun titre
+  aligné FR/EN, il n'a donc pas de traduction apprise ;
 - « rapport d'avancement des tests parties prenantes », « comment estimer l'effort de
   test » : arbitrages laissés ouverts dans #25 ;
 - « architecture en couches d'un framework d'automatisation » : §3.1.3 n'emploie pas
@@ -106,6 +105,18 @@ exploratoires ») passe devant celles qui nomment seulement le même concept («
 Test Management (SBTM) »), puis, parmi elles, le titre écrit avec les seuls mots de la
 question. Égalité stricte et non proximité : un critère de proximité (Jaccard) faisait
 passer « motivation » du rang 1 au rang 5 (titres courts favorisés contre BM25).
+
+#241 : un mot de la question absent du thésaurus reçoit sa traduction anglaise apprise sur
+les titres de sections alignés (même code, même version, même numéro en FR et en EN, ≈ 1 000
+paires) : pour chaque mot français, le mot anglais le plus associé (coefficient de Dice ≥ 0,6,
+au moins deux titres en commun). Le mot traduit rejoint son groupe : un passage anglais qui
+emploie la traduction couvre la notion comme le passage français. Effet de bord bienvenu :
+« contenu d'un plan de test » (« content ») et « principes du test » (« principles »), en échec
+depuis l'origine du contrôle, sont trouvés. Variantes mesurées (contrôle / examens) : couverture
+calculée sans les mots absents de la langue du passage 86 % / 50 % (CTAL-TM 58 % → 54 %) ;
+classements FR et EN entrelacés 84 % / 56 % (2 questions de contrôle reculent d'un rang) ;
+traduction + entrelacement 92 % / 55 % (mêmes reculs) ; traduction seule, retenue, 92 % / 52 %,
+aucune question de contrôle ni de réglage ne recule.
 
 Temps : une recherche ≈ 50 ms de calcul (0,2-0,45 s pour la commande complète) ; import initial ≈ 3 s par syllabus (≈ 2-3 min pour 42) ;
 actualisation sans changement < 1 s.
@@ -141,6 +152,10 @@ CTAL-TM FR) ; les questions d'examen sont aussi des mises en situation (« le si
 deux jours », « vanne ouverte à 9 bars ») loin du vocabulaire des titres. Ce jeu sert de
 réservoir : une question qui en est tirée passe au contrôle (ou au jeu éloigné) AVANT tout
 correctif qu'elle motive.
+
+Après #241 (traduction des mots hors thésaurus par les titres alignés, moteur lexical seul) :
+examens 52 % (70/135, MRR 0,39), dont CTFL v4.0 30 % (12/40), CTAL-TM v3.0 58 % (29/50),
+CTAL-TA v4.0 64 % (29/45) ; 7 questions gagnées, 1 perdue.
 
 ### Reformulation de la question par l'agent avant `chercher` (#151, 2026-10-28) : retenue
 

@@ -191,3 +191,37 @@ def test_passage_introuvable_message_actionnable(bibliotheque_test):
         recherche.lire_passage(999999)
     assert exc.value.args[0] == ("Passage 999999 introuvable : numéro périmé si l'index a été reconstruit "
                                  "depuis la recherche ; relancer `chercher` pour obtenir des numéros à jour.")
+
+
+def test_mot_francais_traduit_par_les_titres_alignes(racine_isolee):
+    # Issue #241 : « facteurs de succès d'une revue » ne trouvait pas le CTFL v4.0 §3.2.5
+    # (« Success Factors for Reviews »), qui n'existe qu'en anglais : « facteurs » et « succès »,
+    # absents du thésaurus, n'étaient couverts que par les syllabus français. Leur traduction
+    # est apprise sur les titres de sections alignés (même code, version et numéro en FR et EN).
+    from qak import bibliotheque
+    cx = bibliotheque.connecter()
+    try:
+        for doc, code, langue in (("XX-1.0-fr", "XX", "fr"), ("XX-1.0-en", "XX", "en"), ("YY-4.0-en", "YY", "en")):
+            cx.execute("INSERT INTO documents(doc_id, sha256, fichier, code, version, langue) VALUES (?,?,?,?,?,?)",
+                       (doc, doc, doc, code, doc.split("-")[1], langue))
+        titres = {"fr": ["Facteurs de succès des revues", "Facteurs humains", "Succès du projet", "Glossaire"],
+                  "en": ["Success Factors for Reviews", "Human Factors", "Project Success", "Glossary"]}
+        for langue, liste in titres.items():
+            for k, t in enumerate(liste, 1):
+                cx.execute("INSERT INTO sections VALUES (?, ?, ?, ?, 1)", (f"XX-1.0-{langue}", k, str(k), t))
+        for doc, num, titre, texte in (
+                ("XX-1.0-fr", "1", "Facteurs de succès des revues", "une revue réussie : facteurs de succès"),
+                ("YY-4.0-en", "3.2.5", "Success Factors for Reviews", "several factors determine the success "
+                                                                     "of reviews")):
+            cx.execute("INSERT INTO passages(doc_id, ordre, page, section_num, section_titre, texte) "
+                       "VALUES (?, 1, 1, ?, ?, ?)", (doc, num, titre, texte))
+        cx.execute("INSERT INTO passages_fts(rowid, texte, section_titre) SELECT id, texte, section_titre FROM passages")
+        cx.commit()
+        lex = recherche.lexique_titres(cx)
+        assert lex["facteur"] == "factors" and lex["succ"] == "success"
+        assert "glossair" not in lex  # un seul titre en commun : association trop faible
+        res = recherche.chercher("facteurs de succès d'une revue", cx=cx)["resultats"]
+        anglais = next(r for r in res if r["doc_id"] == "YY-4.0-en")
+        assert not anglais["partiel"] and anglais["section_num"] == "3.2.5"
+    finally:
+        cx.close()

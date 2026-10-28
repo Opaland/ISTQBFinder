@@ -47,6 +47,12 @@ concrètes, chacune rattachée à sa source, pour qu'il aille lire et décider.
    « CTAL-TAS »). Avant de rendre ton
    rapport, passe chaque `[référence]` au **contrôle avant d'envoyer** du skill : sans
    `lire`/`section`/`page` de cette page, lis-la ou retire la référence.
+   **Pas de ligne `Citer :` affichée pour cette page = pas de crochets** : `chercher`
+   n'en affiche jamais. **Vu en extrait = jamais entre crochets**, même suivi de « je
+   n'ai lu que l'extrait » : un point tentant vu seulement dans un résultat de
+   `chercher` (ex. MC/DC et court-circuit, CTAL-TTA §2.4) est lu
+   (`section CTAL-TTA-4.0-en 2.4`) avant d'être cité, ou renvoyé sans crochets ni page
+   dans « Où creuser ensuite » (« à lire : CTAL-TTA v4.0 EN §2.4 »).
 5. Web seulement pour un besoin identifiable (outil, actualité, retour terrain) : dis
    pourquoi en une phrase. Si la question nomme un outil, une technologie ou une
    pratique que `chercher` ne trouve pas (ex. Playwright), la recherche Web ciblée

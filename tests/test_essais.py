@@ -444,3 +444,22 @@ def test_en_tete_de_sylvie_en_premiere_ligne():
         if e.get("agent") and e.get("criteres"):
             assert e["criteres"].get("debut_direct"), ident
             assert e["criteres"].get("en_tete") == (e["agent"] == "sylvie" or None), ident
+
+
+def test_thomas_vu_en_extrait_jamais_entre_crochets():
+    """#229 (P7a, 2 passages sur 2) : Thomas citait entre crochets CTAL-TTA §2.4 p. 16, vu
+    seulement dans un résultat de `chercher`, suivi de « Je n'ai lu que l'extrait »."""
+    from test_agents import AGENTS, SKILL, corps
+    thomas = corps(AGENTS / "thomas.md")
+    assert "Vu en extrait = jamais entre crochets" in thomas and "Où creuser ensuite" in thomas
+    assert "Pas de ligne `Citer :` affichée pour cette page = pas de crochets" in thomas
+    assert "n'écris entre crochets que ce qu'une ligne `Citer :` t'a affiché" in corps(SKILL)
+    strategie = (SKILL.parent / "reference" / "strategie.md").read_text(encoding="utf-8")
+    assert "**jamais entre crochets**" in strategie
+    # Phrase réelle du passage 1 : hors section de bilan, l'aveu ne l'excuse pas.
+    reponse = ("- Piège à vérifier : le court-circuit du compilateur peut rendre certains tests MC/DC "
+               "irréalisables. [CTAL-TTA v4.0 EN, §2.4, p. 16] Je n'ai lu que l'extrait de la recherche, "
+               "pas la section complète.")
+    assert [c["lue"] for c in essais_agents.verifier_citations(reponse, {("CTAL-TTA", 20)})] == [False]
+    essais = {e["id"]: e for e in json.loads((RACINE / "eval" / "essais.json").read_text(encoding="utf-8"))["essais"]}
+    assert essais["T9-iso26262"]["agent"] == "thomas"

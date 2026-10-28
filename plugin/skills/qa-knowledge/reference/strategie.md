@@ -166,7 +166,10 @@ ne dépasse pas **60** — le dire.
 
 ## Marquage de la provenance
 
-- `[ISTQB CTAL-TA v4.0 FR, §3.1.1, p. 31]` — passage lu.
+- `[ISTQB CTAL-TA v4.0 FR, §3.1.1, p. 31]` — passage lu (recopié de sa ligne `Citer :`).
+- « à lire : CTAL-TTA v4.0 EN §2.4 » — vu seulement dans un extrait de `chercher` :
+  **jamais entre crochets**, même avec « je n'ai lu que l'extrait » ; lire la section
+  d'abord si le point compte pour la réponse.
 - `[Web — titre, domaine, consulté le AAAA-MM-JJ]`.
 - `[Base QA-0007, statut à évaluer]`.
 - « Interprétation : … » / « Hypothèse : … » pour ce qui vient du raisonnement.

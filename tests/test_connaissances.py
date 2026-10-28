@@ -613,3 +613,69 @@ def test_meme_extrait_sans_contenu_commun_reste_seulement_proche():
              "theme_principal": "competences", "references": [REF_P6]}
     s = connaissances.similarite({**IDEE, "references": [REF_P6]}, autre)
     assert connaissances.SEUIL_PROCHE <= s < connaissances.SEUIL_DOUBLON
+
+
+# ---------------------------------------------------------------- #235 : schéma des références
+
+REF_ALIAS = {"type": "istqb", "document": "CTFL", "page": "12", "extrait": "court"}
+
+
+def test_cles_de_reference_inconnues_refusees_avec_alias_et_cles_attendues():
+    """#235 : `document` et `page` étaient jetés sans erreur ; l'idée « documentée » entrait
+    avec une référence réduite à {type, extrait}."""
+    with pytest.raises(ErreurValidation) as exc:
+        connaissances.ajouter({**IDEE, "maturite": "documentee", "references": [dict(REF_ALIAS)]})
+    msg = exc.value.args[0]
+    assert "référence 1" in msg and "clé(s) inconnue(s)" in msg
+    assert "document (→ doc_id ?)" in msg and "page (→ pages ?)" in msg
+    for cle in ("type", "doc_id", "pages", "section", "extrait", "url"):
+        assert cle in msg.split("clés attendues")[1]
+    assert "idee modele" in msg
+    assert not chemins.connaissances_jsonl().exists() or not chemins.connaissances_jsonl().read_text(encoding="utf-8")
+
+
+def test_toutes_les_erreurs_de_schema_rapportees_en_une_fois():
+    """#235 : `references.page : texte attendu`, puis `Champ(s) inconnu(s) : theme` : deux allers-retours."""
+    donnees = {k: v for k, v in IDEE.items() if k not in ("theme_principal", "principe")}
+    donnees.update(theme="rbt", maturite="mure", references=[
+        {"type": "istqb", "doc_id": "CTFL", "page": 12, "document": "x"},
+        {"type": "blog", "url": "https://exemple.org"},
+        {"type": "web", "titre": "sans lien"},
+    ])
+    with pytest.raises(ErreurValidation) as exc:
+        connaissances.ajouter(donnees)
+    msg = exc.value.args[0]
+    attendus = ["theme (→ theme_principal ?)", "principe", "theme_principal", "maturite invalide : mure",
+                "référence 1", "page (→ pages ?)", "document (→ doc_id ?)", "référence 2", "blog",
+                "référence 3", "URL"]
+    for morceau in attendus:
+        assert morceau in msg, f"« {morceau} » absent de :\n{msg}"
+    assert msg.startswith("6 erreurs"), msg
+
+
+def test_une_seule_erreur_garde_son_message_court():
+    with pytest.raises(ErreurValidation, match=r"^Champ\(s\) inconnu\(s\) : theme \(→ theme_principal \?\)"):
+        connaissances.ajouter({**{k: v for k, v in IDEE.items() if k != "theme_principal"}, "theme": "rbt",
+                               "theme_principal": "rbt"})
+
+
+def test_cles_de_reference_du_modele_acceptees():
+    from qak.cli import MODELE_IDEE
+    web = next(r for r in MODELE_IDEE["references"] if r["type"] == "web")
+    ref = {**web, "url": "https://exemple.org/a", "consulte_le": "2026-01-01", "version": "1"}
+    r = connaissances.ajouter({**IDEE, "references": [ref]})
+    assert r["etat"] == "cree"
+    assert connaissances.voir(r["id"])["references"][0]["note"] == web["note"]
+
+
+def test_cli_idee_ajouter_scenario_235(monkeypatch, capsys):
+    import io
+    from qak import cli
+    idee = {"titre": "Essai de titre long", "resume": "Un resume", "probleme": "Un probleme",
+            "principe": "Un principe", "theme_principal": "rbt", "maturite": "documentee",
+            "references": [dict(REF_ALIAS)]}
+    monkeypatch.setattr("sys.stdin", io.StringIO(json.dumps(idee)))
+    assert cli.main(["idee", "ajouter"]) == 2
+    err = capsys.readouterr().err
+    assert "document (→ doc_id ?)" in err and "page (→ pages ?)" in err
+    assert not chemins.connaissances_jsonl().exists() or not chemins.connaissances_jsonl().read_text(encoding="utf-8")

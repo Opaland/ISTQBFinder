@@ -22,7 +22,22 @@ def test_libelles_exacts_en_et_fr_cftl():
 def test_politique_et_strategie_au_niveau_2():
     assert "stratégie" in ligne_niveau(2) and "politique" in ligne_niveau(2)
     assert "stratégie" not in ligne_niveau(3) and "politique" not in ligne_niveau(3)
-    assert "[CTEL-ITP 2011 EN, §3.3.2, p. 26 ; FR p. 29]" in GRILLE
+    # Le fondement renvoie à sa source, sans crochets ni page (#246).
+    assert "environnement de test (à lire : CTEL-ITP 2011 EN et FR §3.3.2)" in " ".join(GRILLE.split())
+
+
+def test_grille_renvoie_sans_citation_recopiable():
+    """#246 (récidive de #140) : Sylvie recopiait `[CTEL-ITP 2011 EN, §3.3.2, p. 26]` depuis
+    la grille sans l'avoir lu (3 avis sur 7). La grille ne contient plus aucune référence
+    au format d'une citation : le contrôle des essais n'y trouve rien à recopier."""
+    from test_essais import essais_agents
+    assert "[" not in GRILLE and essais_agents.verifier_citations(GRILLE, set()) == []
+    assert "à lire : CTEL-ITP 2011 EN §3.1.2" in " ".join(GRILLE.split())
+    assert "section CTEL-ITP-2011-en 3.3.2" in GRILLE
+    assert "une référence de la grille ne se cite qu'après" in " ".join(SYLVIE.split())
+    # La recopie réelle (étude P4b, relances #227 et #232) reste un échec du contrôle.
+    recopie = "Niveau 1 (grille du dépôt, fondée sur [CTEL-ITP 2011 EN, §3.3.2, p. 26])."
+    assert [c["lue"] for c in essais_agents.verifier_citations(recopie, set())] == [False]
 
 
 def test_echelle_inspiree_et_non_evaluation_tmmi():

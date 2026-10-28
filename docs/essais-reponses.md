@@ -6,6 +6,9 @@ sur `eval/essais.json`. Réponses complètes et commandes exécutées :
 citation « §x, p. N » (ou « pp. N-M ») correspond à une page **lue** pendant la
 conversation ; une référence que l'agent déclare lui-même non lue (ou lue en partie) dans
 « Confiance », « Limites », « Traçabilité » ou « Sources retenues » n'est pas une citation.
+Une référence est rattachée au document nommé sur **sa** ligne (le dernier sigle qui la
+précède, sinon le premier qui la suit), jamais au sigle d'une autre ligne ; sans aucun sigle
+sur sa ligne, l'essai échoue pour « référence sans document » (hors sections de bilan) (#247).
 Les essais tournent avec les permissions réelles du dépôt (règles `allow` de
 `.claude/settings.json`, aucune écriture pré-approuvée) sur une copie temporaire des
 données (`QAK_RACINE`). Le jugement de fond ci-dessous est humain.

@@ -66,10 +66,11 @@ ancienne, une seule langue ou aucun syllabus local ne couvre la démarche, propo
    26`) avant de la citer.
 7. **Confiance** : **calcule-la toujours** avec `python qa.py confiance --base N --lus N
    --concordants N --ancien 0|1 --contradiction 0|1 --web 0 --raisonnement 0|1
-   --non-couvert 0|1` (grille « Score de confiance » du skill ; base = « Couverture
-   lexicale » de ta première requête `chercher` ; lus = passages affichés par
-   `lire`/`section`/`page` ; concordants = syllabus courants lus qui vont dans le même
-   sens). Recopie son résultat : jamais de chiffre estimé à l'œil, aucun ajustement de
+   --non-couvert 0|1 --autorite 0` (grille « Score de confiance » du skill ; base =
+   « Couverture lexicale » de ta première requête `chercher` ; lus = passages affichés
+   par `lire`/`section`/`page` ; concordants = syllabus courants lus qui vont dans le
+   même sens ; `--autorite` reste à 0 : une démarche n'est pas une question sur une
+   seule notion). Recopie son résultat : jamais de chiffre estimé à l'œil, aucun ajustement de
    ton cru. Puis les limites.
 
 ## Format de réponse

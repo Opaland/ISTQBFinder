@@ -121,3 +121,19 @@ def test_controle_fidelite_une_ligne_plusieurs_citations():
     assert len(appels) == 1 and "branch coverage" in appels[0][0] and "probabilité" in appels[0][0]
     assert len(r[0]["citations"]) == 2
     assert len(essais_agents.alertes_fidelite(r)) == 1
+
+
+def test_controle_fidelite_meme_page_citee_sur_deux_lignes():
+    """#255 : une 2e ligne qui cite la même page qu'une ligne précédente est jugée elle
+    aussi (le dédoublonnage de `verifier_citations` est global, pas celui-ci) ; une
+    citation répétée sur une même ligne ne donne qu'un jugement."""
+    reponse = ("- La couverture des branches inclut celle des instructions [CTFL v4.0.1 EN, §4.3.2, p. 43].\n"
+               "- La couverture des branches n'inclut jamais celle des instructions [CTFL v4.0.1 EN, §4.3.2, p. 43].\n"
+               "- Branches et instructions [CTFL v4.0.1 EN, §4.3.2, p. 43], redit [CTFL v4.0.1 EN, §4.3.2, p. 43].\n")
+    appels = []
+    r = essais_agents.controle_fidelite(reponse, SORTIES, _juge(appels))
+    assert [j["verdict"] for j in r] == ["soutenue", "contradictoire", "soutenue"]
+    assert len(appels) == 3 and len(r[2]["citations"]) == 1
+    assert len(essais_agents.alertes_fidelite(r)) == 1
+    # Le contrôle « lire avant de citer » garde son dédoublonnage global.
+    assert len(essais_agents.verifier_citations(reponse, {("CTFL", 43)})) == 1

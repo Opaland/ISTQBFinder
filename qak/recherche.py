@@ -14,6 +14,7 @@ Ce choix a été mesuré sur eval/requetes.json (voir docs/architecture.md) : le
 """
 import collections
 import difflib
+import hashlib
 import json
 import re
 import sqlite3
@@ -239,39 +240,83 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
 
 
 DICE_TRADUCTION = 0.6  # association minimale (Dice) entre un mot français et sa traduction
+# Un mot anglais n'est pas la traduction d'un mot français si un AUTRE mot français lui est
+# nettement plus associé (moins de 90 % de son meilleur Dice) : « mode » → « scale » vient de
+# « en mode agile à l'échelle », « scale » traduit « échelle » (issue #253).
+CONCURRENCE_TRADUCTION = 0.9
 _LEXIQUES: dict = {}
+_SQL_EMPREINTE_TITRES = (
+    "SELECT group_concat(x, char(30)) FROM (SELECT ifnull(d.code, '') || char(31) || ifnull(d.version, '') "
+    "|| char(31) || ifnull(d.langue, '') || char(31) || ifnull(s.numero, '') || char(31) || ifnull(s.titre, '') AS x "
+    "FROM sections s JOIN documents d ON d.doc_id = s.doc_id WHERE d.statut_version = 'courant' "
+    "ORDER BY s.doc_id, s.ordre)")
+
+
+def _apprendre_lexique(titres: list[tuple[str, str]]) -> dict[str, str]:
+    """{racine française: mot anglais} appris sur des paires (titre FR, titre EN) alignées.
+
+    Les deux langues sont comparées par RACINE (« application » et « applications » comptent
+    ensemble) ; la traduction rendue est la forme anglaise la plus fréquente de la racine
+    retenue (« activités » → « activities » : le porter de FTS5 ne rapproche pas les deux).
+    Quatre règles contre les collocations (issue #253 : « application » → « mobile »,
+    « user » → « stories », « pilote » → « driven ») :
+    - cognat : un mot français qui figure tel quel (même racine) dans au moins deux titres
+      anglais alignés est sa propre traduction ;
+    - au moins deux titres en commun et Dice ≥ DICE_TRADUCTION ;
+    - concurrence : écarté si un autre mot français est nettement plus associé au mot anglais ;
+    - ex æquo départagés par la ressemblance des mots (« traçabilité » → « traceability » et
+      non « matrix »), puis par ordre alphabétique : le lexique ne dépend plus de l'ordre de
+      parcours des ensembles, qui changeait d'un processus à l'autre (PYTHONHASHSEED)."""
+    def mots_titre(t: str) -> set[str]:
+        return {m for m in normaliser(t).split() if m not in MOTS_VIDES and len(m) > 2 and not m.isdigit()}
+    fr, en, ensemble = collections.Counter(), collections.Counter(), collections.Counter()
+    formes: dict[str, collections.Counter] = collections.defaultdict(collections.Counter)
+    for t_fr, t_en in titres:
+        a = {racine(m) for m in mots_titre(t_fr)}
+        b = set()
+        for m in mots_titre(t_en):
+            b.add(racine(m))
+            formes[racine(m)][m] += 1
+        fr.update(a)
+        en.update(b)
+        ensemble.update((x, y) for x in a for y in b)
+    dice = {(x, y): 2 * n / (fr[x] + en[y]) for (x, y), n in ensemble.items() if n >= 2}
+    meilleur_fr: dict[str, float] = {}
+    candidats: dict[str, list[tuple[float, str]]] = collections.defaultdict(list)
+    for (x, y), d in dice.items():
+        meilleur_fr[y] = max(meilleur_fr.get(y, 0.0), d)
+        candidats[x].append((d, y))
+    lexique = {}
+    for x, liste in candidats.items():
+        if (x, x) in dice:
+            choix = x
+        else:
+            retenus = [(d, difflib.SequenceMatcher(None, x, y).ratio(), y) for d, y in liste
+                       if d >= DICE_TRADUCTION and d >= CONCURRENCE_TRADUCTION * meilleur_fr[y]]
+            if not retenus:
+                continue
+            choix = min(retenus, key=lambda c: (-c[0], -c[1], c[2]))[2]
+        lexique[x] = min(formes[choix].items(), key=lambda f: (-f[1], f[0]))[0]
+    return lexique
 
 
 def lexique_titres(cx: sqlite3.Connection) -> dict[str, str]:
     """{racine d'un mot français: mot anglais} appris sur les titres de sections ALIGNÉS
-    (même code, même version, même numéro de section en FR et en EN, issue #241) : pour
-    chaque mot français, le mot anglais le plus associé (coefficient de Dice ≥ DICE_TRADUCTION,
-    au moins deux titres en commun). « activités » → « activities », « statique » → « static »,
-    « facteurs » → « factors ». Calculé une fois par état de l'index (≈ 1 000 paires de titres)."""
-    cle = tuple(cx.execute("SELECT (SELECT count(*) FROM sections), "
-                           "(SELECT group_concat(doc_id || statut_version) FROM documents)").fetchone())
+    (même code, même version, même numéro de section en FR et en EN, issue #241), règles de
+    `_apprendre_lexique`. « activités » → « activities », « statique » → « static »,
+    « facteurs » → « factors ». Calculé une fois par état des titres (≈ 1 000 paires)."""
+    # Clé = empreinte des données mêmes dont le lexique est appris (issue #254) : l'ancienne
+    # clé (nombre de sections, documents) restait identique après une réindexation qui change
+    # des titres à nombre de sections constant, et un processus long (serveur MCP) gardait
+    # l'ancien lexique. ≈ 3 ms par recherche, contre ≈ 45 ms pour réapprendre le lexique.
+    cle = hashlib.sha256((cx.execute(_SQL_EMPREINTE_TITRES).fetchone()[0] or "").encode()).hexdigest()
     if cle not in _LEXIQUES:
         titres: dict = {}
         for r in cx.execute("SELECT d.code, d.version, d.langue, s.numero, s.titre FROM sections s "
                             "JOIN documents d ON d.doc_id = s.doc_id WHERE d.statut_version = 'courant'"):
             titres.setdefault((r["code"], r["version"], r["numero"]), {})[r["langue"]] = r["titre"]
-
-        def mots_titre(t: str) -> set[str]:
-            return {m for m in normaliser(t).split() if m not in MOTS_VIDES and len(m) > 2 and not m.isdigit()}
-        fr, en, ensemble = collections.Counter(), collections.Counter(), collections.Counter()
-        for v in titres.values():
-            if "fr" in v and "en" in v:
-                a, b = {racine(m) for m in mots_titre(v["fr"])}, mots_titre(v["en"])
-                fr.update(a)
-                en.update(b)
-                ensemble.update((x, y) for x in a for y in b)
-        meilleurs: dict = {}
-        for (x, y), n in ensemble.items():
-            dice = 2 * n / (fr[x] + en[y])
-            if n >= 2 and dice >= DICE_TRADUCTION and dice > meilleurs.get(x, (0.0, ""))[0]:
-                meilleurs[x] = (dice, y)
         _LEXIQUES.clear()
-        _LEXIQUES[cle] = {x: y for x, (_, y) in meilleurs.items()}
+        _LEXIQUES[cle] = _apprendre_lexique([(v["fr"], v["en"]) for v in titres.values() if "fr" in v and "en" in v])
     return _LEXIQUES[cle]
 
 

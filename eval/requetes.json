@@ -1133,6 +1133,17 @@
    "source": "issue #260 : domaine traité seulement par un syllabus anglais (CT-GT) ; « paris », « casino » sans traduction, « gambling » rangé avec « game testing »"
   },
   {
+   "requete": "tester la sécurité d'une application bancaire",
+   "attendus": [
+    {
+     "code": "CT-FT",
+     "section": "5.4"
+    }
+   ],
+   "controle": true,
+   "source": "issue #267 : la liste des abréviations du CT-FT (§7, « Application Security Testing », « Financing ») couvre toute la question et prend une des 3 places du CT-FT par liste de résultats : §5.4 « Security Testing and Availability Testing », 4e passage du CT-FT, sort du top 5"
+  },
+  {
    "requete": "comment éviter que nos tests cassent à chaque changement d'écran",
    "attendus": [
     {

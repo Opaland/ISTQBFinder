@@ -33,6 +33,17 @@ RRF_K = 60          # constante usuelle de la fusion par rangs réciproques
 # Rétrogradées à couverture égale.
 RE_PERIPHERIQUE = re.compile(r"\b(appendi|annexe|release notes|notes de (version|release)|references|bibliograph|"
                              r"business outcomes|objectifs metier|tracabilite|traceability matrix|index)", re.I)
+# Annexes lexicales (issue #267) : listes d'abréviations, de termes, de mots-clés, de marques,
+# références, index. Elles répètent les termes du domaine sans rien en expliquer et couvrent
+# souvent toute la question (« Financing », « Application Security Testing ») : elles passent
+# après tous les autres passages, quelle que soit leur couverture, sauf si la question les vise.
+RE_ANNEXE_LEXICALE = re.compile(r"\b(abbreviation|abreviation|acronym|sigles|glossar|trademark|marques deposees|"
+                                r"specific terms|specific and other terms|termes specifiques|termes non specifiques|"
+                                r"terms and definitions|termes et definitions|specific keywords|mots cles specifiques|"
+                                r"references|bibliograph|index)")
+# Question qui vise une annexe : « liste des abréviations », « glossaire », « références »…
+RE_VISE_ANNEXE = re.compile(r"\b(abbreviation|abreviation|acronym|sigle|glossar|terminolog|vocabulaire|"
+                            r"trademark|marques deposees|references|bibliograph|index)")
 
 
 @dataclass
@@ -168,6 +179,11 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
             return (bool(RE_PERIPHERIQUE.search(normaliser(r["section_titre"] or "")))
                     or (r["section_num"] or "").split(".")[0] == "0")
 
+        vise_annexe = bool(RE_VISE_ANNEXE.search(normaliser(requete)))
+
+        def lexicale(r) -> bool:
+            return not vise_annexe and bool(RE_ANNEXE_LEXICALE.search(normaliser(r["section_titre"] or "")))
+
         def titre(r) -> float:
             return sum(gs[k].poids for k in en_titre[r["id"]]) / total
 
@@ -193,9 +209,10 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
                 identites[t] = (meme, meme and bool(_racines(t)) and _racines(t) <= mots_requete)
             return identites[t]
 
-        # tri stable : couverture décroissante, sections de fond d'abord, puis sections dont le
-        # titre nomme les notions, puis dont le titre se confond avec la question, puis l'ordre BM25
-        classes = sorted(candidats, key=lambda r: (-couverture(r), peripherique(r), -titre(r),
+        # tri stable : annexes lexicales en dernier, puis couverture décroissante, sections de fond
+        # d'abord, puis sections dont le titre nomme les notions, puis dont le titre se confond avec
+        # la question, puis l'ordre BM25
+        classes = sorted(candidats, key=lambda r: (lexicale(r), -couverture(r), peripherique(r), -titre(r),
                                                    *(not x for x in titre_exact(r))))
         if proches:
             # Fusion par rangs réciproques (RRF) du classement lexical et du classement cosinus.
@@ -205,7 +222,7 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
 
             def rrf(r) -> float:
                 return sum(1 / (RRF_K + rangs[r["id"]]) for rangs in (rang_lex, rang_sem) if r["id"] in rangs)
-            classes = sorted(classes, key=lambda r: -rrf(r))
+            classes = sorted(classes, key=lambda r: (lexicale(r), -rrf(r)))
         vus, resultats, par = set(), [], {}
         for r in classes:
             cle = (r["doc_id"], r["page"])

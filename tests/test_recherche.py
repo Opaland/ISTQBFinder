@@ -147,6 +147,29 @@ def test_chapitre_0_d_introduction_retrograde(bibliotheque_test):
         cx.close()
 
 
+def test_annexe_lexicale_apres_les_sections_de_fond(bibliotheque_test):
+    # Issue #267 : une liste d'abréviations répète les termes du domaine sans les expliquer ; même
+    # si elle couvre toute la question, elle passe après les sections de fond (et ne prend pas leur
+    # place dans le quota par document), sauf si la question vise l'annexe.
+    from qak import bibliotheque
+    cx = bibliotheque.connecter()
+    try:
+        doc = cx.execute("SELECT doc_id FROM passages LIMIT 1").fetchone()[0]
+        cx.execute("INSERT INTO passages(doc_id, ordre, page, section_num, section_titre, texte, sommaire) "
+                   "VALUES (?, 999, 99, '7', 'List of Abbreviations', 'abréviations : EP equivalence "
+                   "partitioning, BVA boundary value analysis, equivalence partitioning', 0)", (doc,))
+        rid = cx.execute("SELECT max(id) FROM passages").fetchone()[0]
+        cx.execute("INSERT INTO passages_fts(rowid, texte, section_titre) SELECT id, texte, section_titre "
+                   "FROM passages WHERE id=?", (rid,))
+        cx.commit()
+        res = recherche.chercher("equivalence partitioning", cx=cx, n=20, par_doc=20)["resultats"]
+        assert len(res) > 1 and res[-1]["section_num"] == "7"
+        vise = recherche.chercher("abréviations equivalence partitioning", cx=cx)["resultats"]
+        assert vise[0]["section_num"] == "7"
+    finally:
+        cx.close()
+
+
 def test_section_au_titre_identique_a_la_requete_d_abord(bibliotheque_test):
     # Issue #165 : « Exploratory Testing » (CTFL §4.4.2) arrivait au rang 11, derrière des
     # sections dont le titre nomme le même concept du thésaurus (« Session-Based Test

@@ -1103,6 +1103,21 @@
    "source": "issue #241 : question française, section du CTFL v4.0 disponible seulement en anglais"
   },
   {
+   "requete": "tester une application bancaire",
+   "attendus": [
+    {
+     "code": "CT-FT",
+     "section": "1.1"
+    },
+    {
+     "code": "CT-FT",
+     "section": "5.1"
+    }
+   ],
+   "controle": true,
+   "source": "issue #253 : « application » traduit par « mobile » (collocation apprise sur les titres alignés), 5/5 premiers résultats tirés du CT-MAT"
+  },
+  {
    "requete": "comment éviter que nos tests cassent à chaque changement d'écran",
    "attendus": [
     {

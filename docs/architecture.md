@@ -21,7 +21,7 @@ python qa.py <commande>          ← une seule CLI, sortie texte FR (ou --json)
         │
         └── Référentiels ────────────────────────────────────────────────────
               referentiel/taxonomie.json   41 thèmes hiérarchiques + mots-clés FR/EN       [versionné]
-              referentiel/thesaurus.json   ~130 concepts, ~1000 termes FR↔EN              [versionné]
+              referentiel/thesaurus.json   ~140 concepts, ~1000 termes FR↔EN              [versionné]
 ```
 
 Modules (`qak/`) : `extraction` (PDF → pages, plan, passages) · `bibliotheque` (import,
@@ -86,23 +86,29 @@ par `lire` / `section` / `page` sont relevés (`cli.LECTURES`) et consultables p
 | #241 mot français hors thésaurus traduit par les titres de sections alignés FR/EN (« activités » → « activities », « facteurs » → « factors ») ; 4 questions sur des sections du CTFL v4.0 seulement anglais ajoutées au contrôle avant correctif (éloigné 5 % → 5 % ; examens 47 % (64/135) → 52 % (70/135), dont CTFL 20 % → 30 %) | 100 % (0,95) → 100 % (0,95) | 82 % (42/51, 0,71) → 92 % (47/51, 0,78) |
 | #253 lexique FR→EN : racines comparées aux racines, cognat gardé (« application » → « application » et non « mobile », « user » → « user » et non « stories »), mot anglais écarté s'il est nettement mieux associé à un autre mot français (« mode » → « scale »), ex æquo départagés par la ressemblance (lexique identique d'un processus à l'autre) ; question « tester une application bancaire » ajoutée au contrôle avant correctif, toujours en échec (« bancaire » sans traduction ; CT-MAT 5/5 → 1/5 dans le top 5) ; éloigné 5 % → 5 % ; examens 52 % (70/135) → 52 % (70/135) | 100 % (0,95) → 100 % (0,95) | 90 % (47/52, 0,77) → 90 % (47/52, 0,77) |
 | #254 cache du lexique FR→EN : clé = empreinte des titres alignés (code, version, langue, numéro, titre) au lieu du nombre de sections ; un processus long (serveur MCP) suit une réindexation qui change des titres à nombre de sections constant (≈ 3 ms par recherche ; mêmes classements sur les quatre jeux, éloigné 5 % → 5 %, examens 52 % → 52 %) | 100 % (0,95) → 100 % (0,95) | 90 % (47/52, 0,77) → 90 % (47/52, 0,77) |
-| **État actuel** (moteur lexical ; #59 : mêmes classements, ≈ 8 × plus rapide) | **100 % (MRR 0,95)** | **90 % (47/52, MRR 0,77)** |
+| #260 thésaurus : concepts de domaine métier vers les syllabus anglais seuls — « finance » (bancaire, banque, financier, services financiers, compagnie d'assurance ↔ banking, financial, fintech, insurance, trading ; CT-FT) et « jeux-argent » (jeux d'argent, casino, loterie, paris en ligne, paris sportifs ↔ gambling, lottery, betting, wagering ; CT-GT) séparé de « jeux » (game testing) ; « payment/paiement » essayé puis écarté (examens : « table de décision d'un paiement au distributeur » rang 1 → 5) ; automobile (CT-AuT) et jeu vidéo (CT-GaMe) déjà trouvés, aucun syllabus santé ; question « tester un site de paris en ligne » ajoutée au contrôle avant correctif ; « tester une application bancaire » KO → rang 5 ; éloigné 5 % → 5 % ; examens 52 % (70/135, 0,39) → 52 % (70/135, 0,39) | 100 % (0,95) → 100 % (0,95) | 89 % (47/53, 0,75) → 92 % (49/53, 0,78) |
+| **État actuel** (moteur lexical ; #59 : mêmes classements, ≈ 8 × plus rapide) | **100 % (MRR 0,95)** | **92 % (49/53, MRR 0,78)** |
 
 Le 100 % du jeu de réglage est optimiste par construction ; le chiffre honnête est celui
 du jeu de contrôle. Les questions ajoutées au contrôle l'ont été AVANT la correction qu'elles
-motivent ; le contrôle est passé de 18 à 51 questions, en grande partie des questions
+motivent ; le contrôle est passé de 18 à 53 questions, en grande partie des questions
 difficiles issues des revues (fautes de frappe, questions de Test Manager, formulations loin
 du vocabulaire ISTQB) : sa baisse de 89 % à 82 % (avant #165) vient de ces ajouts, pas d'une régression
-(chaque PR a été mesurée avant/après sur le même jeu). Les 5 échecs actuels :
+(chaque PR a été mesurée avant/après sur le même jeu). Les 4 échecs actuels :
 - « différence entre tester et déboguer » (#241) : « déboguer » ne figure dans aucun titre
   aligné FR/EN, il n'a donc pas de traduction apprise ;
 - « rapport d'avancement des tests parties prenantes », « comment estimer l'effort de
   test » : arbitrages laissés ouverts dans #25 ;
 - « architecture en couches d'un framework d'automatisation » : §3.1.3 n'emploie pas
   « architecture » (#47).
-- « tester une application bancaire » (#253) : le CT-FT n'existe qu'en anglais et
-  « bancaire » ne figure dans aucun titre aligné ni au thésaurus ; le correctif retire
-  seulement la fausse traduction « application » → « mobile » (CT-MAT 5/5 → 1/5).
+
+#260 : un mot de domaine métier français (« bancaire », « paris en ligne ») n'a de traduction
+ni dans les titres alignés ni au thésaurus quand seul un syllabus anglais traite ce domaine
+(CT-FT, CT-GT). Un concept de thésaurus par domaine relie les termes français aux mots
+réellement employés par le syllabus (§1.1.1 du CT-FT : « banking », « financial »,
+« fintech », « insurance » ; §1.3 et §3.10 du CT-GT : « gambling », « betting », « wagering »).
+« assurance » seul n'y figure pas (assurance qualité), ni « paiement » (trop général : il
+dégrade une question d'examen sur une table de décision).
 
 #165 : à couverture et titre égaux, une section dont le titre a la même signature que la
 question (concepts du thésaurus + racines : « Exploratory Testing » pour « tests

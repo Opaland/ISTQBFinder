@@ -70,3 +70,26 @@ def test_exemple_d_idee_accepte_par_idee_ajouter(idee, monkeypatch, capsys):
     sortie = capsys.readouterr()
     assert code == 0 and "Idée créée" in sortie.out, sortie.err or sortie.out
     assert "non vérifiable" not in sortie.out, sortie.out
+
+
+def test_consigne_d_erreurs_conforme_a_idee_ajouter(monkeypatch, capsys):
+    """#256 : capitalisation.md décrit les erreurs de `idee ajouter` telles qu'elles sont
+    (toutes listées en une fois ; `pages` entier converti, pas refusé). Le texte et le
+    comportement sont vérifiés ensemble : changer l'un sans l'autre fait échouer ce test."""
+    consigne = " ".join((RACINE_CODE / ".claude" / "skills" / "qa-knowledge" / "reference"
+                         / "capitalisation.md").read_text(encoding="utf-8").split())
+    assert "une à la fois" not in consigne and "jamais `29`" not in consigne
+    assert "listant toutes en une fois" in consigne
+    assert "un entier (`29`) est accepté et converti en texte" in consigne
+
+    base = {"titre": "Identifier les risques qualité", "resume": "r", "probleme": "p", "principe": "x"}
+    fautive = {**base, "theme": "rbt", "references": [{"type": "istqb", "document": "X", "page": "3"}]}
+    monkeypatch.setattr("sys.stdin", io.StringIO(json.dumps(fautive)))
+    assert main(["idee", "ajouter"]) == 2
+    err = capsys.readouterr().err
+    assert "toutes listées" in err and "theme_principal" in err and "doc_id" in err and "pages" in err, err
+
+    entier = {**base, "theme_principal": "rbt", "references": [{"type": "web", "url": "https://exemple.org", "pages": 29}]}
+    monkeypatch.setattr("sys.stdin", io.StringIO(json.dumps(entier)))
+    assert main(["idee", "ajouter"]) == 0, capsys.readouterr()
+    assert "Idée créée" in capsys.readouterr().out

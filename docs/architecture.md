@@ -27,7 +27,8 @@ python qa.py <commande>          ← une seule CLI, sortie texte FR (ou --json)
 Modules (`qak/`) : `extraction` (PDF → pages, plan, passages) · `bibliotheque` (import,
 métadonnées, doublons, versions, index) · `catalogue` (istqb.org) · `recherche` (FTS5 +
 thésaurus + reclassement) · `connaissances` (idées, déduplication, références vérifiées) ·
-`taxonomie` · `journal` · `evaluation` · `cli`.
+`taxonomie` · `journal` · `evaluation` · `citations` (règle « citation lue » : page affichée
+dans la section citée ou une sous-section, commune à `passages_lus` et aux essais, #275) · `cli`.
 
 Aucun serveur réseau, aucune interface graphique, aucune clé d'API. Dépendance unique : `pypdf`.
 

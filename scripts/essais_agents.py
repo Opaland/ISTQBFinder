@@ -49,8 +49,10 @@ from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import commun  # noqa: E402
 import etude_juge  # noqa: E402
+from qak import citations as regle_citations  # noqa: E402
 
 RACINE = Path(__file__).resolve().parent.parent
 # Outils hors Bash dont les agents ont besoin (lecture, skill, Web) ; les commandes Bash
@@ -229,12 +231,16 @@ def outils_utilises(evenements: list[dict]) -> tuple[list[str], str]:
     return commandes, "\n".join(sorties)
 
 
-RE_ENTETE = re.compile(r"── ([A-Za-z0-9.-]+?)-(?:BoK-)?[\dv.?]+(?:-[a-z]+)?-(?:en|fr) ·.*?· p\. (\d+)")
+# En-tête de passage : « ── DOC · titre · version · p. N [(imprimée M)] · §x.y Titre (passage #id) ».
+RE_ENTETE = re.compile(r"── ([A-Za-z0-9.-]+?)-(?:BoK-)?[\dv.?]+(?:-[a-z]+)?-(?:en|fr) ·.*?· p\. (\d+)"
+                       r"(?: \(imprimée [^)\n]*\))?(?: · §(\S*))?")
 
 
-def pages_lues(sorties: str) -> set[tuple[str, int]]:
-    """(code, page) affichés par `lire` / `section` / `page` (lignes « ── DOC · … · p. N »)."""
-    return {(m.group(1).upper(), int(m.group(2))) for m in RE_ENTETE.finditer(sorties)}
+def pages_lues(sorties: str) -> set[tuple[str, int, str]]:
+    """(code, page, section) affichés par `lire` / `section` / `page` (lignes
+    « ── DOC · … · p. N · §x.y … ») : la section compte, comme dans `passages_lus` (#275)."""
+    return {(m.group(1).upper(), int(m.group(2)), regle_citations.numero_section(m.group(3) or ""))
+            for m in RE_ENTETE.finditer(sorties)}
 
 
 def textes_lus(sorties: str, maximum: int = 4000) -> dict[tuple[str, int], str]:
@@ -283,13 +289,26 @@ def zones_non_lues(reponse: str) -> list[tuple[int, int]]:
     return zones
 
 
+# Début de plage de sections juste avant une référence : « §4.3.1 à §4.3.2, p. 42 » (le
+# jeton `ref` commence au dernier « § ») (#275).
+RE_DEBUT_PLAGE = re.compile(r"§\s?([\d.]*\d)\.?\s*(?:à|au|-|–)\s*$")
+
+
+def section_citee(reponse: str, m: re.Match) -> str:
+    """Section(s) d'une référence, plage comprise : « §1.3.1 à 1.3.5 » est dans le jeton,
+    « §4.3.1 à §4.3.2 » a sa première borne juste avant (#275)."""
+    avant = RE_DEBUT_PLAGE.search(reponse, max(0, m.start() - 30), m.start())
+    return f"{avant[1]} à {m.group('ref')}" if avant else m.group("ref")
+
+
 # Référence qui ne nomme pas son document sur sa ligne (#247) : « (§3.2.2, p. 36) ».
 SANS_DOCUMENT = "sans document"
 
 
 def references(reponse: str, uniques: bool = True):
     """(code, première page, dernière page, correspondance) de chaque citation unique
-    (`uniques=False` : chaque occurrence, pour juger chaque ligne qui cite, #255).
+    (document, section, pages : deux sections sœurs d'une même page restent deux
+    citations, #275 ; `uniques=False` : chaque occurrence, pour juger chaque ligne qui cite, #255).
     Une référence que l'agent déclare lui-même non lue ou non citée, dans une section
     de bilan, n'est pas une citation (#139) ; son code garde le contexte des suivantes.
     Rattachement explicite seulement (#247) : une référence prend le dernier sigle nommé
@@ -313,20 +332,26 @@ def references(reponse: str, uniques: bool = True):
         if sigle is None and any(a <= m.start() < b for a, b in bilans):
             continue
         debut, fin = int(m.group("p1")), int(m.group("p2") or m.group("p1"))
-        if uniques and (sigle, debut, fin) in vues:
+        cle = (sigle, regle_citations.bornes_section(section_citee(reponse, m)), debut, fin)  # section comprise (#275)
+        if uniques and cle in vues:
             continue
-        vues.add((sigle, debut, fin))
+        vues.add(cle)
         yield sigle, debut, fin, m
 
 
-def verifier_citations(reponse: str, lues: set) -> list[dict]:
-    """Chaque citation (code, pages) unique : toutes ses pages ont-elles été lues ? Comme
-    `passages_lus` du serveur MCP (#206), `pp. N-M` n'est lue que si chaque page de
-    l'intervalle a été affichée (#272 : `pp. 26-27` après une sortie tronquée à la p. 26
-    n'est pas lue). Une référence sans document (#247) n'est rattachée à aucun syllabus :
-    elle est signalée comme telle (« sans document §… »), non lue par construction."""
+def verifier_citations(reponse: str, lues: set[tuple[str, int, str]]) -> list[dict]:
+    """Chaque citation (code, section, pages) unique est-elle lue ? Même règle que
+    `passages_lus` du serveur MCP, même code (`qak.citations`, #275) : chaque page citée
+    (`pp. N-M` : chaque page de l'intervalle, #272) affichée dans la section citée ou
+    l'une de ses sous-sections — une page lue sous une section sœur ne suffit pas.
+    Une plage de sections (« §1.3.1 à §1.3.5, pp. 29-34 ») couvre chaque section de la
+    plage. `lues` vient de `pages_lues` (code, page, section). Une référence sans document
+    (#247) n'est rattachée à aucun syllabus : elle est signalée comme telle
+    (« sans document §… »), non lue par construction."""
+    lectures = [(code, sec, page, None) for code, page, sec in lues]
     return [{"citation": f"{code or SANS_DOCUMENT} {m.group('ref')[:60]}",
-             "lue": code is not None and all((code, p) in lues for p in range(debut, fin + 1))}
+             "lue": code is not None and bool(regle_citations.lectures_couvrantes(
+                 code, section_citee(reponse, m), debut, fin, lectures))}
             for code, debut, fin, m in references(reponse)]
 
 

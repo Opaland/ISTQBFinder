@@ -25,7 +25,7 @@ except ImportError:  # pragma: no cover
     def Field(**_):
         return None
 
-from . import cli
+from . import citations, cli
 from .connaissances import ErreurValidation
 
 INSTALLATION = ("le serveur MCP demande le SDK Python `mcp` (version 2.3 ou plus), optionnel : "
@@ -107,23 +107,18 @@ def _decouper(citation: str) -> tuple[str, str, int, int] | None:
 
 def _lue(citation: str, refs: dict[str, list[dict]]) -> list[str]:
     """Références relevées qui couvrent `citation` ; vide si une seule de ses pages manque.
-    `pp. N-M` n'est LU que si chaque page de l'intervalle a été affichée, dans le même
-    document et dans la section citée ou l'une de ses sous-sections (`section` les inclut)."""
+    Règle partagée avec le contrôle des essais (`citations.lectures_couvrantes`, #275) :
+    chaque page affichée dans le même document et dans la section citée ou l'une de ses
+    sous-sections (`section` les inclut)."""
     cle = _normaliser(citation)
     exacte = [r for r in refs if _normaliser(r) == cle]
     if exacte:
         return exacte
     voulue = _decouper(citation)
-    if not voulue or voulue[3] < voulue[2]:
+    if not voulue:
         return []
-    doc, sec, debut, fin = voulue
-    par_page: dict[int, str] = {}
-    for r in refs:
-        lue = _decouper(r)
-        if lue and lue[0] == doc and (lue[1] == sec or lue[1].startswith(sec.rstrip(".") + ".")):
-            par_page.setdefault(lue[2], r)
-    pages = range(debut, fin + 1)
-    return [par_page[k] for k in pages] if all(k in par_page for k in pages) else []
+    lues = [(d[0], d[1], d[2], r) for r in refs if (d := _decouper(r))]
+    return citations.lectures_couvrantes(*voulue, lues)
 
 
 def passages_lus(citation: str = "") -> str:

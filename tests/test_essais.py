@@ -83,7 +83,7 @@ def test_essais_par_domaine_presents():
 
 def test_citation_non_lue_fait_echouer_l_essai():
     """#127 : une citation dont la page n'a pas été lue n'est plus un simple indicateur."""
-    lues = {("CTAL-TM", 29)}
+    lues = {("CTAL-TM", 29, "1.3.2")}
     reponse = "Pistes [CTAL-TM v3.0 FR, §1.3.2, p. 29] et [CTAL-TAE v2.0 EN, §4.2.1, p. 32]."
     citations = essais_agents.verifier_citations(reponse, lues)
     bilan = {"citations": citations, "citations_non_lues": [c["citation"] for c in citations if not c["lue"]],
@@ -124,7 +124,7 @@ S1_RBT = """| **P2** Tester d'abord | Intention | Aligné | … | [CTAL-TM v3.0 
 def test_reference_declaree_non_lue_n_est_pas_une_citation():
     """#139 : « je n'ai pas lu la §1.3.5 (p. 33) » et « … n'est donc pas cité » dans les
     sections de bilan ne sont pas des citations non lues (faux positif sur S1-rbt)."""
-    citations = essais_agents.verifier_citations(S1_RBT, {("CTAL-TM", 29), ("CTAL-TM", 32)})
+    citations = essais_agents.verifier_citations(S1_RBT, {("CTAL-TM", 29, "1.3.1"), ("CTAL-TM", 32, "1.3.4")})
     assert citations and all(c["lue"] for c in citations), citations
     assert not any("CTAL-TA" in c["citation"] or "33" in c["citation"] for c in citations)
 
@@ -137,7 +137,7 @@ def test_reference_declaree_non_lue_n_est_pas_une_citation():
     "## Traçabilité\n\n- Document lu : CTAL-TM v3.0 FR. Sections lues : §1.3.5 (p. 33).\n",
 ])
 def test_controle_strict_hors_declaration_de_non_lecture(reponse):
-    citations = essais_agents.verifier_citations(reponse, {("CTAL-TM", 29)})
+    citations = essais_agents.verifier_citations(reponse, {("CTAL-TM", 29, "1.3.2")})
     assert [c["lue"] for c in citations] == [False], citations
 
 
@@ -146,13 +146,56 @@ def test_citation_pp_est_controlee_et_ne_fusionne_pas():
     (S3-reglemente, 2026-10-22) restent deux citations rattachées à leur document."""
     reponse = ("matrice de risque qualitative [CTAL-TM v3.0 FR, §1.3.3, pp. 30-31 ; "
                "CTFL v4.0.1 EN, §5.2.3, p. 53].")
-    citations = essais_agents.verifier_citations(reponse, {("CTAL-TM", 30), ("CTAL-TM", 31)})
+    citations = essais_agents.verifier_citations(reponse, {("CTAL-TM", 30, "1.3.3"), ("CTAL-TM", 31, "1.3.3")})
     assert [(c["citation"].split()[0], c["lue"]) for c in citations] == [("CTAL-TM", True), ("CTFL", False)]
     # #272 : comme `passages_lus` (#206), une seule page lue de l'intervalle ne suffit pas.
-    assert essais_agents.verifier_citations(reponse, {("CTAL-TM", 31)})[0]["lue"] is False
+    assert essais_agents.verifier_citations(reponse, {("CTAL-TM", 31, "1.3.3")})[0]["lue"] is False
     assert essais_agents.verifier_citations("[CTAL-TM v3.0 FR, §1.3.3, pp. 30-31]", set())[0]["lue"] is False
     # « §1.3 ; §1.3.1, p. 29 » : une seule citation, la seconde.
     assert len(essais_agents.verifier_citations("[CTAL-TM v3.0 FR, §1.3 ; §1.3.1, p. 29]", set())) == 1
+
+
+
+# Deux sections sœurs sur une même page (#275) : seule §1.3.2 a été affichée.
+SORTIE_SOEURS = """
+── CTAL-TM-3.0-fr · ISTQB Test Manager · v3.0 (2024-03-28) · p. 29 (imprimée 27) · §1.3.2 Évaluation des risques (passage #2)
+Citer : [CTAL-TM v3.0 FR, §1.3.2, p. 29]
+Le niveau de risque combine probabilité et impact.
+"""
+
+
+def test_citation_d_une_section_soeur_sur_la_meme_page_n_est_pas_lue():
+    """#275 : la page 29 affichée sous §1.3.2 ne valide pas une citation de §1.3.3 qui
+    commence sur la même page (l'ancien contrôle ne comparait que document et page).
+    La section parente reste couverte (`section 1.3` inclut ses sous-sections)."""
+    lues = essais_agents.pages_lues(SORTIE_SOEURS)
+    assert lues == {("CTAL-TM", 29, "1.3.2")}
+    reponse = ("[CTAL-TM v3.0 FR, §1.3.2, p. 29] [CTAL-TM v3.0 FR, §1.3.3, p. 29] [CTAL-TM v3.0 FR, §1.3, p. 29] "
+               "[CTAL-TM v3.0 FR, §1.3.2.1, p. 29] [CTAL-TM v3.0 FR, §1, p. 29] [CTAL-TM v3.0 FR, §1.3.20, p. 29]")
+    assert [(c["citation"].split(",")[0], c["lue"]) for c in essais_agents.verifier_citations(reponse, lues)] == [
+        ("CTAL-TM §1.3.2", True), ("CTAL-TM §1.3.3", False), ("CTAL-TM §1.3", True),
+        ("CTAL-TM §1.3.2.1", False), ("CTAL-TM §1", True), ("CTAL-TM §1.3.20", False)]
+    # Formes libres des réponses archivées : « §3.2 à 3.2.5 (pp. 35-37) », « §1.3.2 (p. 29) ».
+    assert [c["lue"] for c in essais_agents.verifier_citations(
+        "CTAL-TM v3.0 FR : §1.3 à 1.3.4 (p. 29) ; §1.3.3 (p. 29).", lues)] == [True, False]
+    # Plage de sections (réponses archivées S3-reglemente, T1-couverture) : la page lue doit
+    # tomber dans la plage, première borne avant le dernier « § » comprise.
+    assert [c["lue"] for c in essais_agents.verifier_citations(
+        "[CTAL-TM v3.0 FR, §1.3.1 à §1.3.3, p. 29] [CTAL-TM v3.0 FR, §1.3.3 à §1.3.5, p. 29] "
+        "[CTAL-TM v3.0 FR, §1.3.1-1.3.2, p. 29] [CTAL-TM v3.0 FR, §1.3.3-1.3.4, p. 29]", lues)] \
+        == [True, False, True, False]
+
+
+@pytest.mark.parametrize("citee, lue, attendu", [
+    ("§1.3", "1.3", True), ("§1.3", "1.3.2", True), ("1.3.", "§1.3.2 Titre", True),
+    ("§1.3", "1.30", False), ("§1.3.2", "1.3", False), ("§1.3.2", "1.3.3", False),
+    ("§1.3 à §1.3.6", "1.3.4.1", True), ("1.3.1 à 1.3.5", "1.3.6", False), ("§4.2 à §4.4", "4.3.1", True),
+    ("§4.2 à §4.4", "4.5", False), ("", "", True), ("", "1.2", False), ("§A.1", "A.1.2", True),
+])
+def test_regle_commune_section_couvre(citee, lue, attendu):
+    """#275 : règle partagée par `passages_lus` et les essais (qak/citations.py)."""
+    from qak import citations
+    assert citations.section_couvre(citee, lue) is attendu
 
 
 # Extrait réel : relance Y228-S4-1 (Sylvie, S4-recette, 2026-10-28), lignes 36 et 38.
@@ -165,13 +208,13 @@ def test_reference_sans_document_jamais_rattachee_a_une_autre_ligne():
     """#247 : « (§3.2.2, p. 36) » sans document était rattachée au dernier sigle nommé plus
     haut (CTAL-TM) → faux échec « citation non lue : CTAL-TM §3.2.2, p. 36 ». Elle prend
     désormais le sigle de SA ligne (ici le [CTFL …] qui la suit)."""
-    lues = {("CTAL-TM", 64), ("CTAL-TM", 65), ("CTFL", 36), ("CTFL", 56)}  # pp. 64-65 : les deux (#272)
+    lues = {("CTAL-TM", 64, "2.3.6"), ("CTAL-TM", 65, "2.3.6"), ("CTFL", 36, "3.2.2"), ("CTFL", 56, "5.5")}  # pp. 64-65 : les deux (#272)
     citations = essais_agents.verifier_citations(Y228_S4, lues)
     assert all(c["lue"] for c in citations), citations
     assert not any(c["citation"].startswith("CTAL-TM §3.2.2") for c in citations)
     # Le scénario de l'issue : plus de CTAL-TM accusé à tort.
     reponse = "CTAL-TM v3.0 FR …\n- Les revues (§3.2.2, p. 36). [CTFL v4.0.1 EN, §3.2.2, p. 36]"
-    assert [(c["citation"].split()[0], c["lue"]) for c in essais_agents.verifier_citations(reponse, {("CTFL", 36)})] \
+    assert [(c["citation"].split()[0], c["lue"]) for c in essais_agents.verifier_citations(reponse, {("CTFL", 36, "3.2.2")})] \
         == [("CTFL", True)]
     # Sans la page CTFL lue, l'échec désigne le bon document.
     citations = essais_agents.verifier_citations(reponse, set())
@@ -183,7 +226,7 @@ def test_reference_orpheline_signalee_comme_telle():
     exige que chaque référence nomme son document) : l'essai échoue sous ce motif, sans
     accuser un document cité ailleurs. Dans une section de bilan, ce n'est pas une citation."""
     reponse = "Selon CTAL-TM v3.0 FR [CTAL-TM v3.0 FR, §2.3.6, p. 64].\n- Les revues produisent des rapports (§3.2.2, p. 36)."
-    citations = essais_agents.verifier_citations(reponse, {("CTAL-TM", 64), ("CTAL-TM", 36)})
+    citations = essais_agents.verifier_citations(reponse, {("CTAL-TM", 64, "2.3.6"), ("CTAL-TM", 36, "3.2.2")})
     assert [c["lue"] for c in citations] == [True, False], citations
     bilan = {"citations_non_lues": [c["citation"] for c in citations if not c["lue"]], "criteres_ko": []}
     assert essais_agents.motifs_echec(bilan) == ["référence sans document : §3.2.2, p. 36"]
@@ -266,7 +309,7 @@ M5_MOBILE = """**Sources retenues**
 def test_lecture_partielle_declaree_dans_sources_retenues():
     """#181 : « lu en partie (le reste est à la p. 35) » dans « Sources retenues » est une
     déclaration, pas une citation ; la vraie citation (p. 34, lue) reste contrôlée."""
-    citations = essais_agents.verifier_citations(M5_MOBILE, {("CTAL-TAE", 34)})
+    citations = essais_agents.verifier_citations(M5_MOBILE, {("CTAL-TAE", 34, "4.2.1")})
     assert [(c["citation"].split()[0], c["lue"]) for c in citations] == [("CTAL-TAE", True)], citations
     # Sans la page 34 lue, la citation du corps échoue toujours : seule la déclaration est exclue.
     assert [c["lue"] for c in essais_agents.verifier_citations(M5_MOBILE, set())] == [False]
@@ -279,7 +322,7 @@ def test_lecture_partielle_declaree_dans_sources_retenues():
     "**Sources retenues**\n- CTAL-TAE v2.0 FR : §4.2.1 (p. 35) lu.\n",
 ])
 def test_lecture_partielle_controle_strict_ailleurs(reponse):
-    citations = essais_agents.verifier_citations("CTAL-TAE v2.0 FR. " + reponse, {("CTAL-TAE", 34)})
+    citations = essais_agents.verifier_citations("CTAL-TAE v2.0 FR. " + reponse, {("CTAL-TAE", 34, "4.2.1")})
     assert [c["lue"] for c in citations] == [False], citations
 
 
@@ -498,7 +541,7 @@ def test_thomas_vu_en_extrait_jamais_entre_crochets():
     reponse = ("- Piège à vérifier : le court-circuit du compilateur peut rendre certains tests MC/DC "
                "irréalisables. [CTAL-TTA v4.0 EN, §2.4, p. 16] Je n'ai lu que l'extrait de la recherche, "
                "pas la section complète.")
-    assert [c["lue"] for c in essais_agents.verifier_citations(reponse, {("CTAL-TTA", 20)})] == [False]
+    assert [c["lue"] for c in essais_agents.verifier_citations(reponse, {("CTAL-TTA", 20, "2.4")})] == [False]
     essais = {e["id"]: e for e in json.loads((RACINE / "eval" / "essais.json").read_text(encoding="utf-8"))["essais"]}
     assert essais["T9-iso26262"]["agent"] == "thomas"
 

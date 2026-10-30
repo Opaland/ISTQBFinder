@@ -23,10 +23,14 @@ intérêt durable, résultat de recherche brut.
 2. Rédiger le JSON (champs obligatoires : `titre`, `resume`, `probleme`, `principe`,
    `theme_principal`). Champs utiles : `themes_secondaires`, `domaine_application`,
    `prerequis`, `benefices`, `limites`, `maturite`, `provenance`, `references`.
-   Erreurs déjà rencontrées, toutes refusées par `idee ajouter` (une à la fois) :
+   Erreurs déjà rencontrées. `idee ajouter` refuse une erreur de forme (clé inconnue,
+   champ manquant, mauvais type) en les **listant toutes en une fois** : corrige-les
+   toutes avant de relancer. La vérification d'une référence ISTQB (page, section,
+   extrait) ne vient qu'ensuite, et s'arrête à la première erreur.
    - `theme` → `theme_principal` (et `themes_secondaires` pour les autres) ;
    - dans une référence, `document` → `doc_id` exact (ex. `CTAL-TM-3.0-fr`, en-tête de
-     `lire`), `page` → `pages`, **en texte** (`"29"`, `"29-30"`, jamais `29`) ;
+     `lire`), `page` → `pages`, de préférence **en texte** (`"29"`, `"29-30"`) comme dans
+     `idee modele` ; un entier (`29`) est accepté et converti en texte ;
    - `extrait` : au moins 6 mots significatifs recopiés mot pour mot (une phrase entière
      du passage lu, pas un groupe nominal).
 3. Thèmes : `theme proposer "<titre + résumé>"`, puis vérifier dans `themes`.

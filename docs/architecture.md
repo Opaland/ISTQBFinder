@@ -28,7 +28,8 @@ Modules (`qak/`) : `extraction` (PDF → pages, plan, passages) · `bibliotheque
 métadonnées, doublons, versions, index) · `catalogue` (istqb.org) · `recherche` (FTS5 +
 thésaurus + reclassement) · `connaissances` (idées, déduplication, références vérifiées) ·
 `taxonomie` · `journal` · `evaluation` · `citations` (règle « citation lue » : page affichée
-dans la section citée ou une sous-section, commune à `passages_lus` et aux essais, #275) · `cli`.
+dans le même document — sigle, version, langue, #280 — et dans la section citée ou une sous-section,
+commune à `passages_lus` et aux essais, #275) · `cli`.
 
 Aucun serveur réseau, aucune interface graphique, aucune clé d'API. Dépendance unique : `pypdf`.
 

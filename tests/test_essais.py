@@ -146,8 +146,10 @@ def test_citation_pp_est_controlee_et_ne_fusionne_pas():
     (S3-reglemente, 2026-10-22) restent deux citations rattachées à leur document."""
     reponse = ("matrice de risque qualitative [CTAL-TM v3.0 FR, §1.3.3, pp. 30-31 ; "
                "CTFL v4.0.1 EN, §5.2.3, p. 53].")
-    citations = essais_agents.verifier_citations(reponse, {("CTAL-TM", 31)})
+    citations = essais_agents.verifier_citations(reponse, {("CTAL-TM", 30), ("CTAL-TM", 31)})
     assert [(c["citation"].split()[0], c["lue"]) for c in citations] == [("CTAL-TM", True), ("CTFL", False)]
+    # #272 : comme `passages_lus` (#206), une seule page lue de l'intervalle ne suffit pas.
+    assert essais_agents.verifier_citations(reponse, {("CTAL-TM", 31)})[0]["lue"] is False
     assert essais_agents.verifier_citations("[CTAL-TM v3.0 FR, §1.3.3, pp. 30-31]", set())[0]["lue"] is False
     # « §1.3 ; §1.3.1, p. 29 » : une seule citation, la seconde.
     assert len(essais_agents.verifier_citations("[CTAL-TM v3.0 FR, §1.3 ; §1.3.1, p. 29]", set())) == 1
@@ -163,7 +165,7 @@ def test_reference_sans_document_jamais_rattachee_a_une_autre_ligne():
     """#247 : « (§3.2.2, p. 36) » sans document était rattachée au dernier sigle nommé plus
     haut (CTAL-TM) → faux échec « citation non lue : CTAL-TM §3.2.2, p. 36 ». Elle prend
     désormais le sigle de SA ligne (ici le [CTFL …] qui la suit)."""
-    lues = {("CTAL-TM", 64), ("CTFL", 36), ("CTFL", 56)}
+    lues = {("CTAL-TM", 64), ("CTAL-TM", 65), ("CTFL", 36), ("CTFL", 56)}  # pp. 64-65 : les deux (#272)
     citations = essais_agents.verifier_citations(Y228_S4, lues)
     assert all(c["lue"] for c in citations), citations
     assert not any(c["citation"].startswith("CTAL-TM §3.2.2") for c in citations)

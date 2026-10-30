@@ -57,6 +57,22 @@ def test_passages_lus_developpe_les_plages_de_pages(bibliotheque_test):
     assert serveur_mcp.passages_lus("[CTFL v9.9 EN, §2.1, p. 6]").startswith("LU")
 
 
+def test_section_tronquee_ne_releve_que_les_pages_affichees(bibliotheque_test):
+    """#272 : une page du « reste à lire » d'une sortie tronquée n'est pas lue ; le relevé
+    (`passages_lus`) et le contrôle des essais (`pages_lues`) le disent tous deux."""
+    from test_essais import essais_agents
+    sortie = serveur_mcp.section("CTFL", "1", max_caracteres=100)
+    assert "NON AFFICHÉ, donc non lu" in sortie and "§1.1 p. 4" in sortie.split("✂")[1]
+    assert serveur_mcp.passages_lus("[CTFL v9.9 EN, §1, p. 3]").startswith("LU")
+    assert "NON LU" in serveur_mcp.passages_lus("[CTFL v9.9 EN, §1.1, p. 4]")
+    assert "NON LU" in serveur_mcp.passages_lus("[CTFL v9.9 EN, §1, pp. 3-4]")
+    lues = essais_agents.pages_lues(sortie)
+    assert lues == {("CTFL", 3)}
+    assert [c["lue"] for c in essais_agents.verifier_citations(
+        "[CTFL v9.9 EN, §1, p. 3] [CTFL v9.9 EN, §1.1, p. 4] [CTFL v9.9 EN, §1, pp. 3-4]", lues)] \
+        == [True, False, False]
+
+
 def test_confiance_compare_les_lectures_annoncees_au_releve(bibliotheque_test):
     r = serveur_mcp.confiance(base=70, lus=2, concordants=1)
     assert "Confiance : " in r and "ATTENTION : lus=2 annoncé, 0 relevé(s)" in r

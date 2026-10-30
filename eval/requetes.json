@@ -1144,6 +1144,40 @@
    "source": "issue #267 : la liste des abréviations du CT-FT (§7, « Application Security Testing », « Financing ») couvre toute la question et prend une des 3 places du CT-FT par liste de résultats : §5.4 « Security Testing and Availability Testing », 4e passage du CT-FT, sort du top 5"
   },
   {
+   "requete": "utiliser le test dirigé par les mots-clés pour développer des scripts de test",
+   "attendus": [
+    {
+     "code": "CTAL-TA",
+     "section": "1.3.6"
+    }
+   ],
+   "controle": true,
+   "source": "issue #271 : les notes de version du CTAL-TA (§9, « Appendice C – Notes de version ») couvrent toute la question en citant l'objectif TA-1.3.6 sans le traiter et sortent au rang 5, devant §1.3.6 « Developing Test Scripts Using Keyword-Driven Testing » (rang 6)"
+  },
+  {
+   "requete": "pyramide des tests et quadrants de test",
+   "attendus": [
+    {
+     "code": "CTFL",
+     "section": "5.1.6"
+    },
+    {
+     "code": "CTFL",
+     "section": "5.1.7"
+    },
+    {
+     "code": "CTFL-AT",
+     "section": "3.1.2"
+    },
+    {
+     "code": "CTFL-AT",
+     "section": "3.1.3"
+    }
+   ],
+   "controle": true,
+   "source": "issue #271 : les notes de version du CTAL-AT (§13) et du CTFL (§10) et la matrice de traçabilité des objectifs métier du CTFL (§9) couvrent toute la question et occupent les rangs 5 à 7, devant CTFL-AT §3.1.3 (rang 8)"
+  },
+  {
    "requete": "comment éviter que nos tests cassent à chaque changement d'écran",
    "attendus": [
     {

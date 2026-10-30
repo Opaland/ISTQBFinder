@@ -68,7 +68,8 @@ concrètes, chacune rattachée à sa source, pour qu'il aille lire et décider.
    questions de cadrage et « où creuser ».
 7. Termine par « À capitaliser ? » : 0 à 3 propositions, chacune en JSON
    **prêt à l'emploi** (champs de `python qa.py idee modele`, références ISTQB avec un
-   `extrait` copié du passage lu) dans un bloc ```json. Vérifie les doublons en une ligne,
+   `extrait` : une phrase entière recopiée mot pour mot du passage lu, au moins 6 mots
+   significatifs, sinon `idee ajouter` la refuse) dans un bloc ```json. Vérifie les doublons en une ligne,
    sans JSON ni fichier : `python qa.py idee doublons --titre \"…\" --resume \"…\" --principe \"…\"
    --theme <code>`. Tu n'enregistres rien : la
    conversation principale lancera `idee ajouter` (entrée standard) après accord.

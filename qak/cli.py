@@ -12,7 +12,7 @@ import sqlite3
 from pathlib import Path
 
 from . import bibliotheque, catalogue, connaissances, journal, recherche, taxonomie
-from .connaissances import ErreurValidation
+from .connaissances import MOTS_EXTRAIT_MIN, ErreurValidation
 
 MODELE_IDEE = {
     "titre": "Titre court et explicite",
@@ -30,7 +30,8 @@ MODELE_IDEE = {
     "provenance": "Recherche du AAAA-MM-JJ : « question posée » / saisie utilisateur",
     "references": [
         {"type": "istqb", "doc_id": "CTAL-TA-4.0-fr", "pages": "31-32", "section": "3.1.1",
-         "extrait": "quelques mots copiés du passage lu (vérifiés automatiquement)"},
+         "extrait": f"une phrase entière recopiée mot pour mot du passage lu, au moins {MOTS_EXTRAIT_MIN} "
+                    "mots significatifs (vérifiée automatiquement ; plus court : refusé)"},
         {"type": "web", "titre": "Titre de la page", "url": "https://…", "note": "ce que la source apporte"},
     ],
 }
@@ -528,6 +529,12 @@ def cmd_idee(a):
             "`idee doublons` attend au moins --titre ou --resume (et --theme), ou le JSON de l'idée "
             "sur l'entrée standard / avec --fichier <chemin>.")), partiel=True)
         sim = connaissances.doublons(d)
+        # Même règle que `idee ajouter` (#263) : un extrait trop court est signalé dès la
+        # vérification des doublons, avant que le JSON ne soit proposé.
+        for ref in d.get("references") or []:
+            trop_court = ref.get("extrait") and connaissances.extrait_trop_court(ref["extrait"])
+            if trop_court:
+                _ecrire(f"⚠ {trop_court} `idee ajouter` refusera cette référence.")
         _ecrire("Aucune idée similaire." if not sim else "Idées similaires :")
         _afficher_doublons(sim)
         _ecrire("Thèmes suggérés : " + ", ".join(c for _, c in taxonomie.proposer(

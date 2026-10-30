@@ -197,3 +197,26 @@ def test_titre_de_signet_coupe_par_une_espace_parasite():
     assert len(intro) == 1 and intro[0].section_num == "2"
     approche = [p for p in ps if p.section_num == "2.1"]
     assert approche and approche[0].texte.startswith("2.1 Whole Team Approach")
+
+
+def test_numero_de_titre_avec_espace_avant_le_point():
+    """#277 : CT-MAT 2019 FR — l'extraction écrit « 1 .7 Défis… » ; ces titres étaient ignorés
+    et tout le texte de §1.7 et §1.8 restait rangé sous §1.6 (« Citer : §1.6 » pour §1.7)."""
+    pages = _pages(
+        "1 Aspects commerciaux et technologiques\nTexte.\n1.1 Mobiles : Données analytiques\nTexte.",
+        "1 .2 Modèles d’affaire pour les applications mobiles\nTexte du modèle.",
+        "1 .3 Types d’appareils mobiles\nTexte.\n1.4 Types d’applications mobiles\nTexte.",
+        "1.5 Architecture d’application mobile\nTexte.\n1.6 Stratégie de test pour les applications mobiles\nTexte.",
+        "Fin de la stratégie.\n1 .7 Défis des tests d’applications mobiles\nDans le monde mobile, de nombreux défis.",
+        "1 .8 Risques dans le test d’applications mobiles\nLes défis mentionnés dans la section 1.7 peuvent apparaître.",
+        "2 Types de test d’applications mobiles\nTexte.\n2 .1 Test de compatibilité avec le matériel\nTexte.",
+    )
+    x = extraction.Extraction(pages=pages)
+    x.plan = extraction._plan_depuis_texte(pages)
+    assert [(t.numero, t.page) for t in x.plan] == [("1", 1), ("1.1", 1), ("1.2", 2), ("1.3", 3), ("1.4", 3),
+                                                     ("1.5", 4), ("1.6", 4), ("1.7", 5), ("1.8", 6), ("2", 7), ("2.1", 7)]
+    assert x.plan[7].titre == "Défis des tests d’applications mobiles"
+    sections = {p.texte.split("\n")[-1][:25]: p.section_num for p in extraction.passages(x)}
+    assert sections["Fin de la stratégie."] == "1.6"
+    assert sections["Dans le monde mobile, de "] == "1.7"
+    assert sections["Les défis mentionnés dans"] == "1.8"

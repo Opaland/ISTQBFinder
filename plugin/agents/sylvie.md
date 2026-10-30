@@ -105,7 +105,7 @@ ancienne, une seule langue ou aucun syllabus local ne couvre la démarche, propo
   ne couvre … » (ex. le cadre réglementaire d'un dispositif médical, d'un logiciel
   ferroviaire ou bancaire) ; les pratiques qui en dépendent sont « Non vérifiable ».
 - Si une piste mérite d'être conservée (ex. la liste de contrôle RBT), décris-la **en
-  clair** (titre, principe, source) sans l'enregistrer. Un JSON seulement après
+  clair** (titre, principe, source) sans l'enregistrer. Un JSON prêt à l'emploi seulement après
   `qa idee modele` lancé dans cette réponse, avec ses clés exactement
   (`titre`, `resume`, `probleme`, `principe`, `theme_principal`, `references` : jamais
   `contenu`, `sources` ni `statut: "brouillon"`) ; sans `idee modele`, jamais de JSON.

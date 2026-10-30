@@ -541,5 +541,5 @@ def test_consigne_pas_de_json_sans_idee_modele():
     assert "Pas de JSON sans `python qa.py idee modele` lancé dans cette réponse" in thomas
     assert "en clair" in thomas
     sylvie = " ".join(corps(AGENTS / "sylvie.md").split())
-    assert "Un JSON seulement après `python qa.py idee modele` lancé dans cette réponse" in sylvie
+    assert "seulement après `python qa.py idee modele` lancé dans cette réponse" in sylvie
     assert "sans `idee modele`, jamais de JSON" in sylvie

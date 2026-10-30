@@ -108,8 +108,8 @@ def _decouper(citation: str) -> tuple[str, str, int, int] | None:
 def _lue(citation: str, refs: dict[str, list[dict]]) -> list[str]:
     """Références relevées qui couvrent `citation` ; vide si une seule de ses pages manque.
     Règle partagée avec le contrôle des essais (`citations.lectures_couvrantes`, #275) :
-    chaque page affichée dans le même document et dans la section citée ou l'une de ses
-    sous-sections (`section` les inclut)."""
+    chaque page affichée dans le même document (sigle, version, langue : `meme_document`,
+    #280) et dans la section citée ou l'une de ses sous-sections (`section` les inclut)."""
     cle = _normaliser(citation)
     exacte = [r for r in refs if _normaliser(r) == cle]
     if exacte:
@@ -136,7 +136,7 @@ def passages_lus(citation: str = "") -> str:
             ids = ", ".join("#" + str(x["passage"]) for r in trouvees for x in refs[r])
             return f"LU dans cette session : {' · '.join(trouvees)} (passages {ids})."
         doc = cle.split(",")[0].strip()
-        voisins = [r for r in refs if _normaliser(r).split(",")[0].strip() == doc]
+        voisins = [r for r in refs if citations.meme_document(doc, _normaliser(r).split(",")[0])]
         return ("NON LU dans cette session : " + citation.strip() + " — ne pas le citer avant de l'avoir lu "
                 "(lire, section ou page)." + (f"\nLu dans ce document : {' · '.join(voisins)}" if voisins else ""))
     if not refs:

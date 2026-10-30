@@ -76,9 +76,9 @@ REPONSE = """## Réponse
 
 def test_textes_lus_par_page():
     lus = essais_agents.textes_lus(SORTIES)
-    assert set(lus) == {("CTFL", 43), ("CTAL-TM", 29)}
-    assert "100% branch coverage" in lus[("CTFL", 43)] and "probabilité" not in lus[("CTFL", 43)]
-    assert essais_agents.pages_lues(SORTIES) == {("CTFL", 43, "4.3.2"), ("CTAL-TM", 29, "1.3.2")}
+    assert set(lus) == {("CTFL-4.0.1-en", 43), ("CTAL-TM-3.0-fr", 29)}
+    assert "100% branch coverage" in lus[("CTFL-4.0.1-en", 43)] and "probabilité" not in lus[("CTFL-4.0.1-en", 43)]
+    assert essais_agents.pages_lues(SORTIES) == {("CTFL-4.0.1-en", 43, "4.3.2"), ("CTAL-TM-3.0-fr", 29, "1.3.2")}
 
 
 def test_ligne_citee_sans_puce():

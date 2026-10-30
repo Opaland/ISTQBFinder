@@ -67,7 +67,7 @@ def test_section_tronquee_ne_releve_que_les_pages_affichees(bibliotheque_test):
     assert "NON LU" in serveur_mcp.passages_lus("[CTFL v9.9 EN, §1.1, p. 4]")
     assert "NON LU" in serveur_mcp.passages_lus("[CTFL v9.9 EN, §1, pp. 3-4]")
     lues = essais_agents.pages_lues(sortie)
-    assert lues == {("CTFL", 3, "1")}
+    assert lues == {("CTFL-9.9-en", 3, "1")}
     assert [c["lue"] for c in essais_agents.verifier_citations(
         "[CTFL v9.9 EN, §1, p. 3] [CTFL v9.9 EN, §1.1, p. 4] [CTFL v9.9 EN, §1, pp. 3-4]", lues)] \
         == [True, False, False]
@@ -82,10 +82,12 @@ def test_relevé_et_controle_des_essais_appliquent_la_meme_regle(bibliotheque_te
     lues = essais_agents.pages_lues(sortie)
     candidates = ["[CTFL v9.9 EN, §1.1, p. 4]", "[CTFL v9.9 EN, §1, p. 4]", "[CTFL v9.9 EN, §1.2, p. 4]",
                   "[CTFL v9.9 EN, §1, p. 3]", "[CTFL v9.9 EN, §2.1, p. 6]", "[CTFL v9.9 EN, §2.2, p. 6]",
-                  "[CTFL v9.9 EN, §2, pp. 6-6]", "[CTFL v9.9 EN, §1.1, pp. 4-5]"]
+                  "[CTFL v9.9 EN, §2, pp. 6-6]", "[CTFL v9.9 EN, §1.1, pp. 4-5]",
+                  # #280 : autre langue, autre version → NON LU ; langue tue → LU (non contredite).
+                  "[CTFL v9.9 FR, §1.1, p. 4]", "[CTFL v9.8 EN, §1.1, p. 4]", "[CTFL v9.9, §1.1, p. 4]"]
     releve = [serveur_mcp.passages_lus(c).startswith("LU") for c in candidates]
     essais = [c["lue"] for c in essais_agents.verifier_citations(" ".join(candidates), lues)]
-    assert releve == essais == [True, True, False, False, True, False, True, False]
+    assert releve == essais == [True, True, False, False, True, False, True, False, False, False, True]
 
 
 def test_confiance_compare_les_lectures_annoncees_au_releve(bibliotheque_test):

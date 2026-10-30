@@ -6,7 +6,12 @@ affichée, dans le même document ET dans la section citée ou l'une de ses sous
 (`section x.y` affiche aussi x.y.1, x.y.2…). Une page affichée sous une section sœur ne
 suffit pas : §1.3 qui commence sur la page où se termine §1.2 n'a pas été lue pour autant.
 Une plage de sections (`§1.3.1 à §1.3.5`, `§1.3.1-1.3.2`) couvre chaque section de la
-plage et leurs sous-sections."""
+plage et leurs sous-sections.
+
+Le document est identifié par son sigle, sa version et sa langue (#280), qu'il soit écrit
+comme un identifiant (`CT-MAT-2019-fr`, en-tête de passage) ou comme une référence
+(`CT-MAT v2019 FR`, ligne « Citer : ») : CT-MAT FR p. 18 n'est pas CT-MAT EN p. 18, et
+CTAL-TA 2019 n'est pas CTAL-TA v4.0. Un Body of Knowledge (`BoK`) n'est pas le syllabus."""
 import re
 from collections.abc import Iterable
 
@@ -34,6 +39,33 @@ def bornes_section(texte: str) -> tuple[str, str]:
     return n, n
 
 
+# Identifiant (`CTFL-4.0.1-en`, `CT-ATLaS-BoK-2.0-fr`) ou référence (`CTFL v4.0.1 EN`,
+# `CT-MAT 2019 FR`, `CTAL-TM`) : sigle, puis BoK, version et langue, chacun facultatif.
+_DOCUMENT = re.compile(r"(?P<sigle>.+?)(?:[\s-]+(?P<bok>BoK))?(?:[\s-]+v?(?P<version>\d+(?:\.\d+)*|\?))?"
+                       r"(?:[\s-]+(?P<langue>en|fr))?", re.I)
+
+
+def identite_document(texte: str) -> tuple[str, bool, str, str]:
+    """(sigle, BoK ?, version, langue) d'un document : `CT-MAT-2019-fr` et `CT-MAT v2019 FR`
+    donnent tous deux (`CT-MAT`, False, `2019`, `fr`). Version sans « v » ni « .0 » final
+    (`v4.0` = `4`) ; chaîne vide pour ce que le texte ne précise pas (`CTAL-TM` seul)."""
+    m = _DOCUMENT.fullmatch(" ".join((texte or "").split()))
+    if not m:
+        return "", False, "", ""
+    version = re.sub(r"(?:\.0)+$", "", m["version"] or "").replace("?", "")
+    return m["sigle"].upper(), bool(m["bok"]), version, (m["langue"] or "").lower()
+
+
+def meme_document(a: str, b: str) -> bool:
+    """`a` et `b` désignent-ils le même document ? Même sigle et même nature (BoK ou
+    syllabus) ; version et langue identiques dès que les deux les précisent. Une référence
+    qui tait sa langue ou sa version (`CTAL-TM, §1.3, p. 29`) n'est pas contredite par
+    elle ; une référence qui en nomme une autre que la lecture l'est (#280)."""
+    sa, ba, va, la = identite_document(a)
+    sb, bb, vb, lb = identite_document(b)
+    return bool(sa) and sa == sb and ba == bb and not (va and vb and va != vb) and not (la and lb and la != lb)
+
+
 def _cle(numero: str) -> tuple:
     return tuple((0, int(x), "") if x.isdigit() else (1, 0, x) for x in numero.split("."))
 
@@ -56,12 +88,13 @@ def lectures_couvrantes(doc: str, section: str, debut: int, fin: int, lues: Iter
     """Pour la citation (doc, section, pages debut..fin), l'étiquette d'une lecture qui couvre
     chaque page, dans l'ordre des pages ; liste vide si une seule page manque (ou si
     l'intervalle est inversé). `lues` : (document, section, page, étiquette) de chaque
-    passage affiché ; l'étiquette est libre (référence relevée, None…)."""
+    passage affiché ; l'étiquette est libre (référence relevée, None…). Le document lu doit
+    être celui de la citation (`meme_document` : sigle, version, langue, #280)."""
     if fin < debut:
         return []
     par_page: dict[int, object] = {}
     for d, sec, page, etiquette in lues:
-        if d == doc and debut <= page <= fin and section_couvre(section, sec):
+        if debut <= page <= fin and meme_document(doc, d) and section_couvre(section, sec):
             par_page.setdefault(page, etiquette)
     pages = range(debut, fin + 1)
     return [par_page[p] for p in pages] if all(p in par_page for p in pages) else []

@@ -18,7 +18,8 @@ un essai ÉCHOUE (code retour 1) dès qu'une citation n'a pas été lue ou qu'un
 manque (#127) :
 - commandes `qa.py` réellement exécutées par l'agent (lues dans le transcript) ;
 - citations `[DOC …, §x.y, p. N]` : la page N du document a-t-elle été LUE pendant la
-  conversation (présente dans la sortie d'un `lire`, `section` ou `page`) ? Une référence
+  conversation (présente dans la sortie d'un `lire`, `section` ou `page`), dans ce document
+  (sigle, version et langue, #280) ? Une référence
   que l'agent déclare lui-même non lue, non citée ou lue en partie dans « Confiance »,
   « Limites », « Traçabilité » ou « Sources retenues » n'est pas une citation (#139, #181) ;
 - présence d'un score de confiance « Confiance : NN/100 » ;
@@ -96,7 +97,11 @@ def racine_temporaire(source: Path = RACINE) -> Path:
 # syllabus nommé avant elle (« **CTFL v4.0.1** … (§4.2.1, p. 40) » comme « [CTAL-TM v3.0,
 # §1.3, p. 29] »). Entre « § » et la page, ni « § » ni « ; » : sinon deux références
 # voisines fusionnent et la page de la seconde est prêtée à la première (#142).
-RE_JETON = re.compile(r"(?P<code>\b(?:CTFL(?:-AT)?|CTAL-[A-Za-z]+|CTEL-[A-Za-z]+|CT-[A-Za-z]+)\b)"
+# Le document cité garde sa version et sa langue quand l'agent les écrit après le sigle
+# (« CT-MAT v2019 FR », « CTFL-4.0.1 EN », « CT-ATLaS BoK v2.0 FR ») (#280) ; langue en
+# majuscules seulement : « le CTFL en parle » ne nomme pas une langue.
+RE_JETON = re.compile(r"(?P<code>\b(?:CTFL(?:-AT)?|CTAL-[A-Za-z]+|CTEL-[A-Za-z]+|CT-[A-Za-z]+)\b"
+                      r"(?:[ -]BoK\b)?(?:[ -]v?\d+(?:\.\d+)*\b)?(?:[ -](?:EN|FR)\b)?)"
                       r"|(?P<ref>§\s?[\d.]+[^\n\]\)§;]{0,40}?\bpp?\.\s?(?P<p1>\d+)(?:\s?[-–]\s?(?P<p2>\d+))?)")
 RE_CONFIANCE = re.compile(r"[Cc]onfiance\s*:?\s*\**\s*(\d{1,3})\s*/\s*100")
 RE_ETAPE = re.compile(r"^\s*(?:[-*]\s*)?(?:\*\*)?(?:[ÉE]tape\s*)?\d+\s*[.)—:-]", re.M)
@@ -232,25 +237,26 @@ def outils_utilises(evenements: list[dict]) -> tuple[list[str], str]:
 
 
 # En-tête de passage : « ── DOC · titre · version · p. N [(imprimée M)] · §x.y Titre (passage #id) ».
-RE_ENTETE = re.compile(r"── ([A-Za-z0-9.-]+?)-(?:BoK-)?[\dv.?]+(?:-[a-z]+)?-(?:en|fr) ·.*?· p\. (\d+)"
+RE_ENTETE = re.compile(r"── ([A-Za-z0-9.-]+?-(?:BoK-)?[\dv.?]+(?:-[a-z]+)?-(?:en|fr)) ·.*?· p\. (\d+)"
                        r"(?: \(imprimée [^)\n]*\))?(?: · §(\S*))?")
 
 
 def pages_lues(sorties: str) -> set[tuple[str, int, str]]:
-    """(code, page, section) affichés par `lire` / `section` / `page` (lignes
-    « ── DOC · … · p. N · §x.y … ») : la section compte, comme dans `passages_lus` (#275)."""
-    return {(m.group(1).upper(), int(m.group(2)), regle_citations.numero_section(m.group(3) or ""))
+    """(document, page, section) affichés par `lire` / `section` / `page` (lignes
+    « ── DOC · … · p. N · §x.y … ») : la section compte, comme dans `passages_lus` (#275), et
+    le document est l'identifiant complet (`CT-MAT-2019-fr`), version et langue comprises (#280)."""
+    return {(m.group(1), int(m.group(2)), regle_citations.numero_section(m.group(3) or ""))
             for m in RE_ENTETE.finditer(sorties)}
 
 
 def textes_lus(sorties: str, maximum: int = 4000) -> dict[tuple[str, int], str]:
     """Texte affiché sous chaque en-tête « ── DOC · … · p. N » (jusqu'à l'en-tête suivant,
-    `maximum` caractères au plus), par (code, page) : le passage réellement lu (#152)."""
+    `maximum` caractères au plus), par (document, page) : le passage réellement lu (#152)."""
     entetes = list(RE_ENTETE.finditer(sorties))
     lus: dict[tuple[str, int], str] = {}
     for m, suivant in zip(entetes, [*entetes[1:], None]):
         bloc = sorties[m.end():suivant.start() if suivant else len(sorties)][:maximum].strip()
-        cle = (m.group(1).upper(), int(m.group(2)))
+        cle = (m.group(1), int(m.group(2)))
         if bloc and bloc not in lus.get(cle, ""):
             lus[cle] = f"{lus[cle]}\n{bloc}" if cle in lus else bloc
     return lus
@@ -314,13 +320,15 @@ def references(reponse: str, uniques: bool = True):
     Rattachement explicite seulement (#247) : une référence prend le dernier sigle nommé
     sur SA ligne, à défaut le premier qui la suit sur cette ligne ; sinon elle est
     orpheline (code None) — jamais rattachée au sigle d'une autre ligne. Une orpheline
-    d'une section de bilan (« Sections lues : §1.3 (p. 29) ») n'est pas une citation."""
+    d'une section de bilan (« Sections lues : §1.3 (p. 29) ») n'est pas une citation.
+    Le code rendu est le document tel que nommé (`CT-MAT v2019 FR`, `CTFL`), version et
+    langue comprises quand l'agent les écrit (#280)."""
     exclues, bilans = zones_non_lues(reponse), sections_bilan(reponse)
     jetons = list(RE_JETON.finditer(reponse))
     vues, code, pos_code = set(), None, -1
     for i, m in enumerate(jetons):
         if m.group("code"):
-            code, pos_code = m.group("code").upper(), m.start()
+            code, pos_code = " ".join(m.group("code").split()), m.start()
             continue
         if any(a <= m.start() < b for a, b in exclues):
             continue
@@ -328,11 +336,11 @@ def references(reponse: str, uniques: bool = True):
         fin_ligne = reponse.find("\n", m.end())
         fin_ligne = len(reponse) if fin_ligne < 0 else fin_ligne
         sigle = code if pos_code >= debut_ligne else next(
-            (j.group("code").upper() for j in jetons[i + 1:] if j.start() < fin_ligne and j.group("code")), None)
+            (" ".join(j.group("code").split()) for j in jetons[i + 1:] if j.start() < fin_ligne and j.group("code")), None)
         if sigle is None and any(a <= m.start() < b for a, b in bilans):
             continue
         debut, fin = int(m.group("p1")), int(m.group("p2") or m.group("p1"))
-        cle = (sigle, regle_citations.bornes_section(section_citee(reponse, m)), debut, fin)  # section comprise (#275)
+        cle = (sigle and regle_citations.identite_document(sigle), regle_citations.bornes_section(section_citee(reponse, m)), debut, fin)  # section comprise (#275)
         if uniques and cle in vues:
             continue
         vues.add(cle)
@@ -345,7 +353,9 @@ def verifier_citations(reponse: str, lues: set[tuple[str, int, str]]) -> list[di
     (`pp. N-M` : chaque page de l'intervalle, #272) affichée dans la section citée ou
     l'une de ses sous-sections — une page lue sous une section sœur ne suffit pas.
     Une plage de sections (« §1.3.1 à §1.3.5, pp. 29-34 ») couvre chaque section de la
-    plage. `lues` vient de `pages_lues` (code, page, section). Une référence sans document
+    plage. Le document lu doit être celui qui est cité : même sigle, et même version et
+    même langue quand la citation les nomme (`regle_citations.meme_document`, #280).
+    `lues` vient de `pages_lues` (document, page, section). Une référence sans document
     (#247) n'est rattachée à aucun syllabus : elle est signalée comme telle
     (« sans document §… »), non lue par construction."""
     lectures = [(code, sec, page, None) for code, page, sec in lues]
@@ -376,7 +386,8 @@ def controle_fidelite(reponse: str, sorties: str, juge=etude_juge.juger) -> list
     for code, debut, fin, m in references(reponse, uniques=False):
         if any(a <= m.start() < b for a, b in bilans):
             continue  # liste des sources lues, limites : pas une affirmation sur le contenu
-        textes = [lus[(code, p)] for p in range(debut, fin + 1) if (code, p) in lus]
+        textes = [t for (doc, p), t in sorted(lus.items(), key=lambda x: x[0][1])
+                  if debut <= p <= fin and regle_citations.meme_document(code or "", doc)]
         if textes:
             cle, phrase = ligne_citee(reponse, m.start())
             ligne = lignes.setdefault(cle, {"phrase": phrase, "citations": [], "textes": [], "vues": set()})

@@ -169,12 +169,12 @@ def test_citation_d_une_section_soeur_sur_la_meme_page_n_est_pas_lue():
     commence sur la même page (l'ancien contrôle ne comparait que document et page).
     La section parente reste couverte (`section 1.3` inclut ses sous-sections)."""
     lues = essais_agents.pages_lues(SORTIE_SOEURS)
-    assert lues == {("CTAL-TM", 29, "1.3.2")}
+    assert lues == {("CTAL-TM-3.0-fr", 29, "1.3.2")}
     reponse = ("[CTAL-TM v3.0 FR, §1.3.2, p. 29] [CTAL-TM v3.0 FR, §1.3.3, p. 29] [CTAL-TM v3.0 FR, §1.3, p. 29] "
                "[CTAL-TM v3.0 FR, §1.3.2.1, p. 29] [CTAL-TM v3.0 FR, §1, p. 29] [CTAL-TM v3.0 FR, §1.3.20, p. 29]")
     assert [(c["citation"].split(",")[0], c["lue"]) for c in essais_agents.verifier_citations(reponse, lues)] == [
-        ("CTAL-TM §1.3.2", True), ("CTAL-TM §1.3.3", False), ("CTAL-TM §1.3", True),
-        ("CTAL-TM §1.3.2.1", False), ("CTAL-TM §1", True), ("CTAL-TM §1.3.20", False)]
+        ("CTAL-TM v3.0 FR §1.3.2", True), ("CTAL-TM v3.0 FR §1.3.3", False), ("CTAL-TM v3.0 FR §1.3", True),
+        ("CTAL-TM v3.0 FR §1.3.2.1", False), ("CTAL-TM v3.0 FR §1", True), ("CTAL-TM v3.0 FR §1.3.20", False)]
     # Formes libres des réponses archivées : « §3.2 à 3.2.5 (pp. 35-37) », « §1.3.2 (p. 29) ».
     assert [c["lue"] for c in essais_agents.verifier_citations(
         "CTAL-TM v3.0 FR : §1.3 à 1.3.4 (p. 29) ; §1.3.3 (p. 29).", lues)] == [True, False]
@@ -184,6 +184,64 @@ def test_citation_d_une_section_soeur_sur_la_meme_page_n_est_pas_lue():
         "[CTAL-TM v3.0 FR, §1.3.1 à §1.3.3, p. 29] [CTAL-TM v3.0 FR, §1.3.3 à §1.3.5, p. 29] "
         "[CTAL-TM v3.0 FR, §1.3.1-1.3.2, p. 29] [CTAL-TM v3.0 FR, §1.3.3-1.3.4, p. 29]", lues)] \
         == [True, False, True, False]
+
+
+# En-têtes réels de `page CT-MAT-2019-fr 18` et `section CTAL-TA-2019-fr 1.1` (#280).
+SORTIE_FR = """
+── CT-MAT-2019-fr · Testeur d'applications mobiles · v2019 (2019-09-27) · p. 18 · §1.7 Défis du test mobile (passage #7)
+Citer : [CT-MAT v2019 FR, §1.7, p. 18]
+Les applications mobiles doivent fonctionner sur de nombreux appareils.
+── CTAL-TA-2019-fr · Analyste de test · v2019 · p. 12 · §1.1 Introduction (passage #8)
+Citer : [CTAL-TA 2019 FR, §1.1, p. 12]
+L'analyste de test intervient tout au long du processus.
+── CT-ATLaS-BoK-2.0-fr · Corpus de connaissances · v2.0 · p. 9 · §2.1 Rôles (passage #9)
+Citer : [CT-ATLaS BoK v2.0 FR, §2.1, p. 9]
+Le testeur dans une équipe agile.
+"""
+
+
+def test_citation_d_une_autre_langue_ou_version_n_est_pas_lue():
+    """#280 : la page lue dans CT-MAT FR p. 18 ne valide pas CT-MAT EN p. 18 (pagination
+    différente : §1.6-1.7 en FR, §1.7-1.8 en EN), ni CTAL-TA 2019 la v4.0, ni un BoK le
+    syllabus. L'ancien contrôle ne comparait que le sigle. Une référence qui tait sa langue
+    ou sa version n'est pas contredite (même règle que `passages_lus`)."""
+    lues = essais_agents.pages_lues(SORTIE_FR)
+    assert lues == {("CT-MAT-2019-fr", 18, "1.7"), ("CTAL-TA-2019-fr", 12, "1.1"), ("CT-ATLaS-BoK-2.0-fr", 9, "2.1")}
+    cas = [("[CT-MAT v2019 FR, §1.7, p. 18]", True), ("[CT-MAT v2019 EN, §1.7, p. 18]", False),
+           ("[CT-MAT 2019 FR, §1.7, p. 18]", True), ("[CT-MAT v2018 FR, §1.7, p. 18]", False),
+           ("**CT-MAT** : défis du test mobile (§1.7, p. 18)", True), ("CT-MAT EN (§1.7, p. 18)", False),
+           ("[CTAL-TA 2019 FR, §1.1, p. 12]", True), ("[CTAL-TA v4.0 FR, §1.1, p. 12]", False),
+           ("[CTAL-TA-4.0 FR, §1.1, p. 12]", False), ("[CT-ATLaS BoK v2.0 FR, §2.1, p. 9]", True),
+           ("[CT-ATLaS v2.0 FR, §2.1, p. 9]", False),
+           # « en » minuscule n'est pas une langue : « le CTAL-TA en parle » cite le document lu.
+           ("Le CTAL-TA en parle (§1.1, p. 12).", True)]
+    for reponse, attendu in cas:
+        assert [c["lue"] for c in essais_agents.verifier_citations(reponse, lues)] == [attendu], reponse
+    # Même section et même page dans deux langues : deux citations distinctes, chacune jugée.
+    assert [(c["citation"], c["lue"]) for c in essais_agents.verifier_citations(
+        "[CT-MAT v2019 FR, §1.7, p. 18] [CT-MAT v2019 EN, §1.7, p. 18]", lues)] == [
+        ("CT-MAT v2019 FR §1.7, p. 18", True), ("CT-MAT v2019 EN §1.7, p. 18", False)]
+    # Le contrôle de fond ne prête pas au juge le texte FR pour une citation EN.
+    juges = []
+    essais_agents.controle_fidelite("- Défis [CT-MAT v2019 EN, §1.7, p. 18].\n- Défis [CT-MAT v2019 FR, §1.7, p. 18].",
+                                    SORTIE_FR, lambda p, f: juges.append((p, f)) or {"cout_usd": 0})
+    assert len(juges) == 1 and "FR, §1.7" in juges[0][1] and "nombreux appareils" in juges[0][0]
+
+
+@pytest.mark.parametrize("cite, lu, attendu", [
+    ("CT-MAT v2019 FR", "CT-MAT-2019-fr", True), ("CT-MAT 2019 FR", "CT-MAT-2019-fr", True),
+    ("CT-MAT v2019 EN", "CT-MAT-2019-fr", False), ("CT-MAT", "CT-MAT-2019-fr", True),
+    ("CT-MAT FR", "CT-MAT-2019-fr", True), ("CT-MAT v2018", "CT-MAT-2019-fr", False),
+    ("CTAL-TA v4.0 FR", "CTAL-TA-2019-fr", False), ("CTAL-TA v4 FR", "CTAL-TA-4.0-fr", True),
+    ("CTFL v4.0.1 EN", "CTFL-4.0.1-en", True), ("CTFL v4.0 EN", "CTFL-4.0.1-en", False),
+    ("CTFL", "CTFL-AT-2014-en", False), ("CTFL-AT 2014 EN", "CTFL-AT-2014-en", True),
+    ("CT-ATLaS BoK v2.0 FR", "CT-ATLaS-BoK-2.0-fr", True), ("CT-ATLAS v2.0 FR", "CT-ATLaS-BoK-2.0-fr", False),
+    ("ct-atlas v2.0 fr", "CT-ATLaS-2.0-fr", True), ("", "CTFL-4.0.1-en", False),
+])
+def test_regle_commune_meme_document(cite, lu, attendu):
+    """#280 : sigle, nature (BoK), version et langue ; ce que la référence tait ne la contredit pas."""
+    from qak import citations
+    assert citations.meme_document(cite, lu) is attendu
 
 
 @pytest.mark.parametrize("citee, lue, attendu", [

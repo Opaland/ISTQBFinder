@@ -543,3 +543,29 @@ def test_consigne_pas_de_json_sans_idee_modele():
     sylvie = " ".join(corps(AGENTS / "sylvie.md").split())
     assert "seulement après `python qa.py idee modele` lancé dans cette réponse" in sylvie
     assert "sans `idee modele`, jamais de JSON" in sylvie
+
+
+def test_thomas_calcule_sa_confiance_avec_l_outil():
+    """#262 : Thomas estimait sa confiance à la main dans 4 essais sur 15 (T3, T5, T6, T9),
+    avec la grille mal recopiée (+10 pour 3 concordants, −5 hors grille). Comme Sylvie (#227),
+    sa fiche impose `qa.py confiance` et la ligne « Calcul : » ; le critère `calcul_confiance`
+    (outil lancé ET calcul recopié) est posé sur tout essai qui annonce une confiance."""
+    from test_agents import AGENTS, corps
+    texte = " ".join(corps(AGENTS / "thomas.md").split())
+    assert "calcule-la toujours" in texte and "python qa.py confiance --base N" in texte
+    assert "Calcul :" in texte and "aucun ajustement hors grille" in texte
+    bilans = {b["id"]: b for b in json.loads((CAMPAGNE_30_10 / "bilan.json").read_text(encoding="utf-8"))}
+    ko = set()
+    for id_, b in bilans.items():
+        reponse, commandes = _essai_enregistre(CAMPAGNE_30_10 / f"{id_}.md", bilans)
+        if essais_agents.controler(reponse, {}, commandes).get("calcul_confiance") is False:
+            ko.add(id_)
+    assert ko == {"T3-playwright", "T5-priorisation", "T6-lacunes", "T9-iso26262"}
+    calcul = "**Confiance : 88/100 (élevée)**\nCalcul : base 80 × 0,6 = 48 ; 4 passages lus +20 ; 3 syllabus concordants +20 → 88"
+    lance = ["python qa.py confiance --base 80 --lus 4 --concordants 3"]
+    assert essais_agents.controler(calcul, {}, lance) == {"calcul_confiance": True}
+    # Calcul écrit mais outil non lancé (ou seulement `--help`) : échec.
+    assert essais_agents.controler(calcul, {}, ["python qa.py confiance --help"]) == {"calcul_confiance": False}
+    # Sans confiance annoncée, pas de critère ; sans commandes, le contrôle reste textuel (#227).
+    assert essais_agents.controler("Pas de score ici.", {}, lance) == {}
+    assert essais_agents.controler(calcul, {"calcul_confiance": True}) == {"calcul_confiance": True}

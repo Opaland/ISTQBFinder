@@ -67,10 +67,25 @@ def test_section_tronquee_ne_releve_que_les_pages_affichees(bibliotheque_test):
     assert "NON LU" in serveur_mcp.passages_lus("[CTFL v9.9 EN, §1.1, p. 4]")
     assert "NON LU" in serveur_mcp.passages_lus("[CTFL v9.9 EN, §1, pp. 3-4]")
     lues = essais_agents.pages_lues(sortie)
-    assert lues == {("CTFL", 3)}
+    assert lues == {("CTFL", 3, "1")}
     assert [c["lue"] for c in essais_agents.verifier_citations(
         "[CTFL v9.9 EN, §1, p. 3] [CTFL v9.9 EN, §1.1, p. 4] [CTFL v9.9 EN, §1, pp. 3-4]", lues)] \
         == [True, False, False]
+
+
+
+def test_relevé_et_controle_des_essais_appliquent_la_meme_regle(bibliotheque_test):
+    """#275 : `passages_lus` et `verifier_citations` partagent `qak.citations` ; sur les
+    mêmes lectures, ils rendent le même verdict, sections sœurs d'une même page comprises."""
+    from test_essais import essais_agents
+    sortie = serveur_mcp.section("CTFL", "1.1", max_caracteres=0) + serveur_mcp.page("CTFL", "6")
+    lues = essais_agents.pages_lues(sortie)
+    candidates = ["[CTFL v9.9 EN, §1.1, p. 4]", "[CTFL v9.9 EN, §1, p. 4]", "[CTFL v9.9 EN, §1.2, p. 4]",
+                  "[CTFL v9.9 EN, §1, p. 3]", "[CTFL v9.9 EN, §2.1, p. 6]", "[CTFL v9.9 EN, §2.2, p. 6]",
+                  "[CTFL v9.9 EN, §2, pp. 6-6]", "[CTFL v9.9 EN, §1.1, pp. 4-5]"]
+    releve = [serveur_mcp.passages_lus(c).startswith("LU") for c in candidates]
+    essais = [c["lue"] for c in essais_agents.verifier_citations(" ".join(candidates), lues)]
+    assert releve == essais == [True, True, False, False, True, False, True, False]
 
 
 def test_confiance_compare_les_lectures_annoncees_au_releve(bibliotheque_test):

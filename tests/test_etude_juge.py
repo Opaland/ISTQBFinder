@@ -78,7 +78,7 @@ def test_textes_lus_par_page():
     lus = essais_agents.textes_lus(SORTIES)
     assert set(lus) == {("CTFL", 43), ("CTAL-TM", 29)}
     assert "100% branch coverage" in lus[("CTFL", 43)] and "probabilité" not in lus[("CTFL", 43)]
-    assert essais_agents.pages_lues(SORTIES) == set(lus)
+    assert essais_agents.pages_lues(SORTIES) == {("CTFL", 43, "4.3.2"), ("CTAL-TM", 29, "1.3.2")}
 
 
 def test_ligne_citee_sans_puce():
@@ -136,4 +136,4 @@ def test_controle_fidelite_meme_page_citee_sur_deux_lignes():
     assert len(appels) == 3 and len(r[2]["citations"]) == 1
     assert len(essais_agents.alertes_fidelite(r)) == 1
     # Le contrôle « lire avant de citer » garde son dédoublonnage global.
-    assert len(essais_agents.verifier_citations(reponse, {("CTFL", 43)})) == 1
+    assert len(essais_agents.verifier_citations(reponse, {("CTFL", 43, "4.3.2")})) == 1

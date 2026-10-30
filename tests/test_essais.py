@@ -499,3 +499,47 @@ def test_thomas_vu_en_extrait_jamais_entre_crochets():
     assert [c["lue"] for c in essais_agents.verifier_citations(reponse, {("CTAL-TTA", 20)})] == [False]
     essais = {e["id"]: e for e in json.loads((RACINE / "eval" / "essais.json").read_text(encoding="utf-8"))["essais"]}
     assert essais["T9-iso26262"]["agent"] == "thomas"
+
+
+CAMPAGNE_30_10 = RACINE / "eval" / "essais-resultats" / "2026-10-30"
+
+
+def _essai_enregistre(chemin, bilans):
+    """(réponse, commandes) d'un essai enregistré : la réponse vient du compte rendu
+    `<id>.md`, les commandes de `bilan.json` (le .md les tronque à 200 caractères : une
+    commande enchaînée `idee doublons …; python qa.py idee modele` y perd sa fin)."""
+    texte = chemin.read_text(encoding="utf-8")
+    reponse, commandes = texte.split("\n## Réponse\n", 1)[1].rsplit("\n## Commandes exécutées\n", 1)
+    if chemin.stem in bilans:
+        return reponse, bilans[chemin.stem]["commandes_qa"]
+    return reponse, re.findall(r"^- `(.*)`$", commandes, re.M)
+
+
+def test_json_d_idee_sans_idee_modele_detecte_sur_la_campagne_du_30_10():
+    """#264 : T2, T3 et le 1er passage de S3 proposaient un JSON d'idée sans avoir lancé
+    `idee modele` (champs inventés). Le critère automatique les détecte sur les réponses
+    réelles de la campagne, et laisse passer celles qui partent du gabarit."""
+    bilans = {b["id"]: b for b in json.loads((CAMPAGNE_30_10 / "bilan.json").read_text(encoding="utf-8"))}
+    verdicts = {}
+    for chemin in sorted(CAMPAGNE_30_10.glob("*.md")):
+        reponse, commandes = _essai_enregistre(chemin, bilans)
+        assert commandes, f"{chemin.name} : commandes illisibles"
+        verdicts[chemin.stem] = essais_agents.controler(reponse, {}, commandes).get("json_apres_idee_modele")
+    assert {e for e, v in verdicts.items() if v is False} == {"T2-rbt-agile", "T3-playwright",
+                                                               "S3-reglemente-premier-passage"}
+    assert {e for e, v in verdicts.items() if v is True} >= {"T4-qualification", "T7-gherkin", "T9-iso26262", "M6-api"}
+    assert verdicts["T5-priorisation"] is None  # pas de JSON : pas de critère
+    # Sans les commandes (appel historique), aucun critère n'est ajouté.
+    reponse, _ = _essai_enregistre(CAMPAGNE_30_10 / "T2-rbt-agile.md", bilans)
+    assert "json_apres_idee_modele" not in essais_agents.controler(reponse, {})
+
+def test_consigne_pas_de_json_sans_idee_modele():
+    """#264 : la règle « `idee modele` avant tout JSON » figure dans la fiche de chaque agent
+    (Sylvie ne lit pas la section Capitalisation du skill), avec le repli en clair."""
+    from test_agents import AGENTS, corps
+    thomas = " ".join(corps(AGENTS / "thomas.md").split())
+    assert "Pas de JSON sans `python qa.py idee modele` lancé dans cette réponse" in thomas
+    assert "en clair" in thomas
+    sylvie = " ".join(corps(AGENTS / "sylvie.md").split())
+    assert "seulement après `python qa.py idee modele` lancé dans cette réponse" in sylvie
+    assert "sans `idee modele`, jamais de JSON" in sylvie

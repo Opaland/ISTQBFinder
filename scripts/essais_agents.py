@@ -23,6 +23,7 @@ manque (#127) :
   « Limites », « Traçabilité » ou « Sources retenues » n'est pas une citation (#139, #181) ;
 - présence d'un score de confiance « Confiance : NN/100 » ;
 - recours au Web ;
+- sur tout essai : un bloc JSON d'idée exige `qa.py idee modele` parmi les commandes (#264) ;
 - critères propres à l'essai (`"criteres"` dans eval/essais.json, voir `controler()`) :
   méthode en étapes, étapes sourcées, exemple fictif, domaines, questions de cadrage ou à
   choix, hypothèses explicites, couverture absente signalée, mentions attendues.
@@ -104,6 +105,9 @@ RE_NIVEAU_RESERVE = re.compile(r"non\s+d[ée]montr|provisoire|probable|en\s+part
 # Phrase de déroulé en tête de réponse (#232) : « Je finalise le rapport… », « J'ai fini de lire… ».
 RE_DEROULE = re.compile(r"^\W*(?:je\s+(?:finalise|r[ée]dige|termine|rends|n['’]ai\s+plus)"
                         r"|j['’]ai\s+(?:fini|termin[ée]|maintenant)|voici\s+(?:l['’]avis|le\s+rapport|ma\s+r[ée]ponse))", re.I)
+# Bloc JSON d'idée proposé « À capitaliser » (#264) : il exige `idee modele` dans la session.
+RE_BLOC_IDEE = re.compile(r"```(?:json)?\s*\n[^`]*?\"titre\"\s*:", re.I)
+RE_IDEE_MODELE = re.compile(r"qa\.py\s+idee\s+modele\b")
 RE_NON_COUVERT = re.compile(r"pas de syllabus|aucun syllabus|ne couvre pas|non couvert|absente? de la biblioth|"
                             r"n'est pas dans la biblioth|pas dans la biblioth|hors biblioth", re.I)
 
@@ -128,7 +132,7 @@ def niveau_coherent(reponse: str) -> bool:
     return len(niveaux) == 1 and not reserve
 
 
-def controler(reponse: str, criteres: dict) -> dict[str, bool]:
+def controler(reponse: str, criteres: dict, commandes: list[str] | None = None) -> dict[str, bool]:
     """Critères vérifiables d'un essai (fonction pure, testée sans réseau). Clés :
     methode (≥ 4 étapes numérotées de premier niveau après « Méthode »), etapes_sourcees
     (chaque étape, sous-puces comprises, porte « § » ou « interprétation »), exemple (exemple marqué fictif / interprétation),
@@ -138,7 +142,10 @@ def controler(reponse: str, criteres: dict) -> dict[str, bool]:
     (le calcul « base N × 0,6 » de `qa.py confiance` est recopié, #227), niveau_coherent
     (« Niveau atteint : N » porte le niveau retenu, sans réserve ni second chiffre, #228),
     debut_direct (la première ligne n'est pas une phrase de déroulé, #232) et en_tete
-    (Sylvie : la première ligne est l'en-tête « Avis indicatif… », #232)."""
+    (Sylvie : la première ligne est l'en-tête « Avis indicatif… », #232).
+    Avec `commandes` (commandes exécutées, lues dans le transcript), critère posé sur TOUT
+    essai : json_apres_idee_modele (un bloc JSON d'idée exige `qa.py idee modele` parmi
+    les commandes, #264)."""
     out = {}
     methode = _apres(reponse, r"m[ée]thode")
     # La méthode s'arrête au titre de l'exemple (« ## Exemple… », « **Exemple… »), pas à un
@@ -185,6 +192,8 @@ def controler(reponse: str, criteres: dict) -> dict[str, bool]:
         out["en_tete"] = "avis indicatif" in premiere.lower()
     if criteres.get("calcul_confiance"):
         out["calcul_confiance"] = bool(RE_CALCUL_CONFIANCE.search(reponse))
+    if commandes is not None and RE_BLOC_IDEE.search(reponse):
+        out["json_apres_idee_modele"] = any(RE_IDEE_MODELE.search(c) for c in commandes)
     return out
 
 
@@ -396,9 +405,8 @@ def lancer(essai: dict, dossier: Path, donnees: Path, fidelite: bool = False) ->
         "citations_non_lues": [c["citation"] for c in citations if not c["lue"]],
         "confiance": int(conf.group(1)) if conf else None,
     }
-    if essai.get("criteres"):
-        bilan["criteres"] = controler(reponse, essai["criteres"])
-        bilan["criteres_ko"] = [c for c, ok in bilan["criteres"].items() if not ok]
+    bilan["criteres"] = controler(reponse, essai.get("criteres") or {}, commandes)
+    bilan["criteres_ko"] = [c for c, ok in bilan["criteres"].items() if not ok]
     bilan["echec"] = motifs_echec(bilan)
     fidelite_md = ""
     if fidelite:

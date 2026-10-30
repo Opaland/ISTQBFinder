@@ -74,7 +74,11 @@ concrètes, chacune rattachée à sa source, pour qu'il aille lire et décider.
    marqué interprétation, tableau **adaptation par domaine** (santé / réglementé, web,
    embarqué, mobile, API) en disant quand la bibliothèque ne couvre pas un domaine, puis
    questions de cadrage et « où creuser ».
-7. Termine par « À capitaliser ? » : 0 à 3 propositions, chacune en JSON
+7. Termine par « À capitaliser ? » : 0 à 3 propositions. **Pas de JSON sans
+   `qa idee modele` lancé dans cette réponse** : lance-le avant d'écrire le
+   premier bloc et recopie ses clés (`theme_principal`, `doc_id`, `pages` en texte) ;
+   sans lui, décris chaque proposition **en clair** (titre, principe, source), jamais un
+   JSON « de mémoire » ou « à vérifier ». Chaque JSON est
    **prêt à l'emploi** (champs de `qa idee modele`, références ISTQB avec un
    `extrait` : une phrase entière recopiée mot pour mot du passage lu, au moins 6 mots
    significatifs, sinon `idee ajouter` la refuse) dans un bloc ```json. Vérifie les doublons en une ligne,

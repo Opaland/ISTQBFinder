@@ -1481,9 +1481,58 @@
    "termes": [
     "game testing",
     "test de jeux",
-    "tests de jeux vidéo",
+    "tests de jeux vidéo"
+   ]
+  },
+  {
+   "id": "jeux-argent",
+   "termes": [
     "gambling",
-    "jeux d'argent"
+    "gambling industry",
+    "online gambling",
+    "jeux d'argent",
+    "jeux de hasard",
+    "casino",
+    "casinos",
+    "lottery",
+    "loterie",
+    "sports betting",
+    "betting",
+    "paris sportifs",
+    "paris en ligne",
+    "wagering"
+   ]
+  },
+  {
+   "id": "finance",
+   "termes": [
+    "finance testing",
+    "finance",
+    "financial",
+    "financial services",
+    "financial systems",
+    "financial institutions",
+    "banking",
+    "core banking",
+    "bank",
+    "fintech",
+    "insurance",
+    "trading",
+    "test en finance",
+    "financier",
+    "financière",
+    "financiers",
+    "financières",
+    "services financiers",
+    "secteur financier",
+    "institutions financières",
+    "banque",
+    "banques",
+    "bancaire",
+    "bancaires",
+    "assureur",
+    "assureurs",
+    "compagnie d'assurance"
    ]
   },
   {

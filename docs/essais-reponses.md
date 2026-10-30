@@ -213,11 +213,61 @@ entre crochets : S2 renvoie à « Où creuser ensuite ». Les essais ont tourné
 écriture pré-approuvée, sur une copie des données ; les permissions réelles suffisent
 (aucune commande de lecture refusée). Coût : 0,81 $.
 
+## Campagne complète du 2026-10-30 (main dac5eb4, lot du 28/10 : #226 à #252)
+
+Cette campagne vérifie **ensemble** les correctifs du 28/10 : #226 (autorité), #227 (calcul de confiance de Sylvie), #228 (niveau atteint), #229 et #246 (citations), #230 (JSON de capitalisation), #232 (début direct) et #151 (reformulation). Le harnais n'a pas d'option de modèle. L'agent hérite du modèle de la CLI (`model: inherit`) : les essais ont donc tourné avec `ANTHROPIC_MODEL=sonnet` (`claude-sonnet-5-5` relevé dans les transcripts), juge de fidélité compris, avec `--fidelite`. Fichiers : `eval/essais-resultats/2026-10-30/`. Le premier passage de S3, relancé, est conservé en `S3-reglemente-premier-passage.md`.
+
+Faute de budget, M7-shift-left n'a pas été lancé : plafond de 6 $, les essais touchés le 28/10 passaient en premier.
+
+| Essai | Agent | Tours | Coût | Confiance | Citations lues | Web | Critères | Fidélité (indicatif) | Verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| T1-couverture | thomas | 9 | 0,307 $ | 88 | 8/8 | 0 | — | 1,0 (8 l.) | réussi |
+| T2-rbt-agile | thomas | 14 | 0,272 $ | 91 | 7/7 | 0 | — | 0,79 (7 l.) | réussi ; JSON sans `idee modele` (6 erreurs) → #264 |
+| T3-playwright | thomas | 13 | 0,246 $ | 68 | 7/7 | 1 | — | 0,94 (7 l., 1 contr.) | réussi ; confiance calculée à la main (+10 pour 3 concordants, −5 hors grille) → #262 ; JSON sans `idee modele` → #264 ; l'alerte de fidélité vient d'une formulation ambiguë (la solution « test paramétré » vise *Copy-Paste Duplication*, pas *God Test Case*), pas d'un contresens |
+| T4-qualification | thomas | 12 | 0,34 $ | 75 | 10/10 | 0 | — | 1,0 (10 l.) | réussi ; JSON refusé (extrait trop court) → #263 |
+| T5-priorisation | thomas | 5 | 0,2 $ | 78 | 5/5 | 0 | — | 0,95 (5 l.) | réussi ; confiance calculée à la main, 78 au lieu de 88 → #262 |
+| T6-lacunes | thomas | 4 | 0,083 $ | 85 | 0/0 | 0 | — | — | réussi ; confiance sans calcul → #262 |
+| S1-rbt | sylvie | 7 | 0,2 $ | 70 | 10/10 | 0 | — | 0,72 (3 l.) | réussi |
+| S2-automatisation | sylvie | 6 | 0,226 $ | 78 | 9/9 | 0 | — | 0,66 (6 l.) | réussi |
+| M1-rbt-agile | thomas | 8 | 0,222 $ | 81 | 5/5 | 0 | 12/12 | 0,59 (3 l.) | réussi |
+| M2-sante | thomas | 11 | 0,319 $ | 63 | 10/10 | 1 | 8/8 | 0,73 (6 l.) | réussi |
+| M3-web | thomas | 16 | 0,326 $ | 83 | 10/10 | 0 | 7/7 | 0,77 (7 l.) | réussi |
+| M4-embarque | thomas | 9 | 0,22 $ | 75 | 5/5 | 0 | 8/8 | 0,72 (4 l.) | réussi ; JSON refusé (extrait trop court) → #263 |
+| M5-mobile | thomas | 14 | 0,362 $ | 58 | 11/11 | 0 | 7/7 | 0,83 (10 l.) | réussi |
+| M6-api | thomas | 14 | 0,35 $ | 78 | 10/10 | 0 | 8/8 | 0,95 (10 l.) | réussi ; JSON refusé (extrait trop court) → #263 |
+| S3-reglemente | sylvie | 11 | 0,248 $ | 60 | 10/10 | 0 | 9/9 | 0,9 (5 l.) | réussi (relance ; 1er passage réussi 14/14, mais JSON aux champs inventés → #264) |
+| S4-recette | sylvie | 13 | 0,303 $ | 70 | 17/17 | 0 | 6/6 | 0,53 (6 l.) | réussi ; calcul de confiance recopié, niveau 1 (visé 2) |
+| S5-hil | sylvie | 11 | 0,258 $ | 52 | 14/14 | 0 | 5/5 | 0,79 (4 l.) | réussi ; calcul recopié, niveau 1 (visé 2) |
+| T8-tmmi-tpi | thomas | 11 | 0,196 $ | 44 | 3/3 | 1 | 2/2 | 0,69 (2 l.) | réussi ; Web justifié (CTEL-ITP de 2011), confiance basse assumée |
+| T9-iso26262 | thomas | 15 | 0,361 $ | 50 | 8/8 | 2 | 4/4 | 0,71 (8 l.) | réussi ; confiance calculée à la main, 50 au lieu de 60 → #262 ; MC/DC et CT-AuT présents |
+| C1-ambigu | skill | 7 | 0,244 $ | 87 | 5/5 | 0 | 3/3 | 0,94 (5 l.) | réussi ; hypothèse en tête, questions à choix |
+| T7-gherkin | thomas | 10 | 0,205 $ | 90 | 5/5 | 0 | 5/5 | 0,85 (5 l.) | réussi ; JSON refusé (extrait trop court) → #263 |
+
+**Synthèse** :
+- 21 essais réussis sur 21 lancés (M7 non lancé, faute de budget). Aucun n'a dû être relancé pour un échec du harnais.
+- 169 citations sur 169 correspondent à une page lue, `pp.` compris.
+- Fidélité moyenne : 0,80 sur 121 lignes citées. Le juge a levé 1 alerte « contradictoire » (T3). Lecture humaine : formulation ambiguë, pas de contresens.
+
+Points surveillés :
+
+- **#226 `--autorite`** : Jamais à 1 : 0 sur 17 essais qui lancent le calcul, toutes les questions de la campagne sont larges, comparatives ou de démarche. Sylvie passe `--autorite 0` dans 5 avis sur 5, C1 aussi.
+- **#227 calcul de Sylvie** : 5 avis sur 5 lancent `qa.py confiance` et recopient « Calcul : ». Le critère `calcul_confiance` est vert sur S3, S4 et S5.
+- **#228 niveau** : 5 avis sur 5 portent « Niveau atteint : 1 — Initial · niveau visé : 2 — Discipliné », cohérent avec des pratiques à l'état d'intention. `niveau_coherent` est vert.
+- **#232 début direct** : `debut_direct` est vert sur 12 essais sur 12. Sylvie commence par l'en-tête « Avis indicatif… » (5 sur 5), Thomas par « Sources retenues ».
+- **#229, #246 citations** : 0 citation non lue. Aucune référence de la grille citée avec sa page sans lecture.
+- **#151 reformulation** : 20 essais sur 20 qui cherchent commencent par une requête en vocabulaire ISTQB, souvent en anglais (« maintenance test automation maintainability » pour « réduire le coût de maintenance de nos tests Playwright »). T6 ne cherche pas, normal pour un inventaire.
+- **#230 JSON de capitalisation** : 12 réponses proposent un JSON. Passés à `idee ajouter` sur une **copie** des données (`QAK_RACINE`), **6 sont acceptés et 6 refusés**. 4 refus portent sur un « extrait trop court », alors que `idee modele` annonce « quelques mots » (#263). 2 JSON sont écrits sans `idee modele`, avec des champs inventés (T2, T3), et le 1er passage de S3 fait de même (Sylvie) (#264).
+
+**Défauts ouverts** : #262 (Thomas ne lance pas `qa.py confiance` dans 4 essais sur 15 et applique mal la grille : 3 concordants comptés +10), #263, #264. Le défaut de S3 (JSON de Sylvie) n'est apparu qu'au premier passage : sa relance ne propose plus de JSON. Il est rattaché à #264 à titre d'observation. Aucun correctif n'est fait dans cette PR.
+
+**Coût** : 21 essais 5,49 $, dont 1,98 $ de juge de fidélité, plus le premier passage de S3 0,27 $, soit **5,76 $** (`claude -p`, Sonnet).
+
 ## Relancer
 
 ```bash
 python qa.py actualiser                       # index à jour
-python scripts/essais_agents.py               # tous les essais (16, ≈ 2,60 $, ≈ 30 min)
+python scripts/essais_agents.py               # tous les essais (22, ≈ 5,50 $ avec --fidelite en Sonnet, ≈ 1 h 30)
+ANTHROPIC_MODEL=sonnet python scripts/essais_agents.py --fidelite   # modèle imposé (les agents héritent : model: inherit)
 python scripts/essais_agents.py S1-rbt        # un seul
 python scripts/essais_agents.py M             # par préfixe : tous les essais M…
 python scripts/essais_agents.py --fidelite S3-reglemente   # + juge LLM de fidélité, indicatif (#152)

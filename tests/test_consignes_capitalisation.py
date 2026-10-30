@@ -93,3 +93,47 @@ def test_consigne_d_erreurs_conforme_a_idee_ajouter(monkeypatch, capsys):
     monkeypatch.setattr("sys.stdin", io.StringIO(json.dumps(entier)))
     assert main(["idee", "ajouter"]) == 0, capsys.readouterr()
     assert "Idée créée" in capsys.readouterr().out
+
+
+# Toute consigne qui chiffre la longueur d'un extrait : « au moins 6 mots significatifs ».
+LONGUEUR_EXTRAIT = re.compile(r"au moins (\d+) mots\s+significatifs")
+
+
+def test_gabarit_et_consignes_annoncent_la_longueur_reelle_de_l_extrait(monkeypatch, capsys):
+    """#263 : `idee modele` annonçait un extrait de « quelques mots » alors que `idee ajouter`
+    exige MOTS_EXTRAIT_MIN mots significatifs ; les agents suivaient le gabarit à la lettre et
+    leur JSON était refusé. Le gabarit, chaque consigne qui chiffre la règle et la validation
+    sont vérifiés ensemble : changer l'un sans les autres fait échouer ce test."""
+    from qak.connaissances import MOTS_EXTRAIT_MIN
+    gabarit = MODELE_IDEE["references"][0]["extrait"]
+    assert "quelques mots" not in gabarit
+    assert [int(n) for n in LONGUEUR_EXTRAIT.findall(gabarit)] == [MOTS_EXTRAIT_MIN], gabarit
+    assert "phrase entière" in gabarit and "mot pour mot" in gabarit
+
+    chiffres = {}
+    for chemin in CONSIGNES:
+        texte = " ".join(chemin.read_text(encoding="utf-8").split())
+        # Les bilans d'essais (docs/essais-*.md) citent l'ancien gabarit : historique, pas consigne.
+        if not chemin.name.startswith("essais"):
+            assert "quelques mots" not in texte, f"{chemin.name} : « quelques mots » contredit la règle de l'extrait"
+        for n in LONGUEUR_EXTRAIT.findall(texte):
+            chiffres.setdefault(int(n), []).append(chemin.relative_to(RACINE_CODE).as_posix())
+    assert set(chiffres) == {MOTS_EXTRAIT_MIN}, chiffres
+    thomas = " ".join((RACINE_CODE / ".claude" / "agents" / "thomas.md").read_text(encoding="utf-8").split())
+    assert f"au moins {MOTS_EXTRAIT_MIN} mots significatifs" in thomas
+
+    # La validation applique bien ce chiffre : MOTS_EXTRAIT_MIN - 1 mots refusés, au seuil
+    # le contrôle de longueur passe (l'extrait est ensuite cherché dans la page).
+    from qak.connaissances import extrait_trop_court
+    mots_ok = " ".join(f"mot{i}" for i in range(MOTS_EXTRAIT_MIN))
+    assert extrait_trop_court(mots_ok) is None
+    assert f"minimum {MOTS_EXTRAIT_MIN}" in extrait_trop_court(mots_ok.rsplit(" ", 1)[0])
+
+    # `idee doublons --extrait` signale le même défaut avant que le JSON soit proposé.
+    monkeypatch.setattr("sys.stdin", io.StringIO(""))
+    assert main(["idee", "doublons", "--titre", "Approche GQM pour les métriques", "--theme", "rbt",
+                 "--doc", "CTAL-TM-3.0-fr", "--pages", "29", "--extrait", "L'approche GQM"]) == 0
+    assert "Extrait trop court" in capsys.readouterr().out
+    assert main(["idee", "doublons", "--titre", "Approche GQM pour les métriques", "--theme", "rbt",
+                 "--doc", "CTAL-TM-3.0-fr", "--pages", "29", "--extrait", mots_ok]) == 0
+    assert "Extrait trop court" not in capsys.readouterr().out

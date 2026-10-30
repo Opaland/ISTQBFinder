@@ -1118,6 +1118,21 @@
    "source": "issue #253 : « application » traduit par « mobile » (collocation apprise sur les titres alignés), 5/5 premiers résultats tirés du CT-MAT"
   },
   {
+   "requete": "tester un site de paris en ligne",
+   "attendus": [
+    {
+     "code": "CT-GT",
+     "section": "3.10"
+    },
+    {
+     "code": "CT-GT",
+     "section": "1.3.4"
+    }
+   ],
+   "controle": true,
+   "source": "issue #260 : domaine traité seulement par un syllabus anglais (CT-GT) ; « paris », « casino » sans traduction, « gambling » rangé avec « game testing »"
+  },
+  {
    "requete": "comment éviter que nos tests cassent à chaque changement d'écran",
    "attendus": [
     {

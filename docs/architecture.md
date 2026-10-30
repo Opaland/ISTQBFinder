@@ -84,20 +84,24 @@ par `lire` / `section` / `page` sont relevés (`cli.LECTURES`) et consultables p
 | #209 participes : masculin, féminin, singulier et pluriel ont la même racine (« défini/définie » → « definy », « intégré/intégrée » → « integr », « vérifié/vérifiée » → « verify ») ; question « approche d'équipe intégré » ajoutée au contrôle avant correctif (éloigné 20 % → 20 %) | 100 % (0,94) → 100 % (0,94) | 87 % (41/47, 0,75) → 89 % (42/47, 0,77) |
 | #220 extraction : ligne du titre d'un signet cherchée sans espaces (« 2.1 Whole T eam Approach ») ; 22 titres du CTAL-AT v2.0 EN replacés sur leur vraie ligne, l'introduction ne passe plus sous la 1re sous-section (« coût de maintenance des tests automatisés » rang 3 → 4, toujours trouvée ; éloigné 20 % → 20 %) | 100 % (0,94) → 100 % (0,95) | 89 % (42/47, 0,77) → 89 % (42/47, 0,77) |
 | #241 mot français hors thésaurus traduit par les titres de sections alignés FR/EN (« activités » → « activities », « facteurs » → « factors ») ; 4 questions sur des sections du CTFL v4.0 seulement anglais ajoutées au contrôle avant correctif (éloigné 5 % → 5 % ; examens 47 % (64/135) → 52 % (70/135), dont CTFL 20 % → 30 %) | 100 % (0,95) → 100 % (0,95) | 82 % (42/51, 0,71) → 92 % (47/51, 0,78) |
-| **État actuel** (moteur lexical ; #59 : mêmes classements, ≈ 8 × plus rapide) | **100 % (MRR 0,95)** | **92 % (47/51, MRR 0,78)** |
+| #253 lexique FR→EN : racines comparées aux racines, cognat gardé (« application » → « application » et non « mobile », « user » → « user » et non « stories »), mot anglais écarté s'il est nettement mieux associé à un autre mot français (« mode » → « scale »), ex æquo départagés par la ressemblance (lexique identique d'un processus à l'autre) ; question « tester une application bancaire » ajoutée au contrôle avant correctif, toujours en échec (« bancaire » sans traduction ; CT-MAT 5/5 → 1/5 dans le top 5) ; éloigné 5 % → 5 % ; examens 52 % (70/135) → 52 % (70/135) | 100 % (0,95) → 100 % (0,95) | 90 % (47/52, 0,77) → 90 % (47/52, 0,77) |
+| **État actuel** (moteur lexical ; #59 : mêmes classements, ≈ 8 × plus rapide) | **100 % (MRR 0,95)** | **90 % (47/52, MRR 0,77)** |
 
 Le 100 % du jeu de réglage est optimiste par construction ; le chiffre honnête est celui
 du jeu de contrôle. Les questions ajoutées au contrôle l'ont été AVANT la correction qu'elles
 motivent ; le contrôle est passé de 18 à 51 questions, en grande partie des questions
 difficiles issues des revues (fautes de frappe, questions de Test Manager, formulations loin
 du vocabulaire ISTQB) : sa baisse de 89 % à 82 % (avant #165) vient de ces ajouts, pas d'une régression
-(chaque PR a été mesurée avant/après sur le même jeu). Les 4 échecs actuels :
+(chaque PR a été mesurée avant/après sur le même jeu). Les 5 échecs actuels :
 - « différence entre tester et déboguer » (#241) : « déboguer » ne figure dans aucun titre
   aligné FR/EN, il n'a donc pas de traduction apprise ;
 - « rapport d'avancement des tests parties prenantes », « comment estimer l'effort de
   test » : arbitrages laissés ouverts dans #25 ;
 - « architecture en couches d'un framework d'automatisation » : §3.1.3 n'emploie pas
   « architecture » (#47).
+- « tester une application bancaire » (#253) : le CT-FT n'existe qu'en anglais et
+  « bancaire » ne figure dans aucun titre aligné ni au thésaurus ; le correctif retire
+  seulement la fausse traduction « application » → « mobile » (CT-MAT 5/5 → 1/5).
 
 #165 : à couverture et titre égaux, une section dont le titre a la même signature que la
 question (concepts du thésaurus + racines : « Exploratory Testing » pour « tests
@@ -117,6 +121,31 @@ calculée sans les mots absents de la langue du passage 86 % / 50 % (CTAL-TM 58 
 classements FR et EN entrelacés 84 % / 56 % (2 questions de contrôle reculent d'un rang) ;
 traduction + entrelacement 92 % / 55 % (mêmes reculs) ; traduction seule, retenue, 92 % / 52 %,
 aucune question de contrôle ni de réglage ne recule.
+
+#253 : le lexique apprenait des collocations (le mot voisin dans les titres) au lieu de
+traductions : « application » → « mobile », « user » → « stories », « pilote » → « driven »,
+« mode » → « scale », « objet » → « document ». Corrigé à la racine : (1) l'anglais est compté
+par racine comme le français (« application » et « applications » ensemble ; la traduction
+rendue reste la forme anglaise la plus fréquente) ; (2) cognat : un mot français présent tel
+quel dans au moins deux paires de titres alignées est sa propre traduction ; (3) concurrence : un
+mot anglais est écarté si un autre mot français lui est nettement plus associé (moins de 90 %
+de son meilleur Dice : « scale » appartient à « échelle ») ; (4) ex æquo départagés par la
+ressemblance des mots puis l'ordre alphabétique. Le lexique dépendait jusque-là de l'ordre de
+parcours des ensembles Python, donc de `PYTHONHASHSEED` : « traçabilité » → « matrix » ou
+« traceability », « istqb » → « documents » ou « istqb » selon le processus (mêmes taux, mais
+« choisir les tests de régression à partir des matrices de traçabilité… » des examens au rang
+1 ou 4 selon la graine ; 4 désormais, à chaque lancement). 304 → 310 entrées : 6 retirées
+(certification → certificate, fondamental → fundamental, mode → scale, objet → document,
+ouvrage → books, parcours → career ; « fondamentaux », « livres », « carrière » gardent leur
+traduction), 17 changées, 12 nouvelles (mots anglais des titres français, sans effet). Variantes
+mesurées : exclure tout mot français présent dans les titres anglais (199 entrées : gagne
+une question éloignée et d'examen, « exigences incomplètes, peu de temps… », mais perd de vraies
+traductions, « compétences » → « skills », « principal » → « main ») ; concurrence stricte (perd
+« gérer » → « manage », une question d'examen recule de 2 à 4) ; la retenue ne change aucun
+taux. Couverture lexicale (base de `confiance`) moins gonflée : « tester une application
+bancaire » 42 → 39, « pilot project for a test tool » 73 → 65. Restent des
+collocations plausibles (« adapter » → « life », « chaîne » → « stream », « place » →
+« setting ») qu'aucune règle sans liste à la main n'écarte.
 
 Temps : une recherche ≈ 50 ms de calcul (0,2-0,45 s pour la commande complète) ; import initial ≈ 3 s par syllabus (≈ 2-3 min pour 42) ;
 actualisation sans changement < 1 s.

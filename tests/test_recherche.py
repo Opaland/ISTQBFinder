@@ -225,3 +225,28 @@ def test_mot_francais_traduit_par_les_titres_alignes(racine_isolee):
         assert not anglais["partiel"] and anglais["section_num"] == "3.2.5"
     finally:
         cx.close()
+
+
+def test_lexique_traduit_et_non_collocation():
+    # Issue #253 : le lexique retenait le VOISIN de titre au lieu de la traduction.
+    # « Mobile Application(s) » : « application » ne comptait qu'une fois par forme anglaise
+    # et « mobile » l'emportait ; « User Stories » : « user » → « stories » ; « en mode agile
+    # à l'échelle » / « at Scale » : « mode » → « scale », alors que « scale » traduit « échelle ».
+    titres = [("Test des applications mobiles", "Mobile Application Testing"),
+              ("Architecture des applications mobiles", "Mobile Applications Architecture"),
+              ("Plateformes mobiles", "Mobile Platforms"),
+              ("Rédaction des user stories", "Writing User Stories"),
+              ("User stories et critères d'acceptation", "User Stories and Acceptance Criteria"),
+              ("Conduite en mode agile à l'échelle", "Agile Leadership at Scale"),
+              ("Organisation en mode produit à l'échelle", "Product Organization at Scale"),
+              ("Tests à l'échelle", "Testing at Scale"),
+              ("Matrice de traçabilité", "Traceability Matrix"),
+              ("Matrice de traçabilité des exigences", "Requirements Traceability Matrix")]
+    lex = recherche._apprendre_lexique(titres)
+    assert lex["application"] == "application" and lex["mobil"] == "mobile"   # cognats
+    assert lex["user"] == "user" and lex["story"] == "stories"
+    assert lex["echell"] == "scale" and "mode" not in lex                     # concurrence
+    # Ex æquo (Dice 1,0 des deux côtés) départagés par la ressemblance des mots, et non par
+    # l'ordre de parcours des ensembles, qui changeait d'un processus à l'autre.
+    assert lex["tracabilit"] == "traceability" and lex["matric"] == "matrix"
+    assert recherche._apprendre_lexique(titres[::-1]) == lex

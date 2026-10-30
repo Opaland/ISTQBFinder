@@ -365,15 +365,23 @@ def _compacter(texte: str) -> str:
     return normaliser(texte).replace(" ", "")
 
 
+def extrait_trop_court(extrait: str) -> str | None:
+    """Message de refus si l'extrait compte moins de MOTS_EXTRAIT_MIN mots significatifs,
+    sinon None. Partagé par `idee ajouter` (refus) et `idee doublons` (avertissement, #263)."""
+    n = len(mots(extrait))
+    if n >= MOTS_EXTRAIT_MIN:
+        return None
+    return (f"Extrait trop court ({n} mot(s) significatif(s), minimum {MOTS_EXTRAIT_MIN}) : "
+            "recopier une phrase entière du passage lu.")
+
+
 def _verifier_extrait(extrait: str, texte_source: str, lieu: str) -> None:
     """L'extrait doit être une suite CONTIGUË du texte cité (après normalisation) et
     compter au moins MOTS_EXTRAIT_MIN mots significatifs : un sac de mots à 70 %
     acceptait des citations inversées, inventées ou en vrac (#28)."""
-    significatifs = mots(extrait)
-    if len(significatifs) < MOTS_EXTRAIT_MIN:
-        raise ErreurValidation(
-            f"Extrait trop court ({len(significatifs)} mot(s) significatif(s), minimum {MOTS_EXTRAIT_MIN}) : "
-            "recopier une phrase entière du passage lu.")
+    trop_court = extrait_trop_court(extrait)
+    if trop_court:
+        raise ErreurValidation(trop_court)
     if _compacter(extrait) not in _compacter(texte_source):
         raise ErreurValidation(
             f"L'extrait cité n'apparaît pas mot pour mot {lieu} : recopier une suite continue du passage "

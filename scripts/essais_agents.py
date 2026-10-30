@@ -270,8 +270,9 @@ def zones_non_lues(reponse: str) -> list[tuple[int, int]]:
 SANS_DOCUMENT = "sans document"
 
 
-def references(reponse: str):
-    """(code, première page, dernière page, correspondance) de chaque citation unique.
+def references(reponse: str, uniques: bool = True):
+    """(code, première page, dernière page, correspondance) de chaque citation unique
+    (`uniques=False` : chaque occurrence, pour juger chaque ligne qui cite, #255).
     Une référence que l'agent déclare lui-même non lue ou non citée, dans une section
     de bilan, n'est pas une citation (#139) ; son code garde le contexte des suivantes.
     Rattachement explicite seulement (#247) : une référence prend le dernier sigle nommé
@@ -295,7 +296,7 @@ def references(reponse: str):
         if sigle is None and any(a <= m.start() < b for a, b in bilans):
             continue
         debut, fin = int(m.group("p1")), int(m.group("p2") or m.group("p1"))
-        if (sigle, debut, fin) in vues:
+        if uniques and (sigle, debut, fin) in vues:
             continue
         vues.add((sigle, debut, fin))
         yield sigle, debut, fin, m
@@ -324,15 +325,20 @@ def controle_fidelite(reponse: str, sorties: str, juge=etude_juge.juger) -> list
     pages qu'elle cite, car une affirmation s'appuie souvent sur plusieurs références de
     la même ligne. `juge(passage, phrase)` renvoie au moins `cout_usd` et, s'il a abouti,
     `predit`, `fidelite` et `affirmations`. Les citations non lues sont déjà un échec de
-    l'essai : elles ne sont pas jugées, pas plus que les sections de bilan."""
+    l'essai : elles ne sont pas jugées, pas plus que les sections de bilan. Le
+    dédoublonnage se fait par ligne (#255) : une page déjà citée plus haut est rejugée
+    sur chaque nouvelle ligne qui la cite (une réutilisation peut être à contresens)."""
     lus, lignes, bilans = textes_lus(sorties), {}, sections_bilan(reponse)
-    for code, debut, fin, m in references(reponse):
+    for code, debut, fin, m in references(reponse, uniques=False):
         if any(a <= m.start() < b for a, b in bilans):
             continue  # liste des sources lues, limites : pas une affirmation sur le contenu
         textes = [lus[(code, p)] for p in range(debut, fin + 1) if (code, p) in lus]
         if textes:
             cle, phrase = ligne_citee(reponse, m.start())
-            ligne = lignes.setdefault(cle, {"phrase": phrase, "citations": [], "textes": []})
+            ligne = lignes.setdefault(cle, {"phrase": phrase, "citations": [], "textes": [], "vues": set()})
+            if (code, debut, fin) in ligne["vues"]:
+                continue  # même citation répétée sur la même ligne : un seul jugement
+            ligne["vues"].add((code, debut, fin))
             ligne["citations"].append(f"{code} {m.group('ref')[:60]}")
             ligne["textes"] += [t for t in textes if t not in ligne["textes"]]
     out = []

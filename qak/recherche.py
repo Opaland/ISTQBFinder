@@ -44,6 +44,22 @@ RE_ANNEXE_LEXICALE = re.compile(r"\b(abbreviation|abreviation|acronym|sigles|glo
 # Question qui vise une annexe : « liste des abréviations », « glossaire », « références »…
 RE_VISE_ANNEXE = re.compile(r"\b(abbreviation|abreviation|acronym|sigle|glossar|terminolog|vocabulaire|"
                             r"trademark|marques deposees|references|bibliograph|index)")
+# Notes de version et matrices de traçabilité objectifs métier ↔ objectifs d'apprentissage (issue
+# #271) : elles citent les objectifs d'apprentissage sans les traiter (« TA-1.3.6 Use keyword-driven
+# testing… ») et couvrent souvent toute la question : même traitement que les annexes lexicales.
+RE_NOTES_DE_VERSION = re.compile(r"\b(release notes|notes de (version|livraison|release|mise a jour))")
+RE_VISE_NOTES_DE_VERSION = re.compile(r"\b(release notes?|notes? de (version|livraison|release|mise a jour)|"
+                                      r"nouveautes?|quoi de neuf|what s new|changements|changes between|"
+                                      r"differences? entre (les )?(deux )?versions|version precedente|"
+                                      r"ancienne version|previous version)")
+RE_MATRICE_TRACABILITE = re.compile(r"\b(traceability matrix|matrice de tracabilite)")
+RE_VISE_MATRICE = re.compile(r"\b(tracabilite des objectifs|traceability (matrix|of (the )?learning objectives)|"
+                             r"matrice de tracabilite|business outcomes?|objectifs? metier|"
+                             r"objectifs? d apprentissage|learning objectives?)")
+# Annexes placées après les sections de fond : (titre de la section, question qui la vise).
+ANNEXES_APRES_LE_FOND = ((RE_ANNEXE_LEXICALE, RE_VISE_ANNEXE),
+                         (RE_NOTES_DE_VERSION, RE_VISE_NOTES_DE_VERSION),
+                         (RE_MATRICE_TRACABILITE, RE_VISE_MATRICE))
 
 
 @dataclass
@@ -179,10 +195,13 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
             return (bool(RE_PERIPHERIQUE.search(normaliser(r["section_titre"] or "")))
                     or (r["section_num"] or "").split(".")[0] == "0")
 
-        vise_annexe = bool(RE_VISE_ANNEXE.search(normaliser(requete)))
+        # annexes que la question ne vise pas : elles passent après les sections de fond
+        requete_n = normaliser(requete)
+        annexes = [titre for titre, vise in ANNEXES_APRES_LE_FOND if not vise.search(requete_n)]
 
-        def lexicale(r) -> bool:
-            return not vise_annexe and bool(RE_ANNEXE_LEXICALE.search(normaliser(r["section_titre"] or "")))
+        def apres_le_fond(r) -> bool:
+            t = normaliser(r["section_titre"] or "")
+            return any(a.search(t) for a in annexes)
 
         def titre(r) -> float:
             return sum(gs[k].poids for k in en_titre[r["id"]]) / total
@@ -209,10 +228,10 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
                 identites[t] = (meme, meme and bool(_racines(t)) and _racines(t) <= mots_requete)
             return identites[t]
 
-        # tri stable : annexes lexicales en dernier, puis couverture décroissante, sections de fond
+        # tri stable : annexes lexicales, notes de version et matrices en dernier, puis couverture décroissante, sections de fond
         # d'abord, puis sections dont le titre nomme les notions, puis dont le titre se confond avec
         # la question, puis l'ordre BM25
-        classes = sorted(candidats, key=lambda r: (lexicale(r), -couverture(r), peripherique(r), -titre(r),
+        classes = sorted(candidats, key=lambda r: (apres_le_fond(r), -couverture(r), peripherique(r), -titre(r),
                                                    *(not x for x in titre_exact(r))))
         if proches:
             # Fusion par rangs réciproques (RRF) du classement lexical et du classement cosinus.
@@ -222,7 +241,7 @@ def chercher(requete: str, n: int = 8, docs: list[str] | None = None, niveau: st
 
             def rrf(r) -> float:
                 return sum(1 / (RRF_K + rangs[r["id"]]) for rangs in (rang_lex, rang_sem) if r["id"] in rangs)
-            classes = sorted(classes, key=lambda r: (lexicale(r), -rrf(r)))
+            classes = sorted(classes, key=lambda r: (apres_le_fond(r), -rrf(r)))
         vus, resultats, par = set(), [], {}
         for r in classes:
             cle = (r["doc_id"], r["page"])

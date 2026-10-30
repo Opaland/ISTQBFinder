@@ -170,6 +170,34 @@ def test_annexe_lexicale_apres_les_sections_de_fond(bibliotheque_test):
         cx.close()
 
 
+def test_notes_de_version_et_matrice_apres_les_sections_de_fond(bibliotheque_test):
+    # Issue #271 : une note de version ou une matrice de traçabilité cite les objectifs
+    # d'apprentissage sans les traiter ; même si elle couvre toute la question, elle passe après les
+    # sections de fond, sauf si la question la vise (« notes de version », « traçabilité des objectifs »).
+    from qak import bibliotheque
+    cx = bibliotheque.connecter()
+    try:
+        doc = cx.execute("SELECT doc_id FROM passages LIMIT 1").fetchone()[0]
+        for ordre, num, titre in ((998, "9", "Appendix C – Release Notes"),
+                                  (999, "8", "Appendice B – Matrice de traçabilité des objectifs métier")):
+            cx.execute("INSERT INTO passages(doc_id, ordre, page, section_num, section_titre, texte, sommaire) "
+                       "VALUES (?, ?, ?, ?, ?, 'TA-3.1.1 equivalence partitioning, boundary value analysis, "
+                       "equivalence partitioning, valeurs pivots', 0)", (doc, ordre, ordre, num, titre))
+            rid = cx.execute("SELECT max(id) FROM passages").fetchone()[0]
+            cx.execute("INSERT INTO passages_fts(rowid, texte, section_titre) SELECT id, texte, section_titre "
+                       "FROM passages WHERE id=?", (rid,))
+        cx.commit()
+        # seules les deux annexes couvrent « pivots » : sans le correctif, elles passeraient en tête
+        res = recherche.chercher("equivalence partitioning pivots", cx=cx, n=20, par_doc=20)["resultats"]
+        assert len(res) > 2 and {r["section_num"] for r in res[-2:]} == {"8", "9"}
+        notes = recherche.chercher("notes de version equivalence partitioning pivots", cx=cx)["resultats"]
+        assert notes[0]["section_num"] == "9"
+        matrice = recherche.chercher("traçabilité des objectifs equivalence partitioning pivots", cx=cx)["resultats"]
+        assert matrice[0]["section_num"] == "8"
+    finally:
+        cx.close()
+
+
 def test_section_au_titre_identique_a_la_requete_d_abord(bibliotheque_test):
     # Issue #165 : « Exploratory Testing » (CTFL §4.4.2) arrivait au rang 11, derrière des
     # sections dont le titre nomme le même concept du thésaurus (« Session-Based Test

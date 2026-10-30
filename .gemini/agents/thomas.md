@@ -51,7 +51,9 @@ concrètes, chacune rattachée à sa source, pour qu'il aille lire et décider.
    ligne `Citer : [...]` de leur en-tête (jamais de sigle reconstruit : `CT-TAS`, pas
    « CTAL-TAS »). Avant de rendre ton
    rapport, passe chaque `[référence]` au **contrôle avant d'envoyer** du skill : sans
-   `lire`/`section`/`page` de cette page, lis-la ou retire la référence.
+   `lire`/`section`/`page` de cette page, lis-la ou retire la référence. Une page que
+   la sortie tronquée nomme « NON AFFICHÉ » ou met dans « Reste à lire » n'est pas lue :
+   `page <doc> N` d'abord, ou pas de crochets.
    **Pas de ligne `Citer :` affichée pour cette page = pas de crochets** : `chercher`
    n'en affiche jamais. **Vu en extrait = jamais entre crochets**, même suivi de « je
    n'ai lu que l'extrait » : un point tentant vu seulement dans un résultat de

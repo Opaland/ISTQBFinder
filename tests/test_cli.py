@@ -1,4 +1,5 @@
 import json
+import re
 
 import pytest
 
@@ -163,6 +164,34 @@ def test_section_et_page_bornees_indiquent_la_suite(capsys, racine_isolee):
     # Par défaut (15 000 caractères), une petite section n'est pas tronquée.
     assert main(["section", "CTFL", "1"]) == 0
     assert "Sortie tronquée" not in capsys.readouterr().out
+
+
+def test_section_tronquee_nomme_ce_qui_n_est_pas_affiche(capsys, racine_isolee):
+    """#272 : après `section … --max-caracteres`, Thomas a cité une page du « reste à lire ».
+    Seules les pages affichées ont une ligne `Citer :` ; les autres sont nommées en clair
+    comme NON AFFICHÉES, avec la commande qui les affiche et la borne qui suffit."""
+    assert main(["importer", str(FIXTURES / "syllabus_v9.pdf")]) == 0
+    capsys.readouterr()
+    assert main(["section", "CTFL", "1", "--max-caracteres", "100"]) == 0  # p. 3 seule affichée
+    sortie = capsys.readouterr().out
+    affiche, pied = sortie.split("✂")
+    assert re.findall(r"Citer : (\[[^\]]+\])", sortie) == ["[CTFL v9.9 EN, §1, p. 3]"]
+    assert "p. 4" not in affiche and "p. 5" not in affiche
+    assert "NON AFFICHÉ, donc non lu" in pied and "§1.1 p. 4, §1.2 p. 5, §1.2.1 p. 5." in pied
+    assert "`section CTFL-9.9-en 1.1`" in pied and "--max-caracteres 659, ou 0 sans limite" in pied
+    assert "[" not in pied  # rien à recopier entre crochets depuis le pied de page
+    # Même section, même page des deux côtés de la coupure : « affiché en partie », pas « non lu ».
+    from qak.cli import _non_affiches
+    p = lambda s, n: {"section_num": s, "page": n}
+    assert _non_affiches([p("2.1", 6)], [p("2.1", 6), p("2.2", 7), p("2.2", 7)]) == ([("2.2", 7)], [("2.1", 6)])
+    assert main(["section", "CTFL", "1.2", "--max-caracteres", "1"]) == 0
+    pied = capsys.readouterr().out.split("✂")[1]
+    assert "NON AFFICHÉ, donc non lu — aucune référence entre crochets avant de l'avoir lu : §1.2.1 p. 5." in pied
+    assert main(["page", "CTFL", "4-5", "--max-caracteres", "1", "--json"]) == 0
+    r = json.loads(capsys.readouterr().out)
+    assert [p["citer"] for p in r["passages"]] == ["[CTFL v9.9 EN, §1.1, p. 4]"]
+    assert r["non_affiches"] == [{"section": "1.2", "page": 5}, {"section": "1.2.1", "page": 5}]
+    assert r["entames"] == []
 
 
 def test_lire_borne_comme_section_et_page(capsys, racine_isolee):

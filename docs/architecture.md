@@ -85,6 +85,7 @@ par `lire` / `section` / `page` sont relevés (`cli.LECTURES`) et consultables p
 | #220 extraction : ligne du titre d'un signet cherchée sans espaces (« 2.1 Whole T eam Approach ») ; 22 titres du CTAL-AT v2.0 EN replacés sur leur vraie ligne, l'introduction ne passe plus sous la 1re sous-section (« coût de maintenance des tests automatisés » rang 3 → 4, toujours trouvée ; éloigné 20 % → 20 %) | 100 % (0,94) → 100 % (0,95) | 89 % (42/47, 0,77) → 89 % (42/47, 0,77) |
 | #241 mot français hors thésaurus traduit par les titres de sections alignés FR/EN (« activités » → « activities », « facteurs » → « factors ») ; 4 questions sur des sections du CTFL v4.0 seulement anglais ajoutées au contrôle avant correctif (éloigné 5 % → 5 % ; examens 47 % (64/135) → 52 % (70/135), dont CTFL 20 % → 30 %) | 100 % (0,95) → 100 % (0,95) | 82 % (42/51, 0,71) → 92 % (47/51, 0,78) |
 | #253 lexique FR→EN : racines comparées aux racines, cognat gardé (« application » → « application » et non « mobile », « user » → « user » et non « stories »), mot anglais écarté s'il est nettement mieux associé à un autre mot français (« mode » → « scale »), ex æquo départagés par la ressemblance (lexique identique d'un processus à l'autre) ; question « tester une application bancaire » ajoutée au contrôle avant correctif, toujours en échec (« bancaire » sans traduction ; CT-MAT 5/5 → 1/5 dans le top 5) ; éloigné 5 % → 5 % ; examens 52 % (70/135) → 52 % (70/135) | 100 % (0,95) → 100 % (0,95) | 90 % (47/52, 0,77) → 90 % (47/52, 0,77) |
+| #254 cache du lexique FR→EN : clé = empreinte des titres alignés (code, version, langue, numéro, titre) au lieu du nombre de sections ; un processus long (serveur MCP) suit une réindexation qui change des titres à nombre de sections constant (≈ 3 ms par recherche ; mêmes classements sur les quatre jeux, éloigné 5 % → 5 %, examens 52 % → 52 %) | 100 % (0,95) → 100 % (0,95) | 90 % (47/52, 0,77) → 90 % (47/52, 0,77) |
 | **État actuel** (moteur lexical ; #59 : mêmes classements, ≈ 8 × plus rapide) | **100 % (MRR 0,95)** | **90 % (47/52, MRR 0,77)** |
 
 Le 100 % du jeu de réglage est optimiste par construction ; le chiffre honnête est celui
@@ -146,6 +147,9 @@ taux. Couverture lexicale (base de `confiance`) moins gonflée : « tester une a
 bancaire » 42 → 39, « pilot project for a test tool » 73 → 65. Restent des
 collocations plausibles (« adapter » → « life », « chaîne » → « stream », « place » →
 « setting ») qu'aucune règle sans liste à la main n'écarte.
+Le lexique est mis en cache par processus sous l'empreinte (SHA-256) des titres dont il est
+appris (#254) : toute réindexation qui change un titre le fait réapprendre, y compris dans
+le serveur MCP lancé avant `actualiser`.
 
 Temps : une recherche ≈ 50 ms de calcul (0,2-0,45 s pour la commande complète) ; import initial ≈ 3 s par syllabus (≈ 2-3 min pour 42) ;
 actualisation sans changement < 1 s.

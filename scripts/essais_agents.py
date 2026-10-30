@@ -320,11 +320,13 @@ def references(reponse: str, uniques: bool = True):
 
 
 def verifier_citations(reponse: str, lues: set) -> list[dict]:
-    """Chaque citation (code, pages) unique : une des pages a-t-elle été lue ? Une
-    référence sans document (#247) n'est rattachée à aucun syllabus : elle est signalée
-    comme telle (« sans document §… »), non lue par construction."""
+    """Chaque citation (code, pages) unique : toutes ses pages ont-elles été lues ? Comme
+    `passages_lus` du serveur MCP (#206), `pp. N-M` n'est lue que si chaque page de
+    l'intervalle a été affichée (#272 : `pp. 26-27` après une sortie tronquée à la p. 26
+    n'est pas lue). Une référence sans document (#247) n'est rattachée à aucun syllabus :
+    elle est signalée comme telle (« sans document §… »), non lue par construction."""
     return [{"citation": f"{code or SANS_DOCUMENT} {m.group('ref')[:60]}",
-             "lue": code is not None and any((code, p) in lues for p in range(debut, fin + 1))}
+             "lue": code is not None and all((code, p) in lues for p in range(debut, fin + 1))}
             for code, debut, fin, m in references(reponse)]
 
 

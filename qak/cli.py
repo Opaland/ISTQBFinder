@@ -389,20 +389,43 @@ def _afficher_borne(r: dict, maximum: int, json_: bool, par_pages: bool = False)
         pages = [p["page"] for p in restants]
         reste.insert(0, f"  - pages restantes : `page {doc_id} {min(pages)}-{max(pages)}`"
                         if min(pages) != max(pages) else f"  - page restante : `page {doc_id} {min(pages)}`")
+    non_affiches, entames = _non_affiches(affiches, restants)
+    affiche = sum(len(p["texte"]) for p in affiches)
+    total = affiche + sum(len(p["texte"]) for p in restants)
     if json_:
         affiches = [{**p, "citer": _ref_citation(r["document"], p)} for p in affiches]
         return _json({**r, "passages": affiches, "tronque": bool(restants),
+                      "non_affiches": [{"section": s, "page": n} for s, n in non_affiches],
+                      "entames": [{"section": s, "page": n} for s, n in entames],
                       "reste_a_lire": [l.strip(" -") for l in reste]})
     _afficher_passages(affiches, r["document"])
     if restants:
-        affiche = sum(len(p["texte"]) for p in affiches)
-        total = affiche + sum(len(p["texte"]) for p in restants)
         _ecrire(f"\n✂ Sortie tronquée : {affiche} caractères affichés sur {total} "
-                f"({len(affiches)}/{len(affiches) + len(restants)} passages). Ne citer que ce qui précède. "
-                "Reste à lire :")
+                f"({len(affiches)}/{len(affiches) + len(restants)} passages). Ne citer que ce qui précède.")
+        # #272 : ce qui n'a pas été affiché est nommé en clair (section et page), pas seulement
+        # dans une commande à lancer : une page du « reste à lire » avait été citée.
+        if non_affiches:
+            _ecrire(f"NON AFFICHÉ, donc non lu — aucune référence entre crochets avant de l'avoir lu : "
+                    f"{_en_clair(non_affiches)}.")
+        if entames:
+            _ecrire(f"Affiché en partie seulement (la fin manque) : {_en_clair(entames)} — "
+                    "ne citer que ce qui est affiché ci-dessus.")
+        _ecrire("Reste à lire :")
         for ligne in reste:
             _ecrire(ligne)
-        _ecrire("  (ou relancer avec --max-caracteres 0 pour tout afficher)")
+        _ecrire(f"  (ou relancer avec --max-caracteres {total}, ou 0 sans limite, pour tout afficher)")
+
+
+def _non_affiches(affiches: list[dict], restants: list[dict]) -> tuple[list, list]:
+    """(section, page) des passages restants, dans l'ordre du document : ceux dont rien n'a
+    été affiché, puis ceux affichés en partie (même section et même page des deux côtés)."""
+    vus = {(p["section_num"] or "", p["page"]) for p in affiches}
+    restes = list(dict.fromkeys((p["section_num"] or "", p["page"]) for p in restants))
+    return [c for c in restes if c not in vus], [c for c in restes if c in vus]
+
+
+def _en_clair(cles: list[tuple[str, int]]) -> str:
+    return ", ".join(f"§{s} p. {n}" if s else f"p. {n} (hors section)" for s, n in cles)
 
 
 def cmd_page(a):

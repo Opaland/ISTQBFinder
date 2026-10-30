@@ -36,7 +36,9 @@ Linux/macOS si `python` est absent). `--help` sur chaque commande.
    **Jamais de `| head`** (ni `tail`, `cut`, `grep`) sur `lire`, `section` ou `page` : la
    partie coupée n'est pas lue. Sortie trop longue → `--max-caracteres N`, ou la
    sous-section précise (`section CTAL-TM-3.0-fr 1.3.3`) parmi celles que liste
-   « ✂ Sortie tronquée… Reste à lire ».
+   « ✂ Sortie tronquée… Reste à lire ». Une sortie tronquée nomme ce qu'elle n'a pas
+   affiché (« NON AFFICHÉ, donc non lu : §3.2 p. 27 ») : lis-le (`page <doc> 27`, ou
+   relance avec la borne indiquée) avant de le citer.
 4. **Web** seulement si un besoin identifiable le justifie (voir plus bas) — dis
    pourquoi en une phrase avant de chercher.
 5. **Capitalisation** : propose ce qui mérite d'être conservé (voir plus bas).
@@ -114,7 +116,8 @@ ailleurs ; jamais bloquant (`claude -p` : hypothèses explicites, questions en f
   grille » : écris « à lire : CTEL-ITP §3.3.2 », sans page.
 - **Contrôle avant d'envoyer** : pour chaque `[référence]` de la réponse, retrouve le
   `lire`/`section`/`page` qui a affiché **cette page de ce document** (même sigle). Un extrait de
-  `chercher` ne compte pas. Introuvable → lis le passage maintenant, ou retire la
+  `chercher` ne compte pas, ni une page nommée « NON AFFICHÉ » ou dans « Reste à lire »
+  d'une sortie tronquée. Introuvable → lis le passage maintenant, ou retire la
   référence (au besoin « à lire : §x » sans page, dans « Où creuser »). Règle simple :
   n'écris entre crochets que ce qu'une ligne `Citer :` t'a affiché (`chercher` n'en
   affiche jamais).

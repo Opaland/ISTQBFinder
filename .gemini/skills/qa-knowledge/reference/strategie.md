@@ -38,8 +38,10 @@ questions à choix, puis montrer le plan de recherche — voir [conversation.md]
 - `lire <id> --contexte 1` donne le passage et ses voisins ; `section <doc> 4.2` toute une
   section. Lire au moins les 2-3 meilleurs passages, de documents différents si possible.
 - `lire`, `section` et `page` sont bornées (`--max-caracteres`, défaut 15 000) : une sortie
-  tronquée se termine par « ✂ Sortie tronquée… Reste à lire » et la liste des
-  sous-sections ou pages restantes. **Ne jamais tronquer soi-même avec `head`** (ni
+  tronquée se termine par « ✂ Sortie tronquée », la ligne « NON AFFICHÉ, donc non lu :
+  §x.y p. N » (ces pages-là ne se citent pas), puis « Reste à lire » et les commandes
+  qui affichent la suite (`page <doc> N`, `section <doc> <num>`, ou la borne
+  `--max-caracteres` qui suffit). **Ne jamais tronquer soi-même avec `head`** (ni
   `tail`, ni `cut`) : lire plutôt une sous-section plus précise parmi celles proposées,
   et ne citer que ce qui a été réellement affiché.
 - Noter la version et la date du syllabus ; si deux syllabus divergent (ex. CTFL vs

@@ -260,7 +260,7 @@ qu'avec l'accord de l'utilisateur.
 
 ## Limites
 
-- Recherche **lexicale** (FTS5 + thésaurus FR/EN) : rappel@5 = 92 % sur 51 questions de
+- Recherche **lexicale** (FTS5 + thésaurus FR/EN) : rappel@5 = 90 % sur 52 questions de
   contrôle jamais vues (dont des questions volontairement difficiles), 100 % sur le jeu
   de réglage. Les requêtes très courtes et génériques réussissent mieux avec le terme
   ISTQB anglais. Recherche sémantique (embeddings Hugging Face) évaluée et non retenue :

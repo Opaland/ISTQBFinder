@@ -14,6 +14,7 @@ Ce choix a été mesuré sur eval/requetes.json (voir docs/architecture.md) : le
 """
 import collections
 import difflib
+import hashlib
 import json
 import re
 import sqlite3
@@ -244,6 +245,11 @@ DICE_TRADUCTION = 0.6  # association minimale (Dice) entre un mot français et s
 # « en mode agile à l'échelle », « scale » traduit « échelle » (issue #253).
 CONCURRENCE_TRADUCTION = 0.9
 _LEXIQUES: dict = {}
+_SQL_EMPREINTE_TITRES = (
+    "SELECT group_concat(x, char(30)) FROM (SELECT ifnull(d.code, '') || char(31) || ifnull(d.version, '') "
+    "|| char(31) || ifnull(d.langue, '') || char(31) || ifnull(s.numero, '') || char(31) || ifnull(s.titre, '') AS x "
+    "FROM sections s JOIN documents d ON d.doc_id = s.doc_id WHERE d.statut_version = 'courant' "
+    "ORDER BY s.doc_id, s.ordre)")
 
 
 def _apprendre_lexique(titres: list[tuple[str, str]]) -> dict[str, str]:
@@ -298,9 +304,12 @@ def lexique_titres(cx: sqlite3.Connection) -> dict[str, str]:
     """{racine d'un mot français: mot anglais} appris sur les titres de sections ALIGNÉS
     (même code, même version, même numéro de section en FR et en EN, issue #241), règles de
     `_apprendre_lexique`. « activités » → « activities », « statique » → « static »,
-    « facteurs » → « factors ». Calculé une fois par état de l'index (≈ 1 000 paires de titres)."""
-    cle = tuple(cx.execute("SELECT (SELECT count(*) FROM sections), "
-                           "(SELECT group_concat(doc_id || statut_version) FROM documents)").fetchone())
+    « facteurs » → « factors ». Calculé une fois par état des titres (≈ 1 000 paires)."""
+    # Clé = empreinte des données mêmes dont le lexique est appris (issue #254) : l'ancienne
+    # clé (nombre de sections, documents) restait identique après une réindexation qui change
+    # des titres à nombre de sections constant, et un processus long (serveur MCP) gardait
+    # l'ancien lexique. ≈ 3 ms par recherche, contre ≈ 45 ms pour réapprendre le lexique.
+    cle = hashlib.sha256((cx.execute(_SQL_EMPREINTE_TITRES).fetchone()[0] or "").encode()).hexdigest()
     if cle not in _LEXIQUES:
         titres: dict = {}
         for r in cx.execute("SELECT d.code, d.version, d.langue, s.numero, s.titre FROM sections s "

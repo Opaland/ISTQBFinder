@@ -227,6 +227,31 @@ def test_mot_francais_traduit_par_les_titres_alignes(racine_isolee):
         cx.close()
 
 
+def test_lexique_suit_les_titres_dans_un_processus_long(racine_isolee):
+    # Issue #254 : le cache du lexique avait pour clé le nombre de sections et la liste des
+    # documents. Une réindexation qui change des titres à nombre de sections constant gardait
+    # la même clé : un processus long (serveur MCP) traduisait encore avec l'ancien lexique.
+    from qak import bibliotheque
+    cx = bibliotheque.connecter()
+    try:
+        for doc, langue in (("XX-1.0-fr", "fr"), ("XX-1.0-en", "en")):
+            cx.execute("INSERT INTO documents(doc_id, sha256, fichier, code, version, langue) VALUES (?,?,?,?,?,?)",
+                       (doc, doc, doc, "XX", "1.0", langue))
+        titres = {"fr": ["Facteurs de succès des revues", "Facteurs humains"],
+                  "en": ["Success Factors for Reviews", "Human Factors"]}
+        for langue, liste in titres.items():
+            for k, t in enumerate(liste, 1):
+                cx.execute("INSERT INTO sections VALUES (?, ?, ?, ?, 1)", (f"XX-1.0-{langue}", k, str(k), t))
+        cx.commit()
+        assert recherche.lexique_titres(cx)["facteur"] == "factors"
+        cx.execute("UPDATE sections SET titre = replace(titre, 'Factors', 'Elements')")
+        cx.commit()
+        assert recherche.lexique_titres(cx)["facteur"] == "elements"   # sans vider le cache
+        assert len(recherche._LEXIQUES) == 1                           # l'ancien est remplacé
+    finally:
+        cx.close()
+
+
 def test_lexique_traduit_et_non_collocation():
     # Issue #253 : le lexique retenait le VOISIN de titre au lieu de la traduction.
     # « Mobile Application(s) » : « application » ne comptait qu'une fois par forme anglaise

@@ -104,8 +104,11 @@ ancienne, une seule langue ou aucun syllabus local ne couvre la démarche, propo
   explicitement ce qu'aucun syllabus ne couvre** : « Aucun syllabus de la bibliothèque
   ne couvre … » (ex. le cadre réglementaire d'un dispositif médical, d'un logiciel
   ferroviaire ou bancaire) ; les pratiques qui en dépendent sont « Non vérifiable ».
-- Si une piste mérite d'être conservée (ex. la liste de contrôle RBT), rends-la en JSON
-  prêt à l'emploi (champs de `qa idee modele`) sans l'enregistrer.
+- Si une piste mérite d'être conservée (ex. la liste de contrôle RBT), décris-la **en
+  clair** (titre, principe, source) sans l'enregistrer. Un JSON seulement après
+  `qa idee modele` lancé dans cette réponse, avec ses clés exactement
+  (`titre`, `resume`, `probleme`, `principe`, `theme_principal`, `references` : jamais
+  `contenu`, `sources` ni `statut: "brouillon"`) ; sans `idee modele`, jamais de JSON.
   **Dépôt public** : n'enregistre rien qui nomme un client, une personne, un projet ou un montant (anonymiser) ; un document interne s'importe avec `importer --prive` (`bibliotheque/prive/`, jamais versionné).
 - « Où creuser ensuite » : sections à lire pour affiner l'avis, sans crochets ni page
   (c'est là que vont les références vues seulement en extrait).

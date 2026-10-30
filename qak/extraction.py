@@ -14,14 +14,16 @@ from .textes import normaliser
 # Toute modification de l'extraction, du découpage ou de la détection des métadonnées doit
 # incrémenter ce numéro :
 # l'actualisation réindexe alors les documents extraits par une version antérieure.
-VERSION_EXTRACTEUR = 15
+VERSION_EXTRACTEUR = 16
 
 TAILLE_PASSAGE = 1400   # caractères visés par passage
 PAGE_VIDE = 40          # moins de caractères utiles = page vide (scan, image)
 
 RE_PAGE_IMPRIMEE = re.compile(r"\bpage\s+(\d{1,4})\s*(?:de|of|sur|/|von|z)\s*\d{1,4}\b", re.I)
 RE_POINTILLES = re.compile(r"(?:\.\s?){5,}\s*\d*\s*$")
-RE_TITRE = re.compile(r"^(\d{1,2}(?:\.\d{1,2}){0,3})\.?\s+([A-ZÀ-ÖØ-Þ«“\"(][^\n]{2,140})$")
+# Numéro de titre : l'extraction glisse parfois une espace avant le point (« 1 .7 Défis… »,
+# CT-MAT 2019 FR, #277) ; elle est retirée du numéro retenu.
+RE_TITRE = re.compile(r"^(\d{1,2}(?: ?\.\d{1,2}){0,3})\.?\s+([A-ZÀ-ÖØ-Þ«“\"(][^\n]{2,140})$")
 # Ligne de tableau : au moins deux nombres en fin de ligne (« 10 S'Adapter… 60 0 60 »), ou
 # ligne faite uniquement de nombres (cellules d'un intitulé coupé sur plusieurs lignes).
 RE_FIN_CHIFFREE = re.compile(r"\s\d+(?:[.,]\d+)?\s+\d+(?:[.,]\d+)?\s*$")
@@ -288,10 +290,11 @@ def _plan_depuis_texte(pages: list[Page], vocab: Counter | None = None) -> list[
             m = RE_TITRE.match(l)
             if m and not RE_POINTILLES.search(l) and not l.endswith((",", ";", ":")) \
                     and not _ligne_de_tableau(lignes, i):
-                num = [int(x) for x in m.group(1).split(".")]
+                numero = m.group(1).replace(" ", "")
+                num = [int(x) for x in numero.split(".")]
                 # Recoller d'abord : « safety lifecyc le » ne finit pas par l'article « le ».
                 titre = _completer_titre(lignes, i, _recoller(m.group(2).strip(), vocab))
-                candidats.append((num, Titre(p.numero, i, m.group(1), titre)))
+                candidats.append((num, Titre(p.numero, i, numero, titre)))
     # Les objectifs d'apprentissage en tête de chapitre répètent les titres (« 1.1 Principes… »)
     # quelques pages avant le vrai titre : une occurrence suivie, à moins de 8 pages, d'un titre
     # identique est écartée. Les répétitions lointaines restent : la chaîne la plus longue tranche.

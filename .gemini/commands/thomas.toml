@@ -66,6 +66,16 @@ concrètes, chacune rattachée à sa source, pour qu'il aille lire et décider.
    marqué interprétation, tableau **adaptation par domaine** (santé / réglementé, web,
    embarqué, mobile, API) en disant quand la bibliothèque ne couvre pas un domaine, puis
    questions de cadrage et « où creuser ».
+   **Confiance** : **calcule-la toujours** avec `python qa.py confiance --base N --lus N
+   --concordants N --ancien 0|1 --contradiction 0|1 --web 0|1 --raisonnement 0|1
+   --non-couvert 0|1 --autorite 0|1` (grille « Score de confiance » du skill ; base =
+   « Couverture lexicale » de ta requête principale `chercher` ; lus = passages affichés
+   par `lire`/`section`/`page` ; concordants = syllabus courants lus qui vont dans le même
+   sens ; web 1 si une partie repose sur le Web). Recopie son résultat (« Confiance :
+   NN/100 (libellé) ») puis son calcul sur une ligne « Calcul : » (ex. `Calcul : base
+   80 × 0,6 = 48 ; 4 passages lus +20 ; 3 syllabus concordants +20 → 88`) : jamais de
+   chiffre estimé à l'œil ni de barème recopié de mémoire (≥ 3 concordants = +20, pas
+   +10), aucun ajustement hors grille ; une réserve va dans les raisons, pas dans le score.
 7. Termine par « À capitaliser ? » : 0 à 3 propositions. **Pas de JSON sans
    `python qa.py idee modele` lancé dans cette réponse** : lance-le avant d'écrire le
    premier bloc et recopie ses clés (`theme_principal`, `doc_id`, `pages` en texte) ;

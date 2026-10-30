@@ -24,6 +24,8 @@ manque (#127) :
 - présence d'un score de confiance « Confiance : NN/100 » ;
 - recours au Web ;
 - sur tout essai : un bloc JSON d'idée exige `qa.py idee modele` parmi les commandes (#264) ;
+  une confiance annoncée exige `qa.py confiance --base …` parmi les commandes et son
+  calcul « base N × 0,6 » recopié (#262) ;
 - critères propres à l'essai (`"criteres"` dans eval/essais.json, voir `controler()`) :
   méthode en étapes, étapes sourcées, exemple fictif, domaines, questions de cadrage ou à
   choix, hypothèses explicites, couverture absente signalée, mentions attendues.
@@ -98,6 +100,8 @@ RE_CONFIANCE = re.compile(r"[Cc]onfiance\s*:?\s*\**\s*(\d{1,3})\s*/\s*100")
 RE_ETAPE = re.compile(r"^\s*(?:[-*]\s*)?(?:\*\*)?(?:[ÉE]tape\s*)?\d+\s*[.)—:-]", re.M)
 # Calcul de la confiance recopié de `qa.py confiance` (#227) : « base 70 × 0,6 = 42 ».
 RE_CALCUL_CONFIANCE = re.compile(r"\d{1,3}\s*[×x*]\s*0[,.]6\b", re.I)
+# Appel réel de l'outil, paramètres compris (`confiance --help` ne calcule rien) (#262).
+RE_CMD_CONFIANCE = re.compile(r"qa\.py\s+confiance\b[^;&|\n]*--base")
 # Titre « Niveau atteint : N » de Sylvie (#228) : le niveau retenu, sans réserve.
 RE_NIVEAU_ATTEINT = re.compile(r"niveau\s+atteint\W{0,6}(\d)(?P<suite>[^\n]*)", re.I)
 RE_NIVEAU_RETENU = re.compile(r"(?:je\s+retiens|niveau\s+retenu)\W{0,6}(?:le\s+)?(?:niveau\s+)?(\d)", re.I)
@@ -143,9 +147,10 @@ def controler(reponse: str, criteres: dict, commandes: list[str] | None = None) 
     (« Niveau atteint : N » porte le niveau retenu, sans réserve ni second chiffre, #228),
     debut_direct (la première ligne n'est pas une phrase de déroulé, #232) et en_tete
     (Sylvie : la première ligne est l'en-tête « Avis indicatif… », #232).
-    Avec `commandes` (commandes exécutées, lues dans le transcript), critère posé sur TOUT
+    Avec `commandes` (commandes exécutées, lues dans le transcript), critères posés sur TOUT
     essai : json_apres_idee_modele (un bloc JSON d'idée exige `qa.py idee modele` parmi
-    les commandes, #264)."""
+    les commandes, #264) et calcul_confiance dès qu'une confiance est annoncée (calcul
+    recopié ET `qa.py confiance --base …` parmi les commandes, #262)."""
     out = {}
     methode = _apres(reponse, r"m[ée]thode")
     # La méthode s'arrête au titre de l'exemple (« ## Exemple… », « **Exemple… »), pas à un
@@ -190,8 +195,11 @@ def controler(reponse: str, criteres: dict, commandes: list[str] | None = None) 
         out["debut_direct"] = bool(premiere) and not RE_DEROULE.match(premiere)
     if criteres.get("en_tete"):
         out["en_tete"] = "avis indicatif" in premiere.lower()
-    if criteres.get("calcul_confiance"):
-        out["calcul_confiance"] = bool(RE_CALCUL_CONFIANCE.search(reponse))
+    # #262 : avec les commandes, toute réponse qui annonce une confiance doit l'avoir fait
+    # calculer par `qa.py confiance` ET recopier son calcul (Thomas estimait à la main).
+    if criteres.get("calcul_confiance") or (commandes is not None and RE_CONFIANCE.search(reponse)):
+        out["calcul_confiance"] = bool(RE_CALCUL_CONFIANCE.search(reponse)) and (
+            commandes is None or any(RE_CMD_CONFIANCE.search(c) for c in commandes))
     if commandes is not None and RE_BLOC_IDEE.search(reponse):
         out["json_apres_idee_modele"] = any(RE_IDEE_MODELE.search(c) for c in commandes)
     return out
